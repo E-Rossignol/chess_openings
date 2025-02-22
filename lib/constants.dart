@@ -1,0 +1,82 @@
+import 'model/piece.dart';
+import 'model/square.dart';
+
+enum PieceType {
+  pawn,
+  rook,
+  knight,
+  bishop,
+  queen,
+  king,
+}
+
+enum PieceColor {
+  white,
+  black,
+}
+
+PieceColor toggleColor(PieceColor color) {
+  return color == PieceColor.white ? PieceColor.black : PieceColor.white;
+}
+
+String pieceTypeToSVG(PieceType type, PieceColor color) {
+  switch (type) {
+    case PieceType.pawn:
+      return color == PieceColor.white ? 'wP.svg' : 'bP.svg';
+    case PieceType.rook:
+      return color == PieceColor.white ? 'wR.svg' : 'bR.svg';
+    case PieceType.knight:
+      return color == PieceColor.white ? 'wN.svg' : 'bN.svg';
+    case PieceType.bishop:
+      return color == PieceColor.white ? 'wB.svg' : 'bB.svg';
+    case PieceType.queen:
+      return color == PieceColor.white ? 'wQ.svg' : 'bQ.svg';
+    case PieceType.king:
+      return color == PieceColor.white ? 'wK.svg' : 'bK.svg';
+  }
+}
+
+int getValue(Piece piece){
+  int value = 0;
+  switch(piece.type){
+    case PieceType.pawn:
+      value = 1;
+      break;
+    case PieceType.rook:
+      value = 5;
+      break;
+    case PieceType.knight:
+      value = 3;
+      break;
+    case PieceType.bishop:
+      value = 3;
+      break;
+    case PieceType.queen:
+      value = 10;
+      break;
+    case PieceType.king:
+      value = -1;
+      break;
+  }
+  return value;
+}
+
+List<String> toChessCoordinates(int row, int col) {
+  return [
+    String.fromCharCode(97 + col),
+    (8 - row).toString(),
+  ];
+}
+
+List<int> fromChessCoordinates(String row, String col) {
+  return [
+    8 - int.parse(col),
+    row.codeUnitAt(0) - 97,
+  ];
+}
+
+int distance(Square square1, Square square2){
+  int rowDistance = (square1.row - square2.row).abs();
+  int colDistance = (square1.col - square2.col).abs();
+  return rowDistance+colDistance;
+}
