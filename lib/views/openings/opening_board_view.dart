@@ -1,27 +1,24 @@
-import 'dart:ui';
-
 import 'package:chess_ouvertures/constants.dart';
+import 'package:chess_ouvertures/model/openings/opening.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '../bot.dart';
-import '../model/board.dart';
-import '../model/piece.dart';
-import '../model/square.dart';
-import '../test.dart';
-import 'main_view.dart';
+import '../../model/board.dart';
+import '../../model/openings/opening_move.dart';
+import '../../model/piece.dart';
+import '../../model/square.dart';
+import '../main_view.dart';
 
-class BoardView extends StatefulWidget {
+class OpeningBoardView extends StatefulWidget {
   final Board board;
-  final bool hasBot;
-  final PieceColor botColor;
+  Opening opening;
 
-  const BoardView({super.key, required this.board, this.hasBot = false, this.botColor = PieceColor.black});
+  OpeningBoardView({super.key, required this.board, required this.opening});
 
   @override
-  _BoardViewState createState() => _BoardViewState();
+  _OpeningBoardViewState createState() => _OpeningBoardViewState();
 }
 
-class _BoardViewState extends State<BoardView> {
+class _OpeningBoardViewState extends State<OpeningBoardView> {
   int? fromRow;
   int? fromCol;
   int? lastMoveFromRow;
@@ -31,30 +28,19 @@ class _BoardViewState extends State<BoardView> {
   List<Square> validMoves = [];
   bool isReversed = false;
   Square? selectedSquare;
-  String gameResultMessage = '';
-  String moveCountMessage = '';
-  late Test test;
-  late Bot bot;
+  String moveCountMessage = '0';
+  List<OpeningMove>? allMoves;
 
   @override
   void initState() {
     super.initState();
-    bot = Bot(board: widget.board, botColor: widget.botColor);
-    widget.board.gameResult.addListener(_updateGameResult);
     widget.board.boardNotifier.addListener(_updateBoard);
     widget.board.moveCount.addListener(_updateMoveCount);
-    test = Test(board: widget.board);
-    if (widget.hasBot){
-      bot.startGameAgainstBot();
-      if (widget.botColor == PieceColor.white){
-        _reverseBoard();
-      }
-    }
+    allMoves = widget.opening.moves;
   }
 
   @override
   void dispose() {
-    widget.board.gameResult.removeListener(_updateGameResult);
     widget.board.boardNotifier.removeListener(_updateBoard);
     super.dispose();
   }
@@ -69,25 +55,6 @@ class _BoardViewState extends State<BoardView> {
     });
   }
 
-  void _updateGameResult() {
-    final result = widget.board.gameResult.value;
-    setState(() {
-      switch (result) {
-        case 1:
-          gameResultMessage = 'White wins!';
-          break;
-        case 2:
-          gameResultMessage = 'Black wins!';
-          break;
-        case -1:
-          gameResultMessage = 'Draw!';
-          break;
-        default:
-          gameResultMessage = '';
-      }
-    });
-  }
-
   void _resetBoard() {
     setState(() {
       widget.board.reset();
@@ -97,8 +64,6 @@ class _BoardViewState extends State<BoardView> {
       lastMoveToRow = null;
       lastMoveToCol = null;
       selectedSquare = null;
-      gameResultMessage = '';
-      test.stopTest();
     });
   }
 
@@ -106,37 +71,6 @@ class _BoardViewState extends State<BoardView> {
     setState(() {
       isReversed = !isReversed;
     });
-  }
-
-  Widget whiteScore() {
-    String score = "White score: ";
-    score += '${(widget.board.whiteScore - widget.board.blackScore)}';
-    return Text(
-      score,
-      style: const TextStyle(
-        fontStyle: FontStyle.italic,
-        fontWeight: FontWeight.bold,
-        fontSize: 20,
-      ),
-    );
-  }
-
-  Widget blackScore() {
-    String score = "Black score: ";
-    score += '${(widget.board.blackScore - widget.board.whiteScore)}';
-    return Text(
-      score,
-      style: const TextStyle(
-        fontStyle: FontStyle.italic,
-        fontWeight: FontWeight.bold,
-        fontSize: 20,
-      ),
-    );
-  }
-
-  void _runTest() async {
-    test = Test(board: widget.board);
-    await test.runTest();
   }
 
   @override
@@ -155,6 +89,7 @@ class _BoardViewState extends State<BoardView> {
           Column(
             children: [
               SizedBox(height: 50),
+              Center(child: Text(widget.opening.name, style: TextStyle(color: Colors.white, fontSize: 30, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold))),
               Stack(
                 children: [
                   Align(
@@ -184,10 +119,6 @@ class _BoardViewState extends State<BoardView> {
                         icon: const Icon(Icons.flip, color: Colors.white),
                         onPressed: _reverseBoard,
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.terminal, color: Colors.white),
-                        onPressed: _runTest,
-                      ),
                     ],
                   ),
                 ],
@@ -198,27 +129,6 @@ class _BoardViewState extends State<BoardView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 4.0, horizontal: 8.0),
-                  child: isReversed ? whiteScore() : blackScore(),
-                ),
-                SizedBox(
-                  height: 10
-                ),
-                if (gameResultMessage.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    color: Colors.black.withOpacity(0.7),
-                    child: Text(
-                      gameResultMessage,
-                      style: const TextStyle(color: Colors.white, fontSize: 24),
-                    ),
-                  ),
                 Row(
                   children: [
                     Column(
@@ -255,7 +165,7 @@ class _BoardViewState extends State<BoardView> {
                               child: GridView.builder(
                                 physics: NeverScrollableScrollPhysics(),
                                 gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 8,
                                 ),
                                 itemBuilder: (context, index) {
@@ -263,9 +173,9 @@ class _BoardViewState extends State<BoardView> {
                                       ? 7 - (index ~/ 8)
                                       : index ~/ 8;
                                   final int col =
-                                      isReversed ? 7 - (index % 8) : index % 8;
+                                  isReversed ? 7 - (index % 8) : index % 8;
                                   final Square square =
-                                      widget.board.board[row][col];
+                                  widget.board.board[row][col];
                                   bool isOriginSquare =
                                       fromRow == row && fromCol == col;
                                   bool isGameOver =
@@ -283,24 +193,6 @@ class _BoardViewState extends State<BoardView> {
                                               .getValidMoves(square.piece!);
                                         } else if (selectedSquare != null &&
                                             validMoves.contains(square)) {
-                                          bool isPromoting = (selectedSquare!
-                                                      .piece?.type ==
-                                                  PieceType.pawn &&
-                                              ((row == 7 &&
-                                                      selectedSquare!
-                                                              .piece?.color ==
-                                                          PieceColor.black) ||
-                                                  (row == 0 &&
-                                                      selectedSquare!
-                                                              .piece?.color ==
-                                                          PieceColor.white)));
-                                          if (isPromoting) {
-                                            _showPromotionDialog(
-                                                selectedSquare!.piece!,
-                                                widget.board,
-                                                row,
-                                                col);
-                                          }
                                           widget.board.movePiece(
                                             selectedSquare!.row,
                                             selectedSquare!.col,
@@ -309,7 +201,8 @@ class _BoardViewState extends State<BoardView> {
                                           );
                                           selectedSquare = null;
                                           validMoves = [];
-                                        } else {
+                                        }
+                                        else {
                                           selectedSquare = null;
                                           validMoves = [];
                                         }
@@ -338,56 +231,56 @@ class _BoardViewState extends State<BoardView> {
                                       builder: (context, candidateData,
                                           rejectedData) {
                                         bool isValidMove =
-                                            validMoves.contains(square);
+                                        validMoves.contains(square);
                                         BoxDecoration squareDecoration = square
-                                                .isWhite
+                                            .isWhite
                                             ? const BoxDecoration(
                                           color: Color.fromRGBO(
                                               246, 238, 228, 1.0),
-                                              )
+                                        )
                                             : const BoxDecoration(
                                           color: Color.fromRGBO(
                                               201, 181, 151, 1.0),
-                                              );
+                                        );
                                         return Stack(
                                           children: [
                                             Container(
                                               decoration: squareDecoration,
                                               child: square.piece != null &&
-                                                      square.piece!.color ==
-                                                          widget
-                                                              .board.currentTurn
+                                                  square.piece!.color ==
+                                                      widget
+                                                          .board.currentTurn
                                                   ? Draggable<Square>(
-                                                      data: square,
-                                                      feedback: _buildPiece(
-                                                          square.piece!,
-                                                          isDragging: true),
-                                                      childWhenDragging:
-                                                          Container(),
-                                                      child: _buildPiece(
-                                                          square.piece!),
-                                                      onDragStarted: () {
-                                                        if (!isGameOver) {
-                                                          setState(() {
-                                                            fromRow = row;
-                                                            fromCol = col;
-                                                            validMoves = widget
-                                                                .board
-                                                                .getValidMoves(
-                                                                    square
-                                                                        .piece!);
-                                                          });
-                                                        }
-                                                      },
-                                                      onDraggableCanceled:
-                                                          (_, __) {
-                                                        setState(() {
-                                                          fromRow = null;
-                                                          fromCol = null;
-                                                          validMoves = [];
-                                                        });
-                                                      },
-                                                    )
+                                                data: square,
+                                                feedback: _buildPiece(
+                                                    square.piece!,
+                                                    isDragging: true),
+                                                childWhenDragging:
+                                                Container(),
+                                                child: _buildPiece(
+                                                    square.piece!),
+                                                onDragStarted: () {
+                                                  if (!isGameOver) {
+                                                    setState(() {
+                                                      fromRow = row;
+                                                      fromCol = col;
+                                                      validMoves = widget
+                                                          .board
+                                                          .getValidMoves(
+                                                          square
+                                                              .piece!);
+                                                    });
+                                                  }
+                                                },
+                                                onDraggableCanceled:
+                                                    (_, __) {
+                                                  setState(() {
+                                                    fromRow = null;
+                                                    fromCol = null;
+                                                    validMoves = [];
+                                                  });
+                                                },
+                                              )
                                                   : _buildPiece(square.piece),
                                             ),
                                             if (isOriginSquare)
@@ -412,11 +305,11 @@ class _BoardViewState extends State<BoardView> {
                                                 square.piece != null)
                                               Container(
                                                 color:
-                                                    Colors.red.withOpacity(0.5),
+                                                Colors.red.withOpacity(0.5),
                                               ),
                                           ],
                                         );
-                                                        
+
                                       },
                                     ),
                                   );
@@ -444,62 +337,64 @@ class _BoardViewState extends State<BoardView> {
                             );
                           }),
                         ),
+                        if(widget.board.gameResult.value != 0)
+                          const SizedBox(
+                            height: 50,
+                            child: Center(
+                              child: Text("Game over !", style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                              ))
+                            ),
+                          ),
+
+                        if(widget.board.gameResult.value == 0)
+                          const SizedBox(height: 50),
+
+                        TextButton(onPressed: (){
+                          _showMoves();
+                        }, child: Text("Available moves")),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 4.0, horizontal: 8.0),
-                  child: isReversed ? blackScore() : whiteScore(),
-
-
-                ),
-
-
               ],
             ),
           ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Text(
+              'Move n°$moveCountMessage', style: TextStyle(
+              color: Colors.white,
+            ),
+            )
+          )
         ],
       ),
     );
   }
 
-  void _showPromotionDialog(Piece pawn, Board board, int row, int col) {
+  void _showMoves() {
+    int currentMoveNumber = widget.board.moveCount.value;
+    List<OpeningMove> availableMoves = allMoves?.where((move) => move.moveNumber == currentMoveNumber).toList() ?? [];
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Promote Pawn'),
+          title: const Text('Available Moves' ,style: TextStyle(
+              color: Colors.black
+          )),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: PieceType.values
-                .where(
-                    (type) => type != PieceType.king && type != PieceType.pawn)
-                .map((type) => ListTile(
-                      //title: Text(type.toString().split('.').last),
-                      title: SvgPicture.asset(
-                        'assets/images/${pieceTypeToSVG(type, pawn.color)}',
-                        width: 60,
-                        height: 60,
-                      ),
-                      onTap: () {
-                        setState(() {
-                          board.board[row][col].piece = Piece(
-                              type: type,
-                              color: pawn.color,
-                              id: pawn.id,
-                              hasMove: true);
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    ))
-                .toList(),
+            children: availableMoves.map((move) {
+              return ListTile(
+                title: Text('${squareToString(move.from)} -> ${squareToString(move.to)}'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+              );
+            }).toList(),
           ),
         );
       },

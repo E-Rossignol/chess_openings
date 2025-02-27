@@ -3,8 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
 import '../constants.dart';
 import 'square.dart';
+import 'package:flutter/src/foundation/change_notifier.dart';
 
-class Board {
+class Board{
   final List<List<Square>> board;
   ValueNotifier<bool> boardNotifier = ValueNotifier(false);
   List<Piece> capturedPiece = []; // List of captured pieces
@@ -22,6 +23,7 @@ class Board {
       : board = List.generate(
             8, (row) => List.generate(8, (col) => Square(row, col))) {
     // Initialize pieces on the board
+    moveCount.value = 0;
     _initializePieces();
   }
 
@@ -564,8 +566,11 @@ class Board {
         }
         _playSound(toPlay);
         boardNotifier.value = !boardNotifier.value;
-        piece.hasMove = true;
         moveCount.value ++;
+        boardNotifier.notifyListeners();
+        moveCount.notifyListeners();
+        piece.hasMove = true;
+        isDraw();
         return true;
       }
     }
@@ -625,6 +630,7 @@ class Board {
         square.piece = null;
       }
     }
+    moveCount.value = 0;
     _initializePieces();
     capturedPiece.clear();
     currentTurn = PieceColor.white;
@@ -633,6 +639,20 @@ class Board {
     blackScore = 0;
     lastMoveFrom = null;
     lastMoveTo = null;
+  }
+
+  void isDraw(){
+    List<Piece> remainingPieces = [];
+    for(var row in board){
+      for (var square in row){
+        if (square.piece != null){
+          remainingPieces.add(square.piece!);
+        }
+      }
+    }
+    if (remainingPieces.length == 2 && remainingPieces.elementAt(0).type == PieceType.king && remainingPieces.elementAt(1).type == PieceType.king){
+      gameResult.value = -1;
+    }
   }
 
   void _initializePieces() {

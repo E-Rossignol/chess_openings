@@ -1,36 +1,29 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:chess_ouvertures/constants.dart';
 import 'package:chess_ouvertures/model/square.dart';
 import 'model/piece.dart';
 import 'model/board.dart';
 
-class Test {
+class Bot {
   final Board board;
-  PieceColor playing = PieceColor.white;
-  bool _isRunning = false;
-  Random rdm = Random();
+  final PieceColor botColor;
+  final Random rdm = Random();
+  Timer? botTimer;
 
-  Test({required this.board});
+  Bot({required this.board, required this.botColor});
 
-  Future<void> runTest() async {
-    _isRunning = true;
-    try {
-      await playRandomMoves();
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  void stopTest() {
-    _isRunning = false;
-  }
-
-  Future<void> playRandomMoves() async {
-    while (board.gameResult.value == 0) {
-      if (!_isRunning) {
-        print('Stopped');
-        break;
+  void startGameAgainstBot() {
+    botTimer?.cancel();
+    botTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (board.currentTurn == botColor) {
+        playRandomMove();
       }
+    });
+  }
+
+  Future<void> playRandomMove() async {
+    while (board.gameResult.value == 0) {
       List<Move> validMoves = getAllValidMoves();
       if (validMoves.isEmpty) {
         print('Game over');
@@ -39,8 +32,7 @@ class Test {
         Move selectedMove = selectPreferredMove(validMoves);
         board.movePiece(selectedMove.fromRow, selectedMove.fromCol,
             selectedMove.toRow, selectedMove.toCol);
-        switchTurn();
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 1500));
       }
     }
     print("Simulation over");
@@ -51,7 +43,7 @@ class Test {
     for (int row = 0; row < 8; row++) {
       for (int col = 0; col < 8; col++) {
         Square square = board.board[row][col];
-        if (square.piece != null && square.piece!.color == playing) {
+        if (square.piece != null && square.piece!.color == botColor) {
           List<Square> moves = board.getValidMoves(square.piece!);
           for (Square move in moves) {
             validMoves.add(Move(
@@ -69,7 +61,7 @@ class Test {
 
   Move selectPreferredMove(List<Move> validMoves) {
     List<Move> capturingMoves =
-        validMoves.where((move) => move.capturedPiece != null).toList();
+    validMoves.where((move) => move.capturedPiece != null).toList();
     for (Move move in capturingMoves) {
       for (int i = 0; i < getValue(move.capturedPiece!); i++) {
         validMoves.add(move);
@@ -80,9 +72,6 @@ class Test {
     return validMoves[rdm.nextInt(validMoves.length)];
   }
 
-  void switchTurn() {
-    playing = toggleColor(playing);
-  }
 }
 
 class Move {
@@ -94,8 +83,8 @@ class Move {
 
   Move(
       {required this.fromRow,
-      required this.fromCol,
-      required this.toRow,
-      required this.toCol,
-      this.capturedPiece});
+        required this.fromCol,
+        required this.toRow,
+        required this.toCol,
+        this.capturedPiece});
 }
