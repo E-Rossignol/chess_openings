@@ -2,10 +2,12 @@ import 'package:chess_ouvertures/constants.dart';
 import 'package:chess_ouvertures/model/openings/opening.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../../database/database_helper.dart';
 import '../../model/board.dart';
 import '../../model/openings/opening_move.dart';
 import '../../model/piece.dart';
 import '../../model/square.dart';
+import '../../painter.dart';
 import '../main_view.dart';
 
 class OpeningBoardView extends StatefulWidget {
@@ -21,6 +23,7 @@ class OpeningBoardView extends StatefulWidget {
 class _OpeningBoardViewState extends State<OpeningBoardView> {
   int? fromRow;
   int? fromCol;
+  int lastMoveId = -1;
   int? lastMoveFromRow;
   int? lastMoveFromCol;
   int? lastMoveToRow;
@@ -29,14 +32,15 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
   bool isReversed = false;
   Square? selectedSquare;
   String moveCountMessage = '0';
-  List<OpeningMove>? allMoves;
+  bool isRecording = false;
+  List<List<Square>> newVariant = [];
+  String variantName = "";
 
   @override
   void initState() {
     super.initState();
     widget.board.boardNotifier.addListener(_updateBoard);
     widget.board.moveCount.addListener(_updateMoveCount);
-    allMoves = widget.opening.moves;
   }
 
   @override
@@ -64,6 +68,9 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
       lastMoveToRow = null;
       lastMoveToCol = null;
       selectedSquare = null;
+      lastMoveId = -1;
+      newVariant = [];
+      variantName = "";
     });
   }
 
@@ -73,8 +80,157 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     });
   }
 
+  void _showValidateVariantDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Validate record'),
+          content: const Text("Are you sure to want to validate record ?"),
+          actions: [
+            Column(
+              children: [
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          Navigator.of(context).pop();
+                          await _reShowVariant();
+                        },
+                        child: const Text('Show'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          setState(() {
+                            _showVariantNameDialog();
+                          });// Ferme la boîte de dialogue
+                        },
+                        child: const Text('Variant\'s name'),
+                      ),
+                    ],
+                  ),
+                ),
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          List<OpeningMove>? result = await DatabaseHelper()
+                              .insertVariant(newVariant, widget.opening.name, variantName);
+                          String message = "";
+                          if (result != null && result.isNotEmpty) {
+                            for (OpeningMove move in result) {
+                              setState(() {
+                                widget.opening.moves.add(move);
+                              });
+                            }
+                            message = "Variant recorded successfully.";
+                          } else if (result != null && result.isEmpty) {
+                            message = "You added 0 new move to the ouverture.";
+                          } else {
+                            message = "Error trying to store the variant";
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(message),
+                          ));
+                          Navigator.of(context).pop();
+                          setState(() {
+                            isRecording = false;
+                            newVariant = [];
+                            _resetBoard();
+                          });
+                        },
+                        child: const Text('Yes'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _resetBoard();
+                            isRecording = false;
+                          });
+                          Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                        },
+                        child: const Text('No'),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _reShowVariant() async {
+    _resetBoard();
+    await Future.delayed(const Duration(seconds: 1));
+    for (int i = 0; i < newVariant.length; i++) {
+      List<Square> move = newVariant[i];
+      setState(() {
+        widget.board
+            .movePiece(move[0].row, move[0].col, move[1].row, move[1].col);
+      });
+      await Future.delayed(const Duration(seconds: 1));
+    }
+    _showValidateVariantDialog();
+  }
+
+  void _showVariantNameDialog() {
+    TextEditingController _textFieldController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Variant name'),
+          content: TextField(
+            controller: _textFieldController,
+            decoration: const InputDecoration(hintText: "Enter variant name"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: (){
+                Navigator.of(context).pop();
+                setState(() {
+                  String input = _textFieldController.text;
+                  variantName = input;
+                });
+                _showValidateVariantDialog();
+              },
+              child: const Text('Ok'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showValidateVariantDialog();// Ferme la boîte de dialogue
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _undoLastMove(){
+    widget.board.undoLastMove();
+  }
+
   @override
   Widget build(BuildContext context) {
+    int currentMoveNumber = widget.board.moveCount.value;
+    Color whiteColor = isRecording
+        ? Colors.orangeAccent
+        : const Color.fromRGBO(246, 238, 228, 1.0);
+    Color blackColor = isRecording
+        ? Colors.red
+        : const Color.fromRGBO(201, 181, 151, 1.0);
     return Scaffold(
       body: Stack(
         children: [
@@ -89,7 +245,6 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
           Column(
             children: [
               SizedBox(height: 50),
-              Center(child: Text(widget.opening.name, style: TextStyle(color: Colors.white, fontSize: 30, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold))),
               Stack(
                 children: [
                   Align(
@@ -112,6 +267,10 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
+                        icon: const Icon(Icons.keyboard_double_arrow_left, color: Colors.white),
+                        onPressed: _undoLastMove,
+                      ),
+                      IconButton(
                         icon: const Icon(Icons.refresh, color: Colors.white),
                         onPressed: _resetBoard,
                       ),
@@ -127,6 +286,28 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
           ),
           Center(
             child: Column(
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height / 9,
+                ),
+                Text(widget.opening.name, style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                    fontStyle: FontStyle.italic
+                )),
+                if (!isRecording)
+                  Text(variantName, style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      fontStyle: FontStyle.italic
+                  )),
+              ],
+            ),
+          ),
+          Center(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
@@ -134,7 +315,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                     Column(
                       children: List.generate(8, (index) {
                         return Container(
-                          height: (MediaQuery.of(context).size.width - 25)/8,
+                          height: (MediaQuery.of(context).size.width - 25) / 8,
                           padding: const EdgeInsets.only(bottom: 25, right: 10),
                           alignment: Alignment.center,
                           child: Text(
@@ -151,6 +332,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                     ),
                     Column(
                       children: [
+                        SizedBox(height: 35),
                         Container(
                           color: Colors.blueAccent,
                           height: MediaQuery.of(context).size.width - 25,
@@ -162,160 +344,176 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                               removeBottom: true,
                               removeLeft: true,
                               removeRight: true,
-                              child: GridView.builder(
-                                physics: NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 8,
-                                ),
-                                itemBuilder: (context, index) {
-                                  final int row = isReversed
-                                      ? 7 - (index ~/ 8)
-                                      : index ~/ 8;
-                                  final int col =
-                                  isReversed ? 7 - (index % 8) : index % 8;
-                                  final Square square =
-                                  widget.board.board[row][col];
-                                  bool isOriginSquare =
-                                      fromRow == row && fromCol == col;
-                                  bool isGameOver =
-                                      widget.board.gameResult.value != 0;
-                                  return GestureDetector(
-                                    onTap: () {
-                                      if (isGameOver) return;
-                                      setState(() {
-                                        if (selectedSquare == null &&
-                                            square.piece != null &&
-                                            square.piece!.color ==
-                                                widget.board.currentTurn) {
-                                          selectedSquare = square;
-                                          validMoves = widget.board
-                                              .getValidMoves(square.piece!);
-                                        } else if (selectedSquare != null &&
-                                            validMoves.contains(square)) {
-                                          widget.board.movePiece(
-                                            selectedSquare!.row,
-                                            selectedSquare!.col,
-                                            row,
-                                            col,
-                                          );
-                                          selectedSquare = null;
-                                          validMoves = [];
-                                        }
-                                        else {
-                                          selectedSquare = null;
-                                          validMoves = [];
-                                        }
-                                      });
-                                    },
-                                    child: DragTarget<Square>(
-                                      onAccept: (data) {
-                                        if (!isGameOver) {
-                                          setState(() {
-                                            widget.board.movePiece(
-                                              data.row,
-                                              data.col,
-                                              row,
-                                              col,
-                                            );
-                                            validMoves = [];
-                                            fromRow = null;
-                                            fromCol = null;
-                                            lastMoveFromRow = data.row;
-                                            lastMoveFromCol = data.col;
-                                            lastMoveToRow = row;
-                                            lastMoveToCol = col;
-                                          });
-                                        }
+                              child: Stack(children: [
+                                GridView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 8,
+                                  ),
+                                  itemBuilder: (context, index) {
+                                    final int row = isReversed
+                                        ? 7 - (index ~/ 8)
+                                        : index ~/ 8;
+                                    final int col = isReversed
+                                        ? 7 - (index % 8)
+                                        : index % 8;
+                                    final Square square =
+                                        widget.board.board[row][col];
+                                    bool isOriginSquare =
+                                        fromRow == row && fromCol == col;
+                                    bool isGameOver =
+                                        widget.board.gameResult.value != 0;
+                                    return GestureDetector(
+                                      onTap: () {
+                                        if (isGameOver) return;
+                                        setState(() {
+                                          if (!isRecording) {
+                                            if (selectedSquare == null &&
+                                                square.piece != null &&
+                                                square.piece!.color ==
+                                                    widget.board.currentTurn) {
+                                              selectedSquare = square;
+                                              validMoves = widget.board
+                                                  .getValidMoves(square.piece!);
+                                            } else if (selectedSquare != null &&
+                                                validMoves.contains(square)) {
+                                              OpeningMove? move =
+                                                  isInCurrentOpening(
+                                                      selectedSquare!,
+                                                      Square(row, col));
+                                              if (move != null) {
+                                                newVariant.add(
+                                                    [selectedSquare!, square]);
+                                                widget.board.movePiece(
+                                                    move.from.row,
+                                                    move.from.col,
+                                                    move.to.row,
+                                                    move.to.col);
+                                                setState(() {
+                                                  lastMoveId = move.id;
+                                                });
+                                              } else {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(const SnackBar(
+                                                        content: Text(
+                                                            "Move not available in you opening")));
+                                              }
+                                              selectedSquare = null;
+                                              validMoves = [];
+                                            } else {
+                                              selectedSquare = null;
+                                              validMoves = [];
+                                            }
+                                          } else {
+                                            if (selectedSquare == null &&
+                                                square.piece != null &&
+                                                square.piece!.color ==
+                                                    widget.board.currentTurn) {
+                                              selectedSquare = square;
+                                              validMoves = widget.board
+                                                  .getValidMoves(square.piece!);
+                                            } else if (selectedSquare != null &&
+                                                validMoves.contains(square)) {
+                                              newVariant.add(
+                                                  [selectedSquare!, square]);
+                                              widget.board.movePiece(
+                                                selectedSquare!.row,
+                                                selectedSquare!.col,
+                                                row,
+                                                col,
+                                              );
+                                              selectedSquare = null;
+                                              validMoves = [];
+                                            } else {
+                                              selectedSquare = null;
+                                              validMoves = [];
+                                            }
+                                          }
+                                        });
                                       },
-                                      builder: (context, candidateData,
-                                          rejectedData) {
-                                        bool isValidMove =
-                                        validMoves.contains(square);
-                                        BoxDecoration squareDecoration = square
-                                            .isWhite
-                                            ? const BoxDecoration(
-                                          color: Color.fromRGBO(
-                                              246, 238, 228, 1.0),
-                                        )
-                                            : const BoxDecoration(
-                                          color: Color.fromRGBO(
-                                              201, 181, 151, 1.0),
-                                        );
-                                        return Stack(
-                                          children: [
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            decoration: square.isWhite
+                                                ? BoxDecoration(
+                                                    color: whiteColor)
+                                                : BoxDecoration(
+                                                    color: blackColor),
+                                            child: _buildPiece(square.piece),
+                                          ),
+                                          if (isOriginSquare)
                                             Container(
-                                              decoration: squareDecoration,
-                                              child: square.piece != null &&
-                                                  square.piece!.color ==
-                                                      widget
-                                                          .board.currentTurn
-                                                  ? Draggable<Square>(
-                                                data: square,
-                                                feedback: _buildPiece(
-                                                    square.piece!,
-                                                    isDragging: true),
-                                                childWhenDragging:
-                                                Container(),
-                                                child: _buildPiece(
-                                                    square.piece!),
-                                                onDragStarted: () {
-                                                  if (!isGameOver) {
-                                                    setState(() {
-                                                      fromRow = row;
-                                                      fromCol = col;
-                                                      validMoves = widget
-                                                          .board
-                                                          .getValidMoves(
-                                                          square
-                                                              .piece!);
-                                                    });
-                                                  }
-                                                },
-                                                onDraggableCanceled:
-                                                    (_, __) {
-                                                  setState(() {
-                                                    fromRow = null;
-                                                    fromCol = null;
-                                                    validMoves = [];
-                                                  });
-                                                },
-                                              )
-                                                  : _buildPiece(square.piece),
+                                              color:
+                                                  Colors.blue.withOpacity(0.5),
                                             ),
-                                            if (isOriginSquare)
-                                              Container(
-                                                color: Colors.blue
-                                                    .withOpacity(0.5),
-                                              ),
-                                            if (isValidMove &&
-                                                square.piece == null)
-                                              Center(
-                                                child: Container(
-                                                  width: 10,
-                                                  height: 10,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.lightGreen
-                                                        .withOpacity(0.9),
-                                                    shape: BoxShape.circle,
-                                                  ),
+                                          if (validMoves.contains(square) &&
+                                              square.piece == null &&
+                                              isInCurrentOpening(
+                                                      selectedSquare!,
+                                                      square) !=
+                                                  null &&
+                                              !isRecording)
+                                            Center(
+                                              child: Container(
+                                                width: 10,
+                                                height: 10,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.red
+                                                      .withOpacity(0.9),
+                                                  shape: BoxShape.circle,
                                                 ),
                                               ),
-                                            if (isValidMove &&
-                                                square.piece != null)
-                                              Container(
-                                                color:
-                                                Colors.red.withOpacity(0.5),
+                                            ),
+                                          if (validMoves.contains(square) &&
+                                              square.piece == null &&
+                                              isRecording)
+                                            Center(
+                                              child: Container(
+                                                width: 10,
+                                                height: 10,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.lightBlueAccent
+                                                      .withOpacity(0.9),
+                                                  shape: BoxShape.circle,
+                                                ),
                                               ),
-                                          ],
-                                        );
-
-                                      },
+                                            ),
+                                          if (validMoves.contains(square) &&
+                                              square.piece != null)
+                                            Container(
+                                              color:
+                                                  Colors.red.withOpacity(0.5),
+                                            ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  itemCount: 64,
+                                ),
+                                IgnorePointer(
+                                  child: Opacity(
+                                    opacity: isRecording ? 0.0 : 1.0,
+                                    child: CustomPaint(
+                                      size: Size(
+                                          MediaQuery.of(context).size.width -
+                                              25,
+                                          MediaQuery.of(context).size.width -
+                                              25),
+                                      painter: ArrowPainter(
+                                          moves: widget.opening.moves
+                                                  .where((move) =>
+                                                      move.moveNumber ==
+                                                          currentMoveNumber &&
+                                                      lastMoveId ==
+                                                          move.previousMoveId)
+                                                  .toList() ??
+                                              [],
+                                          isReversed: isReversed),
                                     ),
-                                  );
-                                },
-                                itemCount: 64,
-                              ),
+                                  ),
+                                ),
+                              ]),
                             ),
                           ),
                         ),
@@ -323,7 +521,8 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                           mainAxisSize: MainAxisSize.min,
                           children: List.generate(8, (index) {
                             return Container(
-                              width: (MediaQuery.of(context).size.width - 25)/8,
+                              width:
+                                  (MediaQuery.of(context).size.width - 25) / 8,
                               alignment: Alignment.center,
                               child: Text(
                                 String.fromCharCode(65 + index),
@@ -337,79 +536,96 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                             );
                           }),
                         ),
-                        if(widget.board.gameResult.value != 0)
-                          const SizedBox(
-                            height: 50,
-                            child: Center(
-                              child: Text("Game over !", style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                              ))
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                if (!isRecording){
+                                  setState(() {
+                                    isRecording = true;
+                                  });
+                                }
+                                else if (newVariant.isNotEmpty){
+                                  _showValidateVariantDialog();
+                                }
+                                else {
+                                  setState(() {
+                                    isRecording = false;
+                                  });
+                                }
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                width: isRecording ? 60.0 : 50.0,
+                                height: isRecording ? 60.0 : 50.0,
+                                decoration: BoxDecoration(
+                                  color: isRecording ? Colors.red : Colors.grey,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    isRecording
+                                        ? Icons.stop
+                                        : Icons.fiber_manual_record,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-
-                        if(widget.board.gameResult.value == 0)
-                          const SizedBox(height: 50),
-
-                        TextButton(onPressed: (){
-                          _showMoves();
-                        }, child: Text("Available moves")),
+                          ],
+                        ),
                       ],
                     ),
                   ],
                 ),
+                const SizedBox(height: 10),
               ],
             ),
           ),
           Align(
-            alignment: Alignment.bottomCenter,
-            child: Text(
-              'Move n°$moveCountMessage', style: TextStyle(
-              color: Colors.white,
-            ),
-            )
+              alignment: Alignment.bottomCenter,
+              child: Text(
+                'Move n°$moveCountMessage',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              )
           )
         ],
       ),
     );
   }
 
-  void _showMoves() {
-    int currentMoveNumber = widget.board.moveCount.value;
-    List<OpeningMove> availableMoves = allMoves?.where((move) => move.moveNumber == currentMoveNumber).toList() ?? [];
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Available Moves' ,style: TextStyle(
-              color: Colors.black
-          )),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: availableMoves.map((move) {
-              return ListTile(
-                title: Text('${squareToString(move.from)} -> ${squareToString(move.to)}'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                },
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
+  OpeningMove? isInCurrentOpening(Square from, Square to) {
+    List<OpeningMove>? doneMove = widget.opening.moves
+        .where((element) =>
+            element.from.row == from.row &&
+            element.from.col == from.col &&
+            element.to.row == to.row &&
+            element.to.col == to.col &&
+            element.moveNumber == widget.board.moveCount.value &&
+    element.previousMoveId == lastMoveId)
+        .toList();
+    if (doneMove.isNotEmpty) {
+      if (doneMove.first.variantName.isNotEmpty){
+        variantName = doneMove.first.variantName;
+      }
+      return doneMove.first;
+    } else {
+      return null;
+    }
   }
 
-  Widget _buildPiece(Piece? piece, {bool isDragging = false}) {
+  Widget _buildPiece(Piece? piece) {
     if (piece == null) {
       return Container();
     }
     return Center(
       child: SvgPicture.asset(
         'assets/images/${pieceTypeToSVG(piece.type, piece.color)}',
-        width: isDragging ? 70 : 60,
-        height: isDragging ? 70 : 60,
+        width: 60,
+        height: 60,
       ),
     );
   }

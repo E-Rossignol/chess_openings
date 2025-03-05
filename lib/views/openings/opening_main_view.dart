@@ -220,19 +220,7 @@ class _OpeningViewState extends State<OpeningView> {
                                     ));
                               },
                               icon: const Icon(
-                                Icons.open_in_new_sharp,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            decoration: iconButtonDecoration,
-                            child: IconButton(
-                              onPressed: () {
-                                // Add your onPressed code here!
-                              },
-                              icon: const Icon(
-                                Icons.edit,
+                                Icons.play_circle,
                                 color: Colors.black,
                               ),
                             ),

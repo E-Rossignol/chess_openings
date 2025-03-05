@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../model/openings/opening.dart';
+import '../model/square.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -50,93 +51,17 @@ class DatabaseHelper {
         move_nbr INTEGER,
         start_square TEXT,
         end_square TEXT,
-        is_after INTEGER
+        is_after INTEGER,
+        variantName TEXT
       )
     ''');
   }
 
   Future<bool> insertOpening(String openingName, String pieceColor) async {
     final db = await database;
-    int id = await db.insert(
+    await db.insert(
       'opening_names',
       {'opening_name': openingName, 'piece_color': pieceColor},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    int moveId = await db.insert(
-      'opening_moves',
-      {
-        'id_table': id,
-        'move_nbr': 0,
-        'start_square': 'e2',
-        'end_square': 'e4',
-        'is_after': null
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    int moveId1 = await db.insert(
-      'opening_moves',
-      {
-        'id_table': id,
-        'move_nbr': 1,
-        'start_square': 'e7',
-        'end_square': 'e5',
-        'is_after': moveId
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    int moveId2 = await db.insert(
-      'opening_moves',
-      {
-        'id_table': id,
-        'move_nbr': 1,
-        'start_square': 'e7',
-        'end_square': 'e4',
-        'is_after': moveId
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    await db.insert(
-      'opening_moves',
-      {
-        'id_table': id,
-        'move_nbr': 2,
-        'start_square': 'e5',
-        'end_square': 'b5',
-        'is_after': moveId1
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    await db.insert(
-      'opening_moves',
-      {
-        'id_table': id,
-        'move_nbr': 2,
-        'start_square': 'e5',
-        'end_square': 'a5',
-        'is_after': moveId1
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    await db.insert(
-      'opening_moves',
-      {
-        'id_table': id,
-        'move_nbr': 2,
-        'start_square': 'e4',
-        'end_square': 'f5',
-        'is_after': moveId2
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    await db.insert(
-      'opening_moves',
-      {
-        'id_table': id,
-        'move_nbr': 2,
-        'start_square': 'e5',
-        'end_square': 'e8',
-        'is_after': moveId2
-      },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
     return true;
@@ -160,11 +85,18 @@ class DatabaseHelper {
 
   Future<void> deleteOpening(String openingName) async {
     final db = await database;
-    await db.delete(
-      'opening_names',
-      where: 'opening_name = ?',
-      whereArgs: [openingName],
-    );
+    int? id = await getOpeningIdByName(openingName);
+    if (id != null){
+      await db.delete('opening_moves',
+      where: 'id_table = ?',
+      whereArgs: [id],
+      );
+      await db.delete(
+        'opening_names',
+        where: 'opening_name = ?',
+        whereArgs: [openingName],
+      );
+    }
   }
 
   Future<Opening?> getOpeningByName(String openingName) async {
@@ -188,6 +120,21 @@ class DatabaseHelper {
     }
   }
 
+  Future<int?> getOpeningIdByName(String openingName) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'opening_names',
+      columns: ['id'],
+      where: 'opening_name = ?',
+      whereArgs: [openingName],
+    );
+    if (maps.isNotEmpty) {
+      return maps.first['id'] as int;
+    } else {
+      return null;
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getMovesByOpeningId(int openingId) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -196,5 +143,66 @@ class DatabaseHelper {
       whereArgs: [openingId],
     );
     return maps;
+  }
+
+  Future<List<OpeningMove>?> insertVariant(List<List<Square>> newVariant, String openingName, String variantName) async{
+    Opening? op = await getOpeningByName(openingName);
+    int? openingID = await getOpeningIdByName(openingName);
+    int lastMoveId = -1;
+    if(op == null || openingID == null){
+      return null;
+    }
+    List<OpeningMove> newMoves = [];
+    for (List<Square> move in newVariant){
+      if (move[0].row == -1 || move[1].row == -1 || move[0].col == -1 || move[1].col == -1 ){
+        continue;
+      }
+      newMoves.add(OpeningMove(from: move[0], to: move[1], moveNumber: newVariant.indexOf(move), openingId: openingID, id: -1));
+    }
+    int counter = 0;
+    bool keepGoing = true;
+    while(keepGoing){
+      List<OpeningMove> opmv = op.moves.where((element) => element.moveNumber == counter &&
+          element.from.row == newMoves[counter].from.row &&
+          element.from.col == newMoves[counter].from.col &&
+          element.to.row == newMoves[counter].to.row &&
+          element.to.col == newMoves[counter].to.col
+      ).toList();
+      if (opmv.isNotEmpty) {
+        newMoves[counter].openingId = -1;
+        keepGoing = true;
+        lastMoveId = opmv.first.id;
+      }
+      else {
+        keepGoing = false;
+      }
+      counter ++;
+    }
+    // THE VARIANT IS NEW FROM HERE
+    newMoves.removeWhere((element) => element.openingId == -1);
+    newMoves.first.variantName = variantName;
+    final db = await database;
+    int newMoveId = lastMoveId;
+    List<OpeningMove> result = [];
+      for (int i = 0; i < newMoves.length; i++){
+        int tmp = newMoveId;
+        newMoveId = await db.insert(
+          'opening_moves',
+          {
+            'id_table': openingID,
+            'move_nbr': newMoves[i].moveNumber,
+            'start_square': squareToString(newMoves[i].from),
+            'end_square': squareToString(newMoves[i].to),
+            'is_after': tmp,
+            'variantName': newMoves[i].variantName
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        newMoves[i].previousMoveId = tmp;
+        newMoves[i].id = newMoveId;
+        result.add(newMoves[i]);
+      }
+
+    return result;
   }
 }

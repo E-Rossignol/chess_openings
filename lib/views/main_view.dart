@@ -70,6 +70,35 @@ class _MainViewState extends State<MainView> {
                             Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
+                                    builder: (context) => const OpeningView()));
+                          },
+                          child: const Text("Openings",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20)))),
+                  Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.grey.shade400, Colors.grey.shade800],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: TextButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
                                     builder: (context) =>
                                         BoardView(board: Board())));
                           },
@@ -156,35 +185,6 @@ class _MainViewState extends State<MainView> {
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 20)))),
-                  Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.grey.shade400, Colors.grey.shade800],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(12.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: TextButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => OpeningView()));
-                          },
-                          child: const Text("Go to your openings",
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20)))),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -240,7 +240,11 @@ class _MainViewState extends State<MainView> {
                             onPressed: () async {
                               bool result = await DatabaseHelper().resetTables();
                               if (result){
-                                print("Tables deleted succesfully");
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Tables reseted"),
+                                  )
+                                );
                               }
                             },
                             child: const Text("Reset Tables",

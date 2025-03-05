@@ -1,12 +1,13 @@
 import 'package:chess_ouvertures/model/square.dart';
 
 class OpeningMove {
-  final int openingId;
-  final int id;
+  int openingId;
+  int id;
   final Square from;
   final int moveNumber;
   final Square to;
-  final int? previousMoveId;
+  int? previousMoveId;
+  String variantName = "";
 
   OpeningMove({
     required this.openingId,

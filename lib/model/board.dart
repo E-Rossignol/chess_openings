@@ -3,12 +3,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
 import '../constants.dart';
 import 'square.dart';
-import 'package:flutter/src/foundation/change_notifier.dart';
 
 class Board{
+  List<Map<String, dynamic>> capturedHistory = [];
   final List<List<Square>> board;
   ValueNotifier<bool> boardNotifier = ValueNotifier(false);
   List<Piece> capturedPiece = []; // List of captured pieces
+  List<List<Square>> moveHistory = [];
   PieceColor currentTurn = PieceColor.white;
   int whiteScore = 0;
   int blackScore = 0;
@@ -25,6 +26,27 @@ class Board{
     // Initialize pieces on the board
     moveCount.value = 0;
     _initializePieces();
+  }
+
+  void undoLastMove() {
+    if (moveHistory.isNotEmpty){
+      List<Square> lastMove = moveHistory.removeLast();
+      var from = lastMove[0];
+      var to = lastMove[1];
+      movePiece(to.row, to.col, from.row, from.col);
+      bool hasCaptured = capturedHistory.isNotEmpty ?capturedHistory.last['moveCount'] == moveCount.value - 1 : false;
+      var piece = board[to.row][to.col].piece;
+      board[from.row][from.col].piece = board[to.row][to.col].piece;
+      board[to.row][to.col].piece = null;
+      if (hasCaptured){
+        var lastCaptured = capturedHistory.removeLast();
+        board[lastCaptured['row']][lastCaptured['col']].piece = lastCaptured['piece'];
+        capturedPiece.remove(lastCaptured['piece']);
+      }
+      currentTurn = toggleColor(currentTurn);
+      moveCount.value--;
+      boardNotifier.notifyListeners();
+    }
   }
 
   List<Square> getValidMoves(Piece piece,
@@ -540,6 +562,12 @@ class Board{
         }
         final captured = board[toRow][toCol].piece;
         if (captured != null) {
+          capturedHistory.add({
+            'piece': board[toRow][toCol].piece,
+            'row': toRow,
+            'col': toCol,
+            'moveCount': moveCount.value,
+          });
           toPlay = 'capture.mp3';
           capturedPiece.add(captured);
           _updateScore(captured);
@@ -564,6 +592,7 @@ class Board{
         if (castling) {
           toPlay = 'castle.mp3';
         }
+        moveHistory.add([Square(fromRow, fromCol), Square(toRow, toCol)]);
         _playSound(toPlay);
         boardNotifier.value = !boardNotifier.value;
         moveCount.value ++;

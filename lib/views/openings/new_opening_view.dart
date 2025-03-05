@@ -1,4 +1,3 @@
-import 'package:chess_ouvertures/constants.dart';
 import 'package:chess_ouvertures/model/openings/opening.dart';
 import 'package:flutter/material.dart';
 import '../../database/database_helper.dart';
@@ -45,17 +44,19 @@ class _NewOpeningViewState extends State<NewOpeningView> {
           body: Stack(children: [
             Column(
               children: [
-                SizedBox(
-                    height: 50
-                ),
+                SizedBox(height: 50),
                 Align(
                   alignment: Alignment.topLeft,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_sharp, color: Colors.white,),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_sharp,
+                      color: Colors.white,
+                    ),
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => const MainView()),
+                        MaterialPageRoute(
+                            builder: (context) => const MainView()),
                       );
                     },
                   ),
@@ -141,16 +142,29 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
-                              bool result = await DatabaseHelper().insertOpening(_openingName, _pieceColor);
+                              bool result = await DatabaseHelper()
+                                  .insertOpening(_openingName, _pieceColor);
                               if (result) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Ouverture créée avec succès')),
+                                  const SnackBar(
+                                      content:
+                                          Text('Ouverture created')),
                                 );
-                                Opening opening = Opening(name: _openingName, color: _pieceColor == 'white' ? PieceColor.white : PieceColor.black, moves: []);
+                                Opening? opening = await DatabaseHelper()
+                                    .getOpeningByName(_openingName);
                                 Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => OpeningBoardView(board: Board(),opening: opening)),
-                                );
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => OpeningBoardView(
+                                        board: Board(),
+                                        opening: opening!,
+                                      ),
+                                    ));
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            "Error inserting new opening.")));
                               }
                             }
                           },

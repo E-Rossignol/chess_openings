@@ -84,10 +84,9 @@ int distance(Square square1, Square square2){
 }
 
 OpeningMove getMoveFromQuery(Map<String, dynamic> moveQuery){
-
   OpeningMove move = OpeningMove(
       openingId: moveQuery['id_table'],
-      id: 1,
+      id: moveQuery['id'],
       from: stringToSquare(moveQuery['start_square']),
       to: stringToSquare(moveQuery['end_square']),
       moveNumber: moveQuery['move_nbr'],
@@ -106,7 +105,6 @@ Map<String, dynamic> getQueryFromMove(OpeningMove move){
 }
 
 Square stringToSquare(String position) {
-
   int col = position.codeUnitAt(0) - 97; // Convertit 'a'-'h' en 0-7
   int row = 8 - int.parse(position[1]); // Convertit '1'-'8' en 7-0
   return Square(row, col);
@@ -117,3 +115,4 @@ String squareToString(Square square) {
   String row = (8 - square.row).toString(); // Convertit 7-0 en '1'-'8'
   return col + row;
 }
+
