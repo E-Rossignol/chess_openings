@@ -40,7 +40,7 @@ class Test {
         board.movePiece(selectedMove.fromRow, selectedMove.fromCol,
             selectedMove.toRow, selectedMove.toCol);
         switchTurn();
-        await Future.delayed(const Duration(milliseconds: 1000));
+        await Future.delayed(const Duration(milliseconds: 100));
       }
     }
     print("Simulation over");
@@ -77,40 +77,11 @@ class Test {
         validMoves.add(move);
       }
     }
-    for (Move move in validMoves){
-      if (isOpponentInCheckAfterMove(move)) {
-        validMoves.add(move);
-        validMoves.add(move);
-        validMoves.add(move);
-        validMoves.add(move);
-        validMoves.add(move);
-      }
-    }
     return validMoves[rdm.nextInt(validMoves.length)];
   }
 
   void switchTurn() {
     playing = toggleColor(playing);
-  }
-
-  bool isOpponentInCheckAfterMove(Move move) {
-    // Save the current state
-    Piece? capturedPiece = board.board[move.toRow][move.toCol].piece;
-    Square fromSquare = board.board[move.fromRow][move.fromCol];
-    Square toSquare = board.board[move.toRow][move.toCol];
-    Piece? movedPiece = fromSquare.piece;
-
-    // Apply the move
-    board.movePiece(move.fromRow, move.fromCol, move.toRow, move.toCol);
-
-    // Check if the opponent's king is in check
-    bool isInCheck = board.isCheck(toggleColor(playing));
-
-    // Revert the move
-    toSquare.piece = capturedPiece;
-    fromSquare.piece = movedPiece;
-
-    return isInCheck;
   }
 }
 

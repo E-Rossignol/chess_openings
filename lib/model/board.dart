@@ -4,7 +4,8 @@ import 'package:just_audio/just_audio.dart';
 import '../constants.dart';
 import 'square.dart';
 
-class Board {
+class Board{
+  List<Map<String, dynamic>> capturedHistory = [];
   final List<List<Square>> board;
   ValueNotifier<bool> boardNotifier = ValueNotifier(false);
   List<Piece> capturedPiece = []; // List of captured pieces
@@ -22,7 +23,17 @@ class Board {
       : board = List.generate(
             8, (row) => List.generate(8, (col) => Square(row, col))) {
     // Initialize pieces on the board
+    moveCount.value = 0;
     _initializePieces();
+  }
+
+  void undoLastMove(List<List<Square>> history) {
+    reset();
+    for (List<Square> move in history){
+      movePiece(move[0].row, move[0].col, move[1].row, move[1].col);
+    }
+    moveCount.notifyListeners();
+    boardNotifier.notifyListeners();
   }
 
   List<Square> getValidMoves(Piece piece,
@@ -538,6 +549,12 @@ class Board {
         }
         final captured = board[toRow][toCol].piece;
         if (captured != null) {
+          capturedHistory.add({
+            'piece': board[toRow][toCol].piece,
+            'row': toRow,
+            'col': toCol,
+            'moveCount': moveCount.value,
+          });
           toPlay = 'capture.mp3';
           capturedPiece.add(captured);
           _updateScore(captured);
@@ -564,8 +581,11 @@ class Board {
         }
         _playSound(toPlay);
         boardNotifier.value = !boardNotifier.value;
-        piece.hasMove = true;
         moveCount.value ++;
+        boardNotifier.notifyListeners();
+        moveCount.notifyListeners();
+        piece.hasMove = true;
+        isDraw();
         return true;
       }
     }
@@ -576,7 +596,7 @@ class Board {
     Square square = findPiece(pawn)!;
     if (pawn.type == PieceType.pawn &&
         (pawn.color == PieceColor.white && square.row == 0 ||
-            pawn.color == PieceColor.black && square == 7)) {
+            pawn.color == PieceColor.black && square.row == 7)) {
       Piece newPiece = Piece(color: pawn.color, id: pawn.id, type: newType, hasMove: true);
       return newPiece;
     }
@@ -584,13 +604,9 @@ class Board {
   }
 
   Future<void> _playSound(String fileName) async {
-    try {
       await _audioPlayer.setVolume(70);
       await _audioPlayer.setAsset('assets/audio/$fileName');
       _audioPlayer.play();
-    } catch (e) {
-      print('Error playing sound: $e');
-    }
   }
 
   void _updateScore(Piece captured) {
@@ -625,6 +641,7 @@ class Board {
         square.piece = null;
       }
     }
+    moveCount.value = 0;
     _initializePieces();
     capturedPiece.clear();
     currentTurn = PieceColor.white;
@@ -633,6 +650,20 @@ class Board {
     blackScore = 0;
     lastMoveFrom = null;
     lastMoveTo = null;
+  }
+
+  void isDraw(){
+    List<Piece> remainingPieces = [];
+    for(var row in board){
+      for (var square in row){
+        if (square.piece != null){
+          remainingPieces.add(square.piece!);
+        }
+      }
+    }
+    if (remainingPieces.length == 2 && remainingPieces.elementAt(0).type == PieceType.king && remainingPieces.elementAt(1).type == PieceType.king){
+      gameResult.value = -1;
+    }
   }
 
   void _initializePieces() {

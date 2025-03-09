@@ -1,3 +1,4 @@
+import 'model/openings/opening_move.dart';
 import 'model/piece.dart';
 import 'model/square.dart';
 
@@ -63,6 +64,7 @@ int getValue(Piece piece){
 
 List<String> toChessCoordinates(int row, int col) {
   return [
+
     String.fromCharCode(97 + col),
     (8 - row).toString(),
   ];
@@ -80,3 +82,37 @@ int distance(Square square1, Square square2){
   int colDistance = (square1.col - square2.col).abs();
   return rowDistance+colDistance;
 }
+
+OpeningMove getMoveFromQuery(Map<String, dynamic> moveQuery){
+  OpeningMove move = OpeningMove(
+      openingId: moveQuery['id_table'],
+      id: moveQuery['id'],
+      from: stringToSquare(moveQuery['start_square']),
+      to: stringToSquare(moveQuery['end_square']),
+      moveNumber: moveQuery['move_nbr'],
+      previousMoveId: moveQuery['is_after']);
+  return move;
+}
+
+Map<String, dynamic> getQueryFromMove(OpeningMove move){
+  return {
+    'id_table': move.openingId,
+    'id': move.id,
+    'start_square': squareToString(move.from),
+    'end_square': squareToString(move.to),
+    'move_nbr': move.moveNumber,
+    'is_after': move.previousMoveId};
+}
+
+Square stringToSquare(String position) {
+  int col = position.codeUnitAt(0) - 97; // Convertit 'a'-'h' en 0-7
+  int row = 8 - int.parse(position[1]); // Convertit '1'-'8' en 7-0
+  return Square(row, col);
+}
+
+String squareToString(Square square) {
+  String col = String.fromCharCode(97 + square.col); // Convertit 0-7 en 'a'-'h'
+  String row = (8 - square.row).toString(); // Convertit 7-0 en '1'-'8'
+  return col + row;
+}
+
