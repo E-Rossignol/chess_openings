@@ -5,6 +5,7 @@ import 'package:chess_ouvertures/views/openings/new_opening_view.dart';
 import 'package:chess_ouvertures/views/openings/opening_board_view.dart';
 import 'package:flutter/material.dart';
 
+import '../../constants.dart';
 import '../../model/board.dart';
 
 class OpeningView extends StatefulWidget {
@@ -42,7 +43,7 @@ class _OpeningViewState extends State<OpeningView> {
           color: Colors.black.withOpacity(0.2),
           spreadRadius: 2,
           blurRadius: 5,
-          offset: Offset(0, 3),
+          offset: const Offset(0, 3),
         ),
       ],
     );
@@ -58,7 +59,7 @@ class _OpeningViewState extends State<OpeningView> {
         ),
         Column(
           children: [
-            SizedBox(height: 50),
+            const SizedBox(height: 50),
             Align(
               alignment: Alignment.topLeft,
               child: IconButton(
@@ -89,24 +90,22 @@ class _OpeningViewState extends State<OpeningView> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Container(
-                            child: Container(
-                              decoration: iconButtonDecoration,
-                              child: TextButton(
-                                onPressed: () {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const NewOpeningView()),
-                                  );
-                                },
-                                child: const Text("New opening",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
-                                      color: Colors.black,
-                                    )),
-                              ),
+                            decoration: iconButtonDecoration,
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const NewOpeningView(openingId: null, name: null, isWhite: null, isEdit: false)),
+                                );
+                              },
+                              child: const Text("New opening",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Colors.black,
+                                  )),
                             ),
                           ),
                         ]),
@@ -120,7 +119,7 @@ class _OpeningViewState extends State<OpeningView> {
                   decoration: iconButtonDecoration,
                   child: IntrinsicWidth(
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(
+                      constraints: const BoxConstraints(
                         minWidth: 180,
                       ),
                       child: Row(
@@ -141,12 +140,12 @@ class _OpeningViewState extends State<OpeningView> {
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
-                                return CircularProgressIndicator();
+                                return const CircularProgressIndicator();
                               } else if (snapshot.hasError) {
                                 return Text('Error: ${snapshot.error}');
                               } else if (!snapshot.hasData ||
                                   snapshot.data!.isEmpty) {
-                                return Text(
+                                return const Text(
                                   'No opening yet',
                                   style: TextStyle(
                                     fontSize: 16,
@@ -155,7 +154,7 @@ class _OpeningViewState extends State<OpeningView> {
                                 );
                               } else {
                                 return DropdownButton<String>(
-                                  icon: Icon(
+                                  icon: const Icon(
                                     Icons.arrow_drop_down,
                                     color: Colors.black,
                                   ),
@@ -170,7 +169,7 @@ class _OpeningViewState extends State<OpeningView> {
                                       value: opening,
                                       child: Text(
                                         opening,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 19,
                                           fontStyle: FontStyle.italic,
                                           fontWeight: FontWeight.bold,
@@ -228,6 +227,30 @@ class _OpeningViewState extends State<OpeningView> {
                           Container(
                             decoration: iconButtonDecoration,
                             child: IconButton(
+                              onPressed: () async {
+                                Opening? opening = await DatabaseHelper()
+                                    .getOpeningByName(selectedOpening!);
+                                int? id = await DatabaseHelper().getOpeningIdByName(selectedOpening!);
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => NewOpeningView(
+                                        openingId: id!,
+                                        isEdit: true,
+                                        name: opening!.name,
+                                        isWhite: opening.color == PieceColor.white,
+                                      ),
+                                    ));
+                              },
+                              icon: const Icon(
+                                Icons.edit,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            decoration: iconButtonDecoration,
+                            child: IconButton(
                               onPressed: () {
                                 _showDeleteDialog(context);
                               },
@@ -255,7 +278,7 @@ class _OpeningViewState extends State<OpeningView> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmer la suppression'),
-          content: Text('Delete \"$selectedOpening\" ?'),
+          content: Text('Delete "$selectedOpening" ?'),
           actions: <Widget>[
             TextButton(
               onPressed: () {

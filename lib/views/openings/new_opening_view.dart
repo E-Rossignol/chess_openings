@@ -1,12 +1,19 @@
 import 'package:chess_ouvertures/model/openings/opening.dart';
+import 'package:chess_ouvertures/views/openings/opening_main_view.dart';
 import 'package:flutter/material.dart';
 import '../../database/database_helper.dart';
 import '../../model/board.dart';
 import '../main_view.dart';
 import 'opening_board_view.dart';
+import '../../constants.dart';
 
 class NewOpeningView extends StatefulWidget {
-  const NewOpeningView({super.key});
+  final String? name;
+  final bool? isWhite;
+  final bool isEdit;
+  final int? openingId;
+  const NewOpeningView({super.key, required this.name, required this.isWhite, required this.isEdit, required this.openingId});
+
 
   @override
   State<NewOpeningView> createState() => _NewOpeningViewState();
@@ -14,9 +21,16 @@ class NewOpeningView extends StatefulWidget {
 
 class _NewOpeningViewState extends State<NewOpeningView> {
   final _formKey = GlobalKey<FormState>();
-  String _openingName = '';
+  late TextEditingController _nameController;
   String _pieceColor = '';
 
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.name ?? '');
+    if (widget.isWhite != null){
+      _pieceColor = widget.isWhite! ? 'white': 'black';
+    }
+  }
   @override
   Widget build(BuildContext context) {
     TextStyle txtStyle = const TextStyle(
@@ -36,7 +50,7 @@ class _NewOpeningViewState extends State<NewOpeningView> {
           ),
         ),
       ),
-      SizedBox(height: 50),
+      const SizedBox(height: 50),
       Opacity(
         opacity: 1,
         child: Scaffold(
@@ -44,7 +58,7 @@ class _NewOpeningViewState extends State<NewOpeningView> {
           body: Stack(children: [
             Column(
               children: [
-                SizedBox(height: 50),
+                const SizedBox(height: 50),
                 Align(
                   alignment: Alignment.topLeft,
                   child: IconButton(
@@ -56,7 +70,7 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const MainView()),
+                            builder: (context) => const OpeningView()),
                       );
                     },
                   ),
@@ -67,7 +81,7 @@ class _NewOpeningViewState extends State<NewOpeningView> {
               key: _formKey,
               child: Center(
                 heightFactor: 2,
-                child: Container(
+                child: SizedBox(
                   width: MediaQuery.of(context).size.width - 100,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -78,9 +92,10 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                             vertical: 4.0, horizontal: 38.0),
                         decoration: decoration,
                         child: TextFormField(
-                            decoration: InputDecoration(
+                          controller: _nameController,
+                            decoration: const InputDecoration(
                               labelText: 'Opening Name',
-                              labelStyle: const TextStyle(
+                              labelStyle: TextStyle(
                                 fontSize: 16,
                                 color: Colors.white38,
                               ),
@@ -90,9 +105,6 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                                 return 'Please enter the opening name';
                               }
                               return null;
-                            },
-                            onSaved: (value) {
-                              _openingName = value!;
                             },
                             style: txtStyle),
                       ),
@@ -142,16 +154,26 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
-                              bool result = await DatabaseHelper()
-                                  .insertOpening(_openingName, _pieceColor);
+                              bool result = false;
+                              String message = "";
+                              if (widget.openingId != null){
+                                result = await DatabaseHelper()
+                                    .editOpening(widget.openingId!, _nameController.value.text, _pieceColor);
+                                message = "Ouverture edited";
+                              }
+                              else {
+                                result = await DatabaseHelper()
+                                    .insertOpening(_nameController.value.text, _pieceColor);
+                                message = "Ouverture created";
+                              }
                               if (result) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
+                                  SnackBar(
                                       content:
-                                          Text('Ouverture created')),
+                                          Text(message)),
                                 );
                                 Opening? opening = await DatabaseHelper()
-                                    .getOpeningByName(_openingName);
+                                    .getOpeningByName(_nameController.value.text);
                                 Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(

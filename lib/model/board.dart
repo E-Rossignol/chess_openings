@@ -9,7 +9,6 @@ class Board{
   final List<List<Square>> board;
   ValueNotifier<bool> boardNotifier = ValueNotifier(false);
   List<Piece> capturedPiece = []; // List of captured pieces
-  List<List<Square>> moveHistory = [];
   PieceColor currentTurn = PieceColor.white;
   int whiteScore = 0;
   int blackScore = 0;
@@ -28,25 +27,13 @@ class Board{
     _initializePieces();
   }
 
-  void undoLastMove() {
-    if (moveHistory.isNotEmpty){
-      List<Square> lastMove = moveHistory.removeLast();
-      var from = lastMove[0];
-      var to = lastMove[1];
-      movePiece(to.row, to.col, from.row, from.col);
-      bool hasCaptured = capturedHistory.isNotEmpty ?capturedHistory.last['moveCount'] == moveCount.value - 1 : false;
-      var piece = board[to.row][to.col].piece;
-      board[from.row][from.col].piece = board[to.row][to.col].piece;
-      board[to.row][to.col].piece = null;
-      if (hasCaptured){
-        var lastCaptured = capturedHistory.removeLast();
-        board[lastCaptured['row']][lastCaptured['col']].piece = lastCaptured['piece'];
-        capturedPiece.remove(lastCaptured['piece']);
-      }
-      currentTurn = toggleColor(currentTurn);
-      moveCount.value--;
-      boardNotifier.notifyListeners();
+  void undoLastMove(List<List<Square>> history) {
+    reset();
+    for (List<Square> move in history){
+      movePiece(move[0].row, move[0].col, move[1].row, move[1].col);
     }
+    moveCount.notifyListeners();
+    boardNotifier.notifyListeners();
   }
 
   List<Square> getValidMoves(Piece piece,
@@ -592,7 +579,6 @@ class Board{
         if (castling) {
           toPlay = 'castle.mp3';
         }
-        moveHistory.add([Square(fromRow, fromCol), Square(toRow, toCol)]);
         _playSound(toPlay);
         boardNotifier.value = !boardNotifier.value;
         moveCount.value ++;
@@ -610,7 +596,7 @@ class Board{
     Square square = findPiece(pawn)!;
     if (pawn.type == PieceType.pawn &&
         (pawn.color == PieceColor.white && square.row == 0 ||
-            pawn.color == PieceColor.black && square == 7)) {
+            pawn.color == PieceColor.black && square.row == 7)) {
       Piece newPiece = Piece(color: pawn.color, id: pawn.id, type: newType, hasMove: true);
       return newPiece;
     }
@@ -618,13 +604,9 @@ class Board{
   }
 
   Future<void> _playSound(String fileName) async {
-    try {
       await _audioPlayer.setVolume(70);
       await _audioPlayer.setAsset('assets/audio/$fileName');
       _audioPlayer.play();
-    } catch (e) {
-      print('Error playing sound: $e');
-    }
   }
 
   void _updateScore(Piece captured) {

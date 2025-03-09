@@ -66,6 +66,18 @@ class DatabaseHelper {
     );
     return true;
   }
+
+  Future<bool> editOpening(int openingID, String openingName, String pieceColor) async {
+    final db = await database;
+    int count = await db.update(
+      'opening_names',
+      {'opening_name': openingName, 'piece_color': pieceColor},
+      where: 'id = ?',
+      whereArgs: [openingID],
+    );
+    return count > 0;
+  }
+
   Future<List<String>> getOpeningsNames() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(

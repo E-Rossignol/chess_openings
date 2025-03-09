@@ -1,7 +1,6 @@
 import 'package:chess_ouvertures/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '../bot.dart';
 import '../model/board.dart';
 import '../model/piece.dart';
 import '../model/square.dart';
@@ -10,10 +9,9 @@ import 'main_view.dart';
 
 class BoardView extends StatefulWidget {
   final Board board;
-  final bool hasBot;
   final PieceColor botColor;
 
-  const BoardView({super.key, required this.board, this.hasBot = false, this.botColor = PieceColor.black});
+  const BoardView({super.key, required this.board, this.botColor = PieceColor.black});
 
   @override
   _BoardViewState createState() => _BoardViewState();
@@ -32,22 +30,14 @@ class _BoardViewState extends State<BoardView> {
   String gameResultMessage = '';
   String moveCountMessage = '';
   late Test test;
-  late Bot bot;
 
   @override
   void initState() {
     super.initState();
-    bot = Bot(board: widget.board, botColor: widget.botColor);
     widget.board.gameResult.addListener(_updateGameResult);
     widget.board.boardNotifier.addListener(_updateBoard);
     widget.board.moveCount.addListener(_updateMoveCount);
     test = Test(board: widget.board);
-    if (widget.hasBot){
-      bot.startGameAgainstBot();
-      if (widget.botColor == PieceColor.white){
-        _reverseBoard();
-      }
-    }
   }
 
   @override
@@ -152,7 +142,7 @@ class _BoardViewState extends State<BoardView> {
           ),
           Column(
             children: [
-              SizedBox(height: 50),
+              const SizedBox(height: 50),
               Stack(
                 children: [
                   Align(
@@ -205,7 +195,7 @@ class _BoardViewState extends State<BoardView> {
                       vertical: 4.0, horizontal: 8.0),
                   child: isReversed ? whiteScore() : blackScore(),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 if (gameResultMessage.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.all(8.0),
@@ -249,7 +239,7 @@ class _BoardViewState extends State<BoardView> {
                               removeLeft: true,
                               removeRight: true,
                               child: GridView.builder(
-                                physics: NeverScrollableScrollPhysics(),
+                                physics: const NeverScrollableScrollPhysics(),
                                 gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 8,

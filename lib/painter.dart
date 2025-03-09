@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'model/openings/opening_move.dart';
 import 'model/square.dart';
-import 'constants.dart';
 
 class ArrowPainter extends CustomPainter {
   final List<OpeningMove>? moves;
@@ -12,7 +11,7 @@ class ArrowPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.blueAccent
+      ..color = Colors.deepPurpleAccent
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
     if (moves == null){
@@ -35,11 +34,16 @@ class ArrowPainter extends CustomPainter {
 
   void _drawArrowHead(Canvas canvas, Paint paint, Offset from, Offset to) {
     const arrowHeadSize = 10.0;
+    const branchLength = 5.0; // Longueur des branches de la tête de la flèche
     final angle = (to - from).direction;
-    final arrowHead1 = to - Offset.fromDirection(angle + 0.5, arrowHeadSize);
-    final arrowHead2 = to - Offset.fromDirection(angle - 0.5, arrowHeadSize);
+    final arrowHead1 = to - Offset.fromDirection(angle + 0.5, branchLength);
+    final arrowHead2 = to - Offset.fromDirection(angle - 0.5, branchLength);
+    final arrowHeadTip1 = to - Offset.fromDirection(angle + 0.5, arrowHeadSize);
+    final arrowHeadTip2 = to - Offset.fromDirection(angle - 0.5, arrowHeadSize);
     canvas.drawLine(to, arrowHead1, paint);
     canvas.drawLine(to, arrowHead2, paint);
+    canvas.drawLine(arrowHead1, arrowHeadTip1, paint);
+    canvas.drawLine(arrowHead2, arrowHeadTip2, paint);
   }
 
   @override
