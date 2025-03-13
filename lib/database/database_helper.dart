@@ -217,4 +217,47 @@ class DatabaseHelper {
 
     return result;
   }
+
+  Future<void> deleteOpeningMoveAndDescendants(int openingMoveId) async {
+    final db = await database;
+
+    // Fonction récursive pour supprimer les descendants
+    Future<void> deleteDescendants(int id) async {
+      // Récupérer les enfants directs
+      List<Map<String, dynamic>> children = await db.query(
+        'opening_moves',
+        where: 'is_after = ?',
+        whereArgs: [id],
+      );
+
+      // Supprimer chaque enfant et ses descendants
+      for (var child in children) {
+        await deleteDescendants(child['id']);
+      }
+
+      // Supprimer le noeud actuel
+      await db.delete(
+        'opening_moves',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    }
+
+    // Commencer par supprimer le noeud racine et ses descendants
+    await deleteDescendants(openingMoveId);
+  }
+
+  Future<void> insertDefaultOpenings() async {
+    insertOpening('Italian', 'white');
+    List<String> italian = italienne_defaut();
+    List<List<Square>> italian_Moves = [];
+    for (String move in italian){
+      List<String> moves = move.trim().split(' ');
+      for (String m in moves){
+        italian_Moves.add([stringToSquare(m.substring(0, 2)), stringToSquare(m.substring(2, 4))]);
+      }
+      insertVariant(italian_Moves, 'Italian', "");
+      italian_Moves = [];
+    }
+  }
 }

@@ -116,3 +116,11 @@ String squareToString(Square square) {
   return col + row;
 }
 
+List<String> italienne_defaut(){
+  List<String> result = [];
+  result.add("e2e4 e7e5");
+  result.add("d2d4 d7d5");
+  result.add("b1c3 g8f6");
+  return result;
+}
+

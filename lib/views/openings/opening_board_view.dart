@@ -1,5 +1,5 @@
 import 'package:chess_ouvertures/components/left_coordinates_component.dart';
-import 'package:chess_ouvertures/components/right_coordinates_component.dart';
+import 'package:chess_ouvertures/components/bottom_coordinates_component.dart';
 import 'package:chess_ouvertures/constants.dart';
 import 'package:chess_ouvertures/model/openings/opening.dart';
 import 'package:chess_ouvertures/views/openings/opening_main_view.dart';
@@ -40,6 +40,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
   String variantName = "";
   List<List<Square>> moveHistory = [];
   List<int> moveIdHistory = [-1];
+  bool hasReturnedMove = false;
 
   @override
   void initState() {
@@ -67,6 +68,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
 
   void _resetBoard() {
     setState(() {
+      hasReturnedMove = false;
       widget.board.reset();
       moveIdHistory = [-1];
       moveHistory = [];
@@ -88,6 +90,37 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     });
   }
 
+  Future<void> _reloadOpening() async {
+    _resetBoard();
+    Opening? op = await DatabaseHelper().getOpeningByName(widget.opening.name);
+    if (op != null){
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => OpeningBoardView(board: widget.board, opening: op)),
+      );
+    }
+    else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error")));
+    }
+  }
+
+  void moveInOpening(OpeningMove move){
+    newVariant.add(
+        [move.from, move.to]);
+    moveHistory.add(
+        [move.from, move.to]);
+    moveIdHistory.add(move.id);
+    widget.board.movePiece(
+        move.from.row,
+        move.from.col,
+        move.to.row,
+        move.to.col);
+    setState(() {
+      lastMoveId = move.id;
+    });
+  }
+
   void _showValidateVariantDialog() {
     showDialog(
       context: context,
@@ -98,6 +131,48 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
           actions: [
             Column(
               children: [
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          List<OpeningMove>? result = await DatabaseHelper()
+                              .insertVariant(
+                              newVariant, widget.opening.name, variantName);
+                          String message = "";
+                          if (result != null && result.isNotEmpty) {
+                            for (OpeningMove move in result) {
+                              setState(() {
+                                widget.opening.moves.add(move);
+                              });
+                            }
+                            message = "Variant recorded successfully.";
+                          } else if (result != null && result.isEmpty) {
+                            message = "You added 0 new move to the ouverture.";
+                          } else {
+                            message = "Error trying to store the variant";
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(message),
+                          ));
+                          await _reloadOpening();
+                        },
+                        child: const Text('Yes'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            isRecording = false;
+                          });
+                          Navigator.of(context)
+                              .pop(); // Ferme la boîte de dialogue
+                        },
+                        child: const Text('No'),
+                      ),
+                    ],
+                  ),
+                ),
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -121,44 +196,41 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                     ],
                   ),
                 ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteVariantDialog(){
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Variant'),
+          content: const Text("Are you sure to want to delete variant from the last played move ?"),
+          actions: [
+            Column(
+              children: [
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
                         onPressed: () async {
-                          List<OpeningMove>? result = await DatabaseHelper()
-                              .insertVariant(
-                                  newVariant, widget.opening.name, variantName);
-                          String message = "";
-                          if (result != null && result.isNotEmpty) {
-                            for (OpeningMove move in result) {
-                              setState(() {
-                                widget.opening.moves.add(move);
-                              });
-                            }
-                            message = "Variant recorded successfully.";
-                          } else if (result != null && result.isEmpty) {
-                            message = "You added 0 new move to the ouverture.";
-                          } else {
-                            message = "Error trying to store the variant";
-                          }
+                          await DatabaseHelper().deleteOpeningMoveAndDescendants(lastMoveId);
+                          String message = "Variant deleted succesfully.";
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                             content: Text(message),
                           ));
-                          Navigator.of(context).pop();
-                          setState(() {
-                            isRecording = false;
-                            newVariant = [];
-                          });
+                          await _reloadOpening();
                         },
                         child: const Text('Yes'),
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          setState(() {
-                            isRecording = false;
-                          });
                           Navigator.of(context)
                               .pop(); // Ferme la boîte de dialogue
                         },
@@ -226,6 +298,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
   }
 
   void _undoLastMove() {
+    hasReturnedMove = true;
     if (moveHistory.isNotEmpty) {
       if (moveIdHistory.length > 1) {
         moveIdHistory.removeLast();
@@ -245,15 +318,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     if (move.length != 1){
       return;
     }
-    newVariant.add(
-        [move.first.from, move.first.to]);
-    moveHistory.add(
-        [move.first.from, move.first.to]);
-    moveIdHistory.add(move.first.id);
-    widget.board.movePiece(move.first.from.row, move.first.from.col, move.first.to.row, move.first.to.col);
-    setState(() {
-      lastMoveId = move.first.id;
-    });
+    moveInOpening(move.first);
   }
 
   @override
@@ -412,19 +477,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                                       selectedSquare!,
                                                       Square(row, col));
                                               if (move != null) {
-                                                newVariant.add(
-                                                    [selectedSquare!, square]);
-                                                moveHistory.add(
-                                                    [selectedSquare!, square]);
-                                                moveIdHistory.add(move.id);
-                                                widget.board.movePiece(
-                                                    move.from.row,
-                                                    move.from.col,
-                                                    move.to.row,
-                                                    move.to.col);
-                                                setState(() {
-                                                  lastMoveId = move.id;
-                                                });
+                                                moveInOpening(move);
                                               } else {
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(const SnackBar(
@@ -548,12 +601,16 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                             ),
                           ),
                         ),
-                        const RightCoordinatesComponent(),
+                        const BottomCoordinatesComponent(),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             GestureDetector(
                               onTap: () {
+                                if (hasReturnedMove){
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error, you have undone moves. Reset board first.")));
+                                return;
+                                }
                                 if (!isRecording) {
                                   setState(() {
                                     isRecording = true;
@@ -584,6 +641,10 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                 ),
                               ),
                             ),
+                            if (!isRecording)
+                            IconButton(onPressed: _showDeleteVariantDialog, icon: const Icon(
+                              Icons.delete_outline, color: Colors.white,
+                            ))
                           ],
                         ),
                       ],

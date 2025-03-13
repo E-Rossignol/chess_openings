@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class RightCoordinatesComponent extends StatefulWidget {
-  const RightCoordinatesComponent({super.key});
+class BottomCoordinatesComponent extends StatefulWidget {
+  const BottomCoordinatesComponent({super.key});
 
   @override
-  State<RightCoordinatesComponent> createState() => _RightCoordinatesComponentState();
+  State<BottomCoordinatesComponent> createState() => _BottomCoordinatesComponentState();
 }
 
-class _RightCoordinatesComponentState extends State<RightCoordinatesComponent> {
+class _BottomCoordinatesComponentState extends State<BottomCoordinatesComponent> {
   @override
   Widget build(BuildContext context) {
     return Row(
