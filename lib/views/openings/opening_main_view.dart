@@ -18,9 +18,100 @@ class OpeningView extends StatefulWidget {
 class _OpeningViewState extends State<OpeningView> {
   Future<List<String>>? openingsName;
   String? selectedOpening;
+  String selectedDefaultOpening = "Italian";
+  List<String> defaultOpeningsList = [
+    "Italian",
+    "Queen's Gambit",
+    "French Defense",
+    "Sicilian Defense",
+  ];
 
   Future<void> _loadOpenings() async {
     openingsName = DatabaseHelper().getOpeningsNames();
+  }
+
+  Future<Opening?> _loadDefaultOpening(String openingName) async {
+    DatabaseHelper db = DatabaseHelper();
+    switch (openingName) {
+      case "Italian":
+        await db.insertItalianOpening();
+        break;
+      case "Queen's Gambit":
+        await db.insertQueensGambitOpening();
+        break;
+      case "French Defense":
+        await db.insertFrenchDefenseOpening();
+        break;
+      case "Sicilian Defense":
+        await db.insertSicilianDefenseOpening();
+        break;
+    }
+    Opening? op = await db.getOpeningByName(openingName);
+    return op;
+  }
+
+  void _openDefaultOpeningsDialog() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Openings'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Choose opening'),
+                DropdownButton<String>(
+                  value: selectedDefaultOpening,
+                  items: defaultOpeningsList.map((String opening) {
+                    return DropdownMenuItem<String>(
+                      value: opening,
+                      child: Text(opening),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedDefaultOpening = newValue!;
+                    });
+                    Navigator.of(context).pop();
+                    _openDefaultOpeningsDialog();
+                  },
+                ),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Opening? op =
+                      await _loadDefaultOpening(selectedDefaultOpening);
+                  if (op != null) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => OpeningBoardView(
+                          board: Board(),
+                          opening: op,
+                        ),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Error'),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Ok'),
+              ),
+            ],
+          );
+        });
   }
 
   @override
@@ -97,7 +188,11 @@ class _OpeningViewState extends State<OpeningView> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>
-                                          const NewOpeningView(openingId: null, name: null, isWhite: null, isEdit: false)),
+                                          const NewOpeningView(
+                                              openingId: null,
+                                              name: null,
+                                              isWhite: null,
+                                              isEdit: false)),
                                 );
                               },
                               child: const Text("New opening",
@@ -230,7 +325,8 @@ class _OpeningViewState extends State<OpeningView> {
                               onPressed: () async {
                                 Opening? opening = await DatabaseHelper()
                                     .getOpeningByName(selectedOpening!);
-                                int? id = await DatabaseHelper().getOpeningIdByName(selectedOpening!);
+                                int? id = await DatabaseHelper()
+                                    .getOpeningIdByName(selectedOpening!);
                                 Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
@@ -238,7 +334,8 @@ class _OpeningViewState extends State<OpeningView> {
                                         openingId: id!,
                                         isEdit: true,
                                         name: opening!.name,
-                                        isWhite: opening.color == PieceColor.white,
+                                        isWhite:
+                                            opening.color == PieceColor.white,
                                       ),
                                     ));
                               },
@@ -264,6 +361,27 @@ class _OpeningViewState extends State<OpeningView> {
                       ),
                     ),
                   ),
+                SizedBox(
+                  height: 50,
+                  width: MediaQuery.of(context).size.width,
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.7,
+                  child: Center(
+                    child: Container(
+                      decoration: iconButtonDecoration,
+                      child: IconButton(
+                        onPressed: () {
+                          _openDefaultOpeningsDialog();
+                        },
+                        icon: const Icon(
+                          Icons.add_circle,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

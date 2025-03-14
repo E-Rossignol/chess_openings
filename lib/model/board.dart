@@ -1,4 +1,5 @@
 import 'package:chess_ouvertures/model/piece.dart';
+import 'package:chess_ouvertures/test.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
 import '../constants.dart';
@@ -32,8 +33,8 @@ class Board{
     for (List<Square> move in history){
       movePiece(move[0].row, move[0].col, move[1].row, move[1].col);
     }
-    moveCount.notifyListeners();
-    boardNotifier.notifyListeners();
+    moveCount.value = moveCount.value;
+    boardNotifier.value = boardNotifier.value;
   }
 
   List<Square> getValidMoves(Piece piece,
@@ -664,7 +665,21 @@ class Board{
     if (remainingPieces.length == 2 && remainingPieces.elementAt(0).type == PieceType.king && remainingPieces.elementAt(1).type == PieceType.king){
       gameResult.value = -1;
     }
+    List<List<Square>> moves = [];
+    for (var row in board){
+      for (var square in row){
+        if (square.piece != null && square.piece!.color == currentTurn){
+          moves.add(getValidMoves(square.piece!));
+        }
+      }
+    }
+    moves.removeWhere((element) => element.isEmpty);
+    if (moves.isEmpty ){
+      gameResult.value = -2;
+    }
   }
+
+
 
   void _initializePieces() {
     Piece whitePawn1 =
@@ -731,21 +746,6 @@ class Board{
         Piece(type: PieceType.queen, color: PieceColor.black, id: 31, hasMove: false);
     Piece blackKing =
         Piece(type: PieceType.king, color: PieceColor.black, id: 32, hasMove: false);
-    board[1][0].piece = blackPawn1;
-    board[1][1].piece = blackPawn2;
-    board[1][2].piece = blackPawn3;
-    board[1][3].piece = blackPawn4;
-    board[1][4].piece = blackPawn5;
-    board[1][5].piece = blackPawn6;
-    board[1][6].piece = blackPawn7;
-    board[1][7].piece = blackPawn8;
-    board[0][0].piece = blackRook1;
-    board[0][7].piece = blackRook2;
-    board[0][1].piece = blackKnight1;
-    board[0][6].piece = blackKnight2;
-    board[0][2].piece = blackBishop1;
-    board[0][5].piece = blackBishop2;
-    board[0][3].piece = blackQueen;
     board[0][4].piece = blackKing;
     board[6][0].piece = whitePawn1;
     board[6][1].piece = whitePawn2;

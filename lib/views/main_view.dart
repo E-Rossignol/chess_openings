@@ -1,13 +1,8 @@
 import 'package:chess_ouvertures/components/bot_settings_dialog_component.dart';
-import 'package:chess_ouvertures/constants.dart';
 import 'package:chess_ouvertures/database/database_helper.dart';
 import 'package:chess_ouvertures/views/board_view.dart';
-import 'package:chess_ouvertures/views/bot_view.dart';
-import 'package:chess_ouvertures/views/openings/opening_board_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import '../model/board.dart';
-import '../model/openings/opening.dart';
 import 'database_view.dart';
 import 'openings/opening_main_view.dart';
 
@@ -32,14 +27,11 @@ class _MainViewState extends State<MainView> {
   }
 
   void _showBotSettingsDialog() {
-    int difficulty = 1;
-    bool isBotWhite = true;
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return BotSettingsDialogComponent();
+    showModalBottomSheet(context: context, builder: (BuildContext context) {
+        return const BotSettingsDialogComponent();
       },
-    );
+      backgroundColor: Colors.transparent,
+      );
   }
 
   @override
@@ -58,8 +50,8 @@ class _MainViewState extends State<MainView> {
           opacity: 0.8,
           child: Center(
             child: SizedBox(
-              height: 300,
-              width: 300,
+              height: 350,
+              width: 350,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -85,7 +77,7 @@ class _MainViewState extends State<MainView> {
                             Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => const OpeningView()));
+                                    builder: (context) => OpeningView()));
                           },
                           child: const Text("Openings",
                               style: TextStyle(
@@ -220,50 +212,8 @@ class _MainViewState extends State<MainView> {
                                       fontSize: 20))),
                         ),
                       ),
-                      Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Colors.grey.shade400, Colors.grey.shade800],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(12.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: TextButton(
-                              onPressed: () async {
-                                await DatabaseHelper().insertDefaultOpenings();
-                                Opening? opening = await DatabaseHelper().getOpeningByName("Italian");
-                                if (opening != null){
-                                  Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              OpeningBoardView(board: Board(), opening: opening)));
-                                }
-                                else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Error"),
-                                    )
-                                  );
-                                }
-                              },
-                              child: const Text("Default Openings",
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20)))),
                     ],
                   ),
-
                 ],
               ),
             ),

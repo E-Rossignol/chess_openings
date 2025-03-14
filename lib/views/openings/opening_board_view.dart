@@ -11,7 +11,6 @@ import '../../model/openings/opening_move.dart';
 import '../../model/piece.dart';
 import '../../model/square.dart';
 import '../../painter.dart';
-import '../main_view.dart';
 
 class OpeningBoardView extends StatefulWidget {
   final Board board;
@@ -24,8 +23,6 @@ class OpeningBoardView extends StatefulWidget {
 }
 
 class _OpeningBoardViewState extends State<OpeningBoardView> {
-  int? fromRow;
-  int? fromCol;
   int lastMoveId = -1;
   int? lastMoveFromRow;
   int? lastMoveFromCol;
@@ -40,7 +37,6 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
   String variantName = "";
   List<List<Square>> moveHistory = [];
   List<int> moveIdHistory = [-1];
-  bool hasReturnedMove = false;
 
   @override
   void initState() {
@@ -68,7 +64,6 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
 
   void _resetBoard() {
     setState(() {
-      hasReturnedMove = false;
       widget.board.reset();
       moveIdHistory = [-1];
       moveHistory = [];
@@ -117,6 +112,10 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
         move.to.row,
         move.to.col);
     setState(() {
+      lastMoveFromRow = move.from.row;
+      lastMoveFromCol = move.from.col;
+      lastMoveToRow = move.to.row;
+      lastMoveToCol = move.to.col;
       lastMoveId = move.id;
     });
   }
@@ -298,15 +297,19 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
   }
 
   void _undoLastMove() {
-    hasReturnedMove = true;
     if (moveHistory.isNotEmpty) {
       if (moveIdHistory.length > 1) {
         moveIdHistory.removeLast();
         lastMoveId = moveIdHistory.last;
       }
       moveHistory.removeLast();
+      newVariant.removeLast();
       widget.board.undoLastMove(moveHistory);
     }
+    lastMoveFromRow = moveHistory.isNotEmpty ? moveHistory.last[0].row : null;
+    lastMoveFromCol = moveHistory.isNotEmpty ? moveHistory.last[0].col : null;
+    lastMoveToRow = moveHistory.isNotEmpty ? moveHistory.last[1]?.row : null;
+    lastMoveToCol = moveHistory.isNotEmpty ? moveHistory.last[1].col : null;
     _updateBoard();
   }
 
@@ -330,10 +333,10 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
         move.previousMoveId == lastMoveId)
         .length == 1;
     Color whiteColor = isRecording
-        ? Color.fromRGBO(255, 216, 216, 1.0)
+        ? const Color.fromRGBO(255, 216, 216, 1.0)
         : const Color.fromRGBO(246, 238, 228, 1.0);
     Color blackColor =
-        isRecording ? Color.fromRGBO(200, 0, 0, 1.0) : const Color.fromRGBO(201, 181, 151, 1.0);
+        isRecording ? const Color.fromRGBO(200, 0, 0, 1.0) : const Color.fromRGBO(201, 181, 151, 1.0);
     return Scaffold(
       body: Stack(
         children: [
@@ -428,7 +431,6 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                       children: [
                         const SizedBox(height: 35),
                         Container(
-                          color: Colors.blueAccent,
                           height: MediaQuery.of(context).size.width - 25,
                           width: MediaQuery.of(context).size.width - 25,
                           child: Center(
@@ -454,10 +456,13 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                         : index % 8;
                                     final Square square =
                                         widget.board.board[row][col];
-                                    bool isOriginSquare =
-                                        fromRow == row && fromCol == col;
                                     bool isGameOver =
                                         widget.board.gameResult.value != 0;
+                                    bool isLastFromSquare = square.row == lastMoveFromRow && square.col == lastMoveFromCol;
+                                    bool isLastToSquare = square.row == lastMoveToRow && square.col == lastMoveToCol;
+                                    Color lastMoveColor = isRecording ? Color.fromRGBO(255, 165, 0, 1.0) : Color.fromRGBO(173, 216, 230, 1.0);
+                                    Color squareColor = square.isWhite ? whiteColor : blackColor;
+                                    squareColor = isLastFromSquare || isLastToSquare ? lastMoveColor : squareColor;
                                     return GestureDetector(
                                       onTap: () {
                                         if (isGameOver) return;
@@ -510,6 +515,12 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                                 row,
                                                 col,
                                               );
+                                              setState(() {
+                                                lastMoveFromRow = selectedSquare!.row;
+                                                lastMoveFromCol = selectedSquare!.col;
+                                                lastMoveToRow = row;
+                                                lastMoveToCol = col;
+                                              });
                                               selectedSquare = null;
                                               validMoves = [];
                                             } else {
@@ -521,19 +532,21 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                       },
                                       child: Stack(
                                         children: [
-                                          Container(
-                                            decoration: square.isWhite
-                                                ? BoxDecoration(
-                                                    color: whiteColor)
-                                                : BoxDecoration(
-                                                    color: blackColor),
+                                          isLastToSquare || isLastFromSquare
+                                              ? Container(
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: Colors.black.withOpacity(0.5),
+                                                width: 1,
+                                              ),
+                                                  color: squareColor),
+                                            child: _buildPiece(square.piece),
+                                          )
+                                              : Container(
+                                            decoration: BoxDecoration(
+                                                    color: squareColor),
                                             child: _buildPiece(square.piece),
                                           ),
-                                          if (isOriginSquare)
-                                            Container(
-                                              color:
-                                                  Colors.blue.withOpacity(0.5),
-                                            ),
                                           if (validMoves.contains(square) &&
                                               square.piece == null &&
                                               isInCurrentOpening(
@@ -607,10 +620,6 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                           children: [
                             GestureDetector(
                               onTap: () {
-                                if (hasReturnedMove){
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error, you have undone moves. Reset board first.")));
-                                return;
-                                }
                                 if (!isRecording) {
                                   setState(() {
                                     isRecording = true;

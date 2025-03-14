@@ -27,8 +27,10 @@ class DatabaseHelper {
       version: 1,
       onCreate: _onCreate,
       onOpen: (db) async {
-        var res1 = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='opening_names'");
-        var res2 = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='opening_moves'");
+        var res1 = await db.rawQuery(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='opening_names'");
+        var res2 = await db.rawQuery(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='opening_moves'");
         if (res1.isEmpty || res2.isEmpty) {
           await _onCreate(db, 1);
         }
@@ -58,6 +60,10 @@ class DatabaseHelper {
   }
 
   Future<bool> insertOpening(String openingName, String pieceColor) async {
+    List<String> existingOpenings = await getOpeningsNames();
+    if (existingOpenings.contains(openingName)) {
+      return false;
+    }
     final db = await database;
     await db.insert(
       'opening_names',
@@ -67,7 +73,8 @@ class DatabaseHelper {
     return true;
   }
 
-  Future<bool> editOpening(int openingID, String openingName, String pieceColor) async {
+  Future<bool> editOpening(
+      int openingID, String openingName, String pieceColor) async {
     final db = await database;
     int count = await db.update(
       'opening_names',
@@ -80,8 +87,8 @@ class DatabaseHelper {
 
   Future<List<String>> getOpeningsNames() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-        'opening_names', columns: ['opening_name']);
+    final List<Map<String, dynamic>> maps =
+        await db.query('opening_names', columns: ['opening_name']);
     return List.generate(maps.length, (i) {
       return maps[i]['opening_name'] as String;
     });
@@ -98,10 +105,11 @@ class DatabaseHelper {
   Future<void> deleteOpening(String openingName) async {
     final db = await database;
     int? id = await getOpeningIdByName(openingName);
-    if (id != null){
-      await db.delete('opening_moves',
-      where: 'id_table = ?',
-      whereArgs: [id],
+    if (id != null) {
+      await db.delete(
+        'opening_moves',
+        where: 'id_table = ?',
+        whereArgs: [id],
       );
       await db.delete(
         'opening_names',
@@ -120,14 +128,19 @@ class DatabaseHelper {
       whereArgs: [openingName],
     );
     if (maps.isNotEmpty) {
-      List<Map<String, dynamic>> moves = await getMovesByOpeningId(maps.first['id']);
+      List<Map<String, dynamic>> moves =
+          await getMovesByOpeningId(maps.first['id']);
       List<OpeningMove> openingMoves = [];
-      for (Map<String, dynamic> move in moves){
+      for (Map<String, dynamic> move in moves) {
         openingMoves.add(getMoveFromQuery(move));
       }
-      return Opening(name: maps.first['opening_name'], moves: openingMoves, color: maps.first['piece_color'] == 'white' ? PieceColor.white : PieceColor.black);
-    }
-    else {
+      return Opening(
+          name: maps.first['opening_name'],
+          moves: openingMoves,
+          color: maps.first['piece_color'] == 'white'
+              ? PieceColor.white
+              : PieceColor.black);
+    } else {
       return null;
     }
   }
@@ -157,38 +170,48 @@ class DatabaseHelper {
     return maps;
   }
 
-  Future<List<OpeningMove>?> insertVariant(List<List<Square>> newVariant, String openingName, String variantName) async{
+  Future<List<OpeningMove>?> insertVariant(List<List<Square>> newVariant,
+      String openingName, String variantName) async {
     Opening? op = await getOpeningByName(openingName);
     int? openingID = await getOpeningIdByName(openingName);
     int lastMoveId = -1;
-    if(op == null || openingID == null){
+    if (op == null || openingID == null) {
       return null;
     }
     List<OpeningMove> newMoves = [];
-    for (List<Square> move in newVariant){
-      if (move[0].row == -1 || move[1].row == -1 || move[0].col == -1 || move[1].col == -1 ){
+    for (List<Square> move in newVariant) {
+      if (move[0].row == -1 ||
+          move[1].row == -1 ||
+          move[0].col == -1 ||
+          move[1].col == -1) {
         continue;
       }
-      newMoves.add(OpeningMove(from: move[0], to: move[1], moveNumber: newVariant.indexOf(move), openingId: openingID, id: -1));
+      newMoves.add(OpeningMove(
+          from: move[0],
+          to: move[1],
+          moveNumber: newVariant.indexOf(move),
+          openingId: openingID,
+          id: -1));
     }
     int counter = 0;
     bool keepGoing = true;
-    while(keepGoing){
-      List<OpeningMove> opmv = op.moves.where((element) => element.moveNumber == counter &&
-          element.from.row == newMoves[counter].from.row &&
-          element.from.col == newMoves[counter].from.col &&
-          element.to.row == newMoves[counter].to.row &&
-          element.to.col == newMoves[counter].to.col
-      ).toList();
+    while (keepGoing) {
+      List<OpeningMove> opmv = op.moves
+          .where((element) =>
+              element.moveNumber == counter &&
+              element.from.row == newMoves[counter].from.row &&
+              element.from.col == newMoves[counter].from.col &&
+              element.to.row == newMoves[counter].to.row &&
+              element.to.col == newMoves[counter].to.col)
+          .toList();
       if (opmv.isNotEmpty) {
         newMoves[counter].openingId = -1;
         keepGoing = true;
         lastMoveId = opmv.first.id;
-      }
-      else {
+      } else {
         keepGoing = false;
       }
-      counter ++;
+      counter++;
     }
     // THE VARIANT IS NEW FROM HERE
     newMoves.removeWhere((element) => element.openingId == -1);
@@ -196,24 +219,24 @@ class DatabaseHelper {
     final db = await database;
     int newMoveId = lastMoveId;
     List<OpeningMove> result = [];
-      for (int i = 0; i < newMoves.length; i++){
-        int tmp = newMoveId;
-        newMoveId = await db.insert(
-          'opening_moves',
-          {
-            'id_table': openingID,
-            'move_nbr': newMoves[i].moveNumber,
-            'start_square': squareToString(newMoves[i].from),
-            'end_square': squareToString(newMoves[i].to),
-            'is_after': tmp,
-            'variantName': newMoves[i].variantName
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-        newMoves[i].previousMoveId = tmp;
-        newMoves[i].id = newMoveId;
-        result.add(newMoves[i]);
-      }
+    for (int i = 0; i < newMoves.length; i++) {
+      int tmp = newMoveId;
+      newMoveId = await db.insert(
+        'opening_moves',
+        {
+          'id_table': openingID,
+          'move_nbr': newMoves[i].moveNumber,
+          'start_square': squareToString(newMoves[i].from),
+          'end_square': squareToString(newMoves[i].to),
+          'is_after': tmp,
+          'variantName': newMoves[i].variantName
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      newMoves[i].previousMoveId = tmp;
+      newMoves[i].id = newMoveId;
+      result.add(newMoves[i]);
+    }
 
     return result;
   }
@@ -247,17 +270,71 @@ class DatabaseHelper {
     await deleteDescendants(openingMoveId);
   }
 
-  Future<void> insertDefaultOpenings() async {
+  Future<void> insertItalianOpening() async {
     insertOpening('Italian', 'white');
-    List<String> italian = italienne_defaut();
-    List<List<Square>> italian_Moves = [];
-    for (String move in italian){
+    List<String> italian = italianOpening();
+    List<List<Square>> italianMoves = [];
+    for (String move in italian) {
       List<String> moves = move.trim().split(' ');
-      for (String m in moves){
-        italian_Moves.add([stringToSquare(m.substring(0, 2)), stringToSquare(m.substring(2, 4))]);
+      for (String m in moves) {
+        italianMoves.add([
+          stringToSquare(m.substring(0, 2)),
+          stringToSquare(m.substring(2, 4))
+        ]);
       }
-      insertVariant(italian_Moves, 'Italian', "");
-      italian_Moves = [];
+      await insertVariant(italianMoves, 'Italian', "");
+      italianMoves = [];
+    }
+  }
+
+  Future<void> insertQueensGambitOpening() async {
+    insertOpening('Queen\'s Gambit', 'white');
+    List<String> queensGambit = queensGambitOpening();
+    List<List<Square>> queensGambitMoves = [];
+    for (String move in queensGambit) {
+      List<String> moves = move.trim().split(' ');
+      for (String m in moves) {
+        queensGambitMoves.add([
+          stringToSquare(m.substring(0, 2)),
+          stringToSquare(m.substring(2, 4))
+        ]);
+      }
+      await insertVariant(queensGambitMoves, 'Queen\'s Gambit', "");
+      queensGambitMoves = [];
+    }
+  }
+
+  Future<void> insertSicilianDefenseOpening() async {
+    insertOpening('Sicilian', 'black');
+    List<String> sicilian = sicilianOpening();
+    List<List<Square>> sicilianMoves = [];
+    for (String move in sicilian) {
+      List<String> moves = move.trim().split(' ');
+      for (String m in moves) {
+        sicilianMoves.add([
+          stringToSquare(m.substring(0, 2)),
+          stringToSquare(m.substring(2, 4))
+        ]);
+      }
+      await insertVariant(sicilianMoves, 'Sicilian', "");
+      sicilianMoves = [];
+    }
+  }
+
+  Future<void> insertFrenchDefenseOpening() async {
+    insertOpening('French Defense', 'black');
+    List<String> french = frenchOpening();
+    List<List<Square>> frenchMoves = [];
+    for (String move in french) {
+      List<String> moves = move.trim().split(' ');
+      for (String m in moves) {
+        frenchMoves.add([
+          stringToSquare(m.substring(0, 2)),
+          stringToSquare(m.substring(2, 4))
+        ]);
+      }
+      await insertVariant(frenchMoves, 'French Defense', "");
+      frenchMoves = [];
     }
   }
 }
