@@ -19,12 +19,7 @@ class _OpeningViewState extends State<OpeningView> {
   Future<List<String>>? openingsName;
   String? selectedOpening;
   String selectedDefaultOpening = "Italian";
-  List<String> defaultOpeningsList = [
-    "Italian",
-    "Queen's Gambit",
-    "French Defense",
-    "Sicilian Defense",
-  ];
+  List<String> defaultOpeningsList = defaultOpenings();
 
   Future<void> _loadOpenings() async {
     openingsName = DatabaseHelper().getOpeningsNames();
@@ -32,20 +27,6 @@ class _OpeningViewState extends State<OpeningView> {
 
   Future<Opening?> _loadDefaultOpening(String openingName) async {
     DatabaseHelper db = DatabaseHelper();
-    switch (openingName) {
-      case "Italian":
-        await db.insertItalianOpening();
-        break;
-      case "Queen's Gambit":
-        await db.insertQueensGambitOpening();
-        break;
-      case "French Defense":
-        await db.insertFrenchDefenseOpening();
-        break;
-      case "Sicilian Defense":
-        await db.insertSicilianDefenseOpening();
-        break;
-    }
     Opening? op = await db.getOpeningByName(openingName);
     return op;
   }
@@ -79,13 +60,13 @@ class _OpeningViewState extends State<OpeningView> {
               ],
             ),
             actions: <Widget>[
-              TextButton(
+              ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop(); // Ferme la boîte de dialogue
                 },
                 child: const Text('Cancel'),
               ),
-              TextButton(
+              ElevatedButton(
                 onPressed: () async {
                   Opening? op =
                       await _loadDefaultOpening(selectedDefaultOpening);
@@ -180,28 +161,25 @@ class _OpeningViewState extends State<OpeningView> {
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Container(
-                            decoration: iconButtonDecoration,
-                            child: TextButton(
-                              onPressed: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const NewOpeningView(
-                                              openingId: null,
-                                              name: null,
-                                              isWhite: null,
-                                              isEdit: false)),
-                                );
-                              },
-                              child: const Text("New opening",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: Colors.black,
-                                  )),
-                            ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const NewOpeningView(
+                                            openingId: null,
+                                            name: null,
+                                            isWhite: null,
+                                            isEdit: false)),
+                              );
+                            },
+                            child: const Text("New opening",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                )),
                           ),
                         ]),
                   ),
@@ -368,17 +346,16 @@ class _OpeningViewState extends State<OpeningView> {
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.7,
                   child: Center(
-                    child: Container(
-                      decoration: iconButtonDecoration,
-                      child: IconButton(
-                        onPressed: () {
-                          _openDefaultOpeningsDialog();
-                        },
-                        icon: const Icon(
-                          Icons.add_circle,
-                          color: Colors.black,
-                        ),
-                      ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _openDefaultOpeningsDialog();
+                      },
+                      child: const Text("Default openings",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Colors.black,
+                          )),
                     ),
                   ),
                 ),
@@ -398,13 +375,13 @@ class _OpeningViewState extends State<OpeningView> {
           title: const Text('Confirmer la suppression'),
           content: Text('Delete "$selectedOpening" ?'),
           actions: <Widget>[
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Ferme la boîte de dialogue
               },
               child: const Text('Annuler'),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () async {
                 if (selectedOpening != null) {
                   await DatabaseHelper().deleteOpening(selectedOpening!);

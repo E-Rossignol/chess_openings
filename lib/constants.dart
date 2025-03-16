@@ -1,3 +1,4 @@
+
 import 'model/openings/opening_move.dart';
 import 'model/piece.dart';
 import 'model/square.dart';
@@ -116,6 +117,16 @@ String squareToString(Square square) {
   return col + row;
 }
 
+List<String> defaultOpenings(){
+  List<String> result = [];
+  result.add("Italian");
+  result.add('Queen\'s Gambit');
+  result.add('Sicilian Defense');
+  result.add('French Defense');
+  result.add('Englund\'s Gambit');
+  return result;
+}
+
 List<String> italianOpening() {
   List<String> result = [];
   result.add(
@@ -150,6 +161,12 @@ List<String> frenchOpening(){
 
 List<String> sicilianOpening(){
   List<String> result = [];
+  return result;
+}
+
+List<String> englundOpening(){
+  List<String> result = [];
+
   return result;
 }
 

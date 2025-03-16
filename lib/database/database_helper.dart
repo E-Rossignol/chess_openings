@@ -9,11 +9,11 @@ import '../model/square.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
-
   factory DatabaseHelper() => _instance;
   static Database? _database;
 
   DatabaseHelper._internal();
+
 
   Future<Database> get database async {
     _database = await _initDatabase();
@@ -43,7 +43,8 @@ class DatabaseHelper {
       CREATE TABLE opening_names (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         opening_name TEXT,
-        piece_color TEXT
+        piece_color TEXT,
+        is_default INTEGER
       )
     ''');
     await db.execute('''
@@ -53,13 +54,12 @@ class DatabaseHelper {
         move_nbr INTEGER,
         start_square TEXT,
         end_square TEXT,
-        is_after INTEGER,
-        variantName TEXT
+        is_after INTEGER
       )
     ''');
   }
 
-  Future<bool> insertOpening(String openingName, String pieceColor) async {
+  Future<bool> insertOpening(String openingName, String pieceColor, bool isDefault) async {
     List<String> existingOpenings = await getOpeningsNames();
     if (existingOpenings.contains(openingName)) {
       return false;
@@ -67,7 +67,7 @@ class DatabaseHelper {
     final db = await database;
     await db.insert(
       'opening_names',
-      {'opening_name': openingName, 'piece_color': pieceColor},
+      {'opening_name': openingName, 'piece_color': pieceColor, 'is_default': isDefault ? 1 : 0},
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
     return true;
@@ -171,7 +171,7 @@ class DatabaseHelper {
   }
 
   Future<List<OpeningMove>?> insertVariant(List<List<Square>> newVariant,
-      String openingName, String variantName) async {
+      String openingName) async {
     Opening? op = await getOpeningByName(openingName);
     int? openingID = await getOpeningIdByName(openingName);
     int lastMoveId = -1;
@@ -215,7 +215,6 @@ class DatabaseHelper {
     }
     // THE VARIANT IS NEW FROM HERE
     newMoves.removeWhere((element) => element.openingId == -1);
-    newMoves.first.variantName = variantName;
     final db = await database;
     int newMoveId = lastMoveId;
     List<OpeningMove> result = [];
@@ -228,8 +227,7 @@ class DatabaseHelper {
           'move_nbr': newMoves[i].moveNumber,
           'start_square': squareToString(newMoves[i].from),
           'end_square': squareToString(newMoves[i].to),
-          'is_after': tmp,
-          'variantName': newMoves[i].variantName
+          'is_after': tmp
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
@@ -270,8 +268,23 @@ class DatabaseHelper {
     await deleteDescendants(openingMoveId);
   }
 
+  Future<void> insertDefaultOpenings() async {
+    if ((await getOpeningsNames()).contains('Italian') &&
+        (await getOpeningsNames()).contains('Queen\'s Gambit') &&
+        (await getOpeningsNames()).contains('Sicilian Defense') &&
+        (await getOpeningsNames()).contains('French Defense') &&
+        (await getOpeningsNames()).contains('Englund\'s Gambit')) {
+      return;
+    }
+    await insertItalianOpening();
+    await insertQueensGambitOpening();
+    await insertSicilianDefenseOpening();
+    await insertFrenchDefenseOpening();
+    await insertEnglundOpening();
+  }
+
   Future<void> insertItalianOpening() async {
-    insertOpening('Italian', 'white');
+    insertOpening('Italian', 'white', true);
     List<String> italian = italianOpening();
     List<List<Square>> italianMoves = [];
     for (String move in italian) {
@@ -282,13 +295,13 @@ class DatabaseHelper {
           stringToSquare(m.substring(2, 4))
         ]);
       }
-      await insertVariant(italianMoves, 'Italian', "");
+      await insertVariant(italianMoves, 'Italian');
       italianMoves = [];
     }
   }
 
   Future<void> insertQueensGambitOpening() async {
-    insertOpening('Queen\'s Gambit', 'white');
+    insertOpening('Queen\'s Gambit', 'white', true);
     List<String> queensGambit = queensGambitOpening();
     List<List<Square>> queensGambitMoves = [];
     for (String move in queensGambit) {
@@ -299,13 +312,13 @@ class DatabaseHelper {
           stringToSquare(m.substring(2, 4))
         ]);
       }
-      await insertVariant(queensGambitMoves, 'Queen\'s Gambit', "");
+      await insertVariant(queensGambitMoves, 'Queen\'s Gambit');
       queensGambitMoves = [];
     }
   }
 
   Future<void> insertSicilianDefenseOpening() async {
-    insertOpening('Sicilian', 'black');
+    insertOpening('Sicilian Defense', 'black', true);
     List<String> sicilian = sicilianOpening();
     List<List<Square>> sicilianMoves = [];
     for (String move in sicilian) {
@@ -316,13 +329,13 @@ class DatabaseHelper {
           stringToSquare(m.substring(2, 4))
         ]);
       }
-      await insertVariant(sicilianMoves, 'Sicilian', "");
+      await insertVariant(sicilianMoves, 'Sicilian Defense');
       sicilianMoves = [];
     }
   }
 
   Future<void> insertFrenchDefenseOpening() async {
-    insertOpening('French Defense', 'black');
+    insertOpening('French Defense', 'black', true);
     List<String> french = frenchOpening();
     List<List<Square>> frenchMoves = [];
     for (String move in french) {
@@ -333,8 +346,25 @@ class DatabaseHelper {
           stringToSquare(m.substring(2, 4))
         ]);
       }
-      await insertVariant(frenchMoves, 'French Defense', "");
+      await insertVariant(frenchMoves, 'French Defense');
       frenchMoves = [];
+    }
+  }
+
+  Future<void> insertEnglundOpening() async {
+    insertOpening('Englund\'s Gambit', 'black', true);
+    List<String> englund = englundOpening();
+    List<List<Square>> englundMoves = [];
+    for (String move in englund) {
+      List<String> moves = move.trim().split(' ');
+      for (String m in moves) {
+        englundMoves.add([
+          stringToSquare(m.substring(0, 2)),
+          stringToSquare(m.substring(2, 4))
+        ]);
+      }
+      await insertVariant(englundMoves, 'Englund\'s Gambit');
+      englundMoves = [];
     }
   }
 }

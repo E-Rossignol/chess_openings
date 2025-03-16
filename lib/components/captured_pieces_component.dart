@@ -17,7 +17,7 @@ class _CapturedPiecesComponentState extends State<CapturedPiecesComponent> {
   Widget _capturedPieces() {
     Color background = Colors.transparent;
     if (widget.capturedPieces.isNotEmpty) {
-      background = widget.capturedPieces.first.color == PieceColor.white ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.8);
+      background = widget.capturedPieces.first.color == PieceColor.white ? Colors.grey.shade600.withOpacity(0.8) : Colors.white.withOpacity(0.8);
     }
     widget.capturedPieces.sort((a,b) => pieceValue(a.type).compareTo(pieceValue(b.type)));
     List<Widget> images = widget.capturedPieces.map((piece) {

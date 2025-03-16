@@ -1,12 +1,10 @@
 import 'package:chess_ouvertures/model/piece.dart';
-import 'package:chess_ouvertures/test.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
 import '../constants.dart';
 import 'square.dart';
 
 class Board{
-  List<Map<String, dynamic>> capturedHistory = [];
   final List<List<Square>> board;
   ValueNotifier<bool> boardNotifier = ValueNotifier(false);
   ValueNotifier<List<Piece>> capturedPieceNotifier = ValueNotifier([]);
@@ -550,12 +548,6 @@ class Board{
         }
         final captured = board[toRow][toCol].piece;
         if (captured != null) {
-          capturedHistory.add({
-            'piece': board[toRow][toCol].piece,
-            'row': toRow,
-            'col': toCol,
-            'moveCount': moveCount.value,
-          });
           toPlay = 'capture.mp3';
           capturedPieceNotifier.value.add(captured);
           _updateScore(captured);
@@ -645,8 +637,8 @@ class Board{
       }
     }
     moves.removeWhere((element) => element.isEmpty);
-    if (moves.isEmpty ){
-      gameResult.value = -2;
+    if (moves.isEmpty && !isCheck(currentTurn)){
+      gameResult.value = -1;
     }
   }
 

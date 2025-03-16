@@ -163,7 +163,7 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                               }
                               else {
                                 result = await DatabaseHelper()
-                                    .insertOpening(_nameController.value.text, _pieceColor);
+                                    .insertOpening(_nameController.value.text, _pieceColor, false);
                                 message = "Ouverture created";
                               }
                               if (result) {

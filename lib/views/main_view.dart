@@ -14,12 +14,11 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
-
   @override
   void initState() {
     super.initState();
     _initializeDatabase();
-
+    DatabaseHelper().insertDefaultOpenings();
   }
 
   Future<void> _initializeDatabase() async {

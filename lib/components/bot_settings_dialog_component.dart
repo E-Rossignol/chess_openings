@@ -87,7 +87,7 @@ class _BotSettingsDialogComponentState extends State<BotSettingsDialogComponent>
         ],
       ),
       actions: [
-        TextButton(
+        ElevatedButton(
           onPressed: () {
             Navigator.pushReplacement(context, MaterialPageRoute(
                 builder: (context) => BotView(board: Board(), difficulty: difficulty, isBotWhite: isBotWhite)));

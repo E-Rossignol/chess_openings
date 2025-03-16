@@ -7,7 +7,6 @@ class OpeningMove {
   final int moveNumber;
   final Square to;
   int? previousMoveId;
-  String variantName = "";
 
   OpeningMove({
     required this.openingId,
