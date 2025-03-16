@@ -13,9 +13,7 @@ class _LeftCoordinatesComponentState extends State<LeftCoordinatesComponent> {
     return Column(
       children: List.generate(8, (index) {
         return Container(
-          height: (MediaQuery.of(context).size.width - 25) / 8,
-          padding: const EdgeInsets.only(bottom: 25, right: 10),
-          alignment: Alignment.center,
+          padding: const EdgeInsets.only(left: 5, bottom: 25, right: 5),
           child: Text(
             '${8 - index}',
             style: const TextStyle(

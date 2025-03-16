@@ -152,3 +152,20 @@ List<String> sicilianOpening(){
   List<String> result = [];
   return result;
 }
+
+int pieceValue(PieceType type) {
+  switch (type) {
+    case PieceType.pawn:
+      return 1;
+    case PieceType.rook:
+      return 5;
+    case PieceType.knight:
+      return 3;
+    case PieceType.bishop:
+      return 3;
+    case PieceType.queen:
+      return 9;
+    case PieceType.king:
+      return 0;
+  }
+}

@@ -9,7 +9,7 @@ class Board{
   List<Map<String, dynamic>> capturedHistory = [];
   final List<List<Square>> board;
   ValueNotifier<bool> boardNotifier = ValueNotifier(false);
-  List<Piece> capturedPiece = []; // List of captured pieces
+  ValueNotifier<List<Piece>> capturedPieceNotifier = ValueNotifier([]);
   PieceColor currentTurn = PieceColor.white;
   int whiteScore = 0;
   int blackScore = 0;
@@ -557,7 +557,7 @@ class Board{
             'moveCount': moveCount.value,
           });
           toPlay = 'capture.mp3';
-          capturedPiece.add(captured);
+          capturedPieceNotifier.value.add(captured);
           _updateScore(captured);
           findPiece(captured)!.piece = null;
         } else {
@@ -593,17 +593,6 @@ class Board{
     return false;
   }
 
-  Piece? promotePawn(Piece pawn, PieceType newType) {
-    Square square = findPiece(pawn)!;
-    if (pawn.type == PieceType.pawn &&
-        (pawn.color == PieceColor.white && square.row == 0 ||
-            pawn.color == PieceColor.black && square.row == 7)) {
-      Piece newPiece = Piece(color: pawn.color, id: pawn.id, type: newType, hasMove: true);
-      return newPiece;
-    }
-    return null;
-  }
-
   Future<void> _playSound(String fileName) async {
       await _audioPlayer.setVolume(70);
       await _audioPlayer.setAsset('assets/audio/$fileName');
@@ -611,28 +600,10 @@ class Board{
   }
 
   void _updateScore(Piece captured) {
-    int score = 0;
-    switch (captured.type) {
-      case PieceType.pawn:
-        score = 1;
-        break;
-      case PieceType.bishop:
-      case PieceType.knight:
-        score = 3;
-        break;
-      case PieceType.rook:
-        score = 5;
-        break;
-      case PieceType.queen:
-        score = 10;
-        break;
-      default:
-        break;
-    }
     if (captured.color == PieceColor.white) {
-      blackScore += score;
+      blackScore += pieceValue(captured.type);
     } else {
-      whiteScore += score;
+      whiteScore += pieceValue(captured.type);
     }
   }
 
@@ -644,7 +615,7 @@ class Board{
     }
     moveCount.value = 0;
     _initializePieces();
-    capturedPiece.clear();
+    capturedPieceNotifier.value.clear();
     currentTurn = PieceColor.white;
     gameResult.value = 0;
     whiteScore = 0;
@@ -746,6 +717,21 @@ class Board{
         Piece(type: PieceType.queen, color: PieceColor.black, id: 31, hasMove: false);
     Piece blackKing =
         Piece(type: PieceType.king, color: PieceColor.black, id: 32, hasMove: false);
+    board[1][0].piece = blackPawn1;
+    board[1][1].piece = blackPawn2;
+    board[1][2].piece = blackPawn3;
+    board[1][3].piece = blackPawn4;
+    board[1][4].piece = blackPawn5;
+    board[1][5].piece = blackPawn6;
+    board[1][6].piece = blackPawn7;
+    board[1][7].piece = blackPawn8;
+    board[0][0].piece = blackRook1;
+    board[0][7].piece = blackRook2;
+    board[0][1].piece = blackKnight1;
+    board[0][6].piece = blackKnight2;
+    board[0][2].piece = blackBishop1;
+    board[0][5].piece = blackBishop2;
+    board[0][3].piece = blackQueen;
     board[0][4].piece = blackKing;
     board[6][0].piece = whitePawn1;
     board[6][1].piece = whitePawn2;
