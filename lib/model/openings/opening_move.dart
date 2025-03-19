@@ -1,4 +1,5 @@
 import 'package:chess_ouvertures/model/square.dart';
+import 'package:chess_ouvertures/constants.dart';
 
 class OpeningMove {
   int openingId;
@@ -16,4 +17,8 @@ class OpeningMove {
     required this.to,
     this.previousMoveId,
   });
+
+  String toStr(){
+    return '${from.toStr()}${to.toStr()}';
+  }
 }

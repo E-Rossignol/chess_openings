@@ -124,6 +124,7 @@ List<String> defaultOpenings(){
   result.add('Sicilian Defense');
   result.add('French Defense');
   result.add('Englund\'s Gambit');
+  result.add('Latvian Gambit');
   return result;
 }
 
@@ -167,6 +168,11 @@ List<String> sicilianOpening(){
 List<String> englundOpening(){
   List<String> result = [];
 
+  return result;
+}
+
+List<String> latvianOpening(){
+  List<String> result = [];
   return result;
 }
 

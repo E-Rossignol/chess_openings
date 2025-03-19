@@ -3,6 +3,7 @@ import 'package:chess_ouvertures/components/left_coordinates_component.dart';
 import 'package:chess_ouvertures/components/bottom_coordinates_component.dart';
 import 'package:chess_ouvertures/constants.dart';
 import 'package:chess_ouvertures/model/openings/opening.dart';
+import 'package:chess_ouvertures/views/main_view.dart';
 import 'package:chess_ouvertures/views/openings/opening_main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -12,6 +13,8 @@ import '../../model/openings/opening_move.dart';
 import '../../model/piece.dart';
 import '../../model/square.dart';
 import '../../painter.dart';
+import '../board_view.dart';
+import '../database_main_view.dart';
 
 class OpeningBoardView extends StatefulWidget {
   final Board board;
@@ -58,7 +61,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
 
   void _updateMoveCount() {
     setState(() {
-      moveCountMessage = widget.board.moveCount.value.toString();
+      moveCountMessage = (widget.board.moveCount.value ~/ 2).toString();
     });
   }
 
@@ -82,6 +85,18 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     setState(() {
       isReversed = !isReversed;
     });
+  }
+
+  String scoreStr(int score) {
+    String res = "";
+    if (score != 0) {
+      if (score > 0) {
+        res = '+${score.toString()}';
+      } else {
+        res = score.toString();
+      }
+    }
+    return res;
   }
 
   Future<void> _reloadOpening() async {
@@ -164,7 +179,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                 widget.opening.moves.add(move);
                               });
                             }
-                            message = "Variant recorded successfully.";
+                            message = "Added ${result.length} moves successfully.";
                           } else if (result != null && result.isEmpty) {
                             message = "You added 0 new move to the ouverture.";
                           } else {
@@ -288,6 +303,61 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     moveInOpening(move.first);
   }
 
+  String indexes(int index, bool isReversed){
+    String res = "";
+    // 0,8,16,32,40,48,56,57,58,59,60,61,62,63
+    switch(index){
+      case 0:
+        res = isReversed ? "1" : "8";
+        break;
+      case 8:
+        res = isReversed ? "2" : "7";
+        break;
+      case 16:
+        res = isReversed ? "3" : "6";
+        break;
+      case 24:
+        res = isReversed ? "4" : "5";
+        break;
+      case 32:
+        res = isReversed ? "5" : "4";
+        break;
+      case 40:
+        res = isReversed ? "6" : "3";
+        break;
+      case 48:
+        res = isReversed ? "7" : "2";
+        break;
+      case 56:
+        res = isReversed ? "8" : "1";
+        break;
+      case 57:
+        res = isReversed ? "g" : "b";
+        break;
+      case 58:
+        res = isReversed ? "f" : "c";
+        break;
+      case 59:
+        res = isReversed ? "e" : "d";
+        break;
+      case 60:
+        res = isReversed ? "d" : "e";
+        break;
+      case 61:
+        res = isReversed ? "c" : "f";
+        break;
+      case 62:
+        res = isReversed ? "b" : "g";
+        break;
+      case 63:
+        res = isReversed ? "a" : "h";
+        break;
+      default: res = "0";
+      break;
+    }
+    return res;
+  }
+
   @override
   Widget build(BuildContext context) {
     int currentMoveNumber = widget.board.moveCount.value;
@@ -296,43 +366,48 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     move.moveNumber == currentMoveNumber &&
         move.previousMoveId == lastMoveId)
         .length == 1;
+    Color bgColor = const Color.fromRGBO(60, 60, 60, 1);
     Color whiteColor = isRecording
         ? const Color.fromRGBO(255, 216, 216, 1.0)
         : const Color.fromRGBO(246, 238, 228, 1.0);
     Color blackColor =
-        isRecording ? const Color.fromRGBO(200, 0, 0, 1.0) : const Color.fromRGBO(201, 181, 151, 1.0);
+        isRecording ? const Color.fromRGBO(200, 0, 0, 1.0) : const Color.fromRGBO(151, 131, 101, 1.0);
+    Color textColor = whiteColor;
+    int topScore = isReversed
+        ? (widget.board.whiteScore - widget.board.blackScore)
+        : (widget.board.blackScore - widget.board.whiteScore);
+    int bottomScore = isReversed
+        ? (widget.board.blackScore - widget.board.whiteScore)
+        : (widget.board.whiteScore - widget.board.blackScore);
+    List<int> coordinatesIndexes = [
+      0,8,16,24,32,40,48,56,57,58,59,60,61,62,63
+    ];
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/background.jpg'),
-                fit: BoxFit.cover,
+      body: Container(
+        decoration: BoxDecoration(
+          color: bgColor,
+        ),
+        child: Column(
+          children: [
+            const SizedBox(
+              height: 50,
+            ),
+            Align(
+              alignment: Alignment.topLeft,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => MainView()),
+                  );
+                },
               ),
             ),
-          ),
-          Column(
-            children: [
-              const SizedBox(height: 50),
-              Stack(
+            Center(
+              child: Column(
                 children: [
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back_ios_new_sharp,
-                        color: Colors.white,
-                      ),
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const OpeningView()),
-                        );
-                      },
-                    ),
-                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -358,50 +433,63 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                       ),
                     ],
                   ),
-                ],
-              ),
-            ],
-          ),
-          Center(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height / 9,
-                ),
-                Text(widget.opening.name,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        fontStyle: FontStyle.italic)),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: MediaQuery.of(context).size.height -5,
-            width: MediaQuery.of(context).size.width -5,
-            child: Center(
-              child:
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+                  Center(
+                    child: Text(widget.opening.name,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.italic)),
+                  ),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                      child: CapturedPiecesComponent(
-                        capturedPieces: widget.board.capturedPieceNotifier.value.where((element) => element.color == (isReversed ? PieceColor.black: PieceColor.white)).toList(),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CapturedPiecesComponent(
+                            capturedPieces: widget
+                                .board.capturedPieceNotifier.value
+                                .where((element) =>
+                            element.color ==
+                                (isReversed
+                                    ? PieceColor.black
+                                    : PieceColor.white))
+                                .toList(),
+                          ),
+                          topScore > 0
+                              ? Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              height: 30,
+                              width: 30,
+                              child: Center(
+                                  child: Text(
+                                    scoreStr(topScore),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: textColor,
+                                    ),
+                                  )))
+                              : Container(),
+                        ],
                       ),
                     ),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const LeftCoordinatesComponent(),
                       Column(
                         children: [
                           const SizedBox(height: 35),
                           Container(
+                            decoration: BoxDecoration(
+                                border: Border.all(
+                                  width: 4,
+                                  color: Colors.black,
+                                )),
                             height: MediaQuery.of(context).size.width - 25,
                             width: MediaQuery.of(context).size.width - 25,
                             child: Center(
@@ -415,10 +503,11 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                   GridView.builder(
                                     physics: const NeverScrollableScrollPhysics(),
                                     gridDelegate:
-                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
                                       crossAxisCount: 8,
                                     ),
                                     itemBuilder: (context, index) {
+                                      Color lastMoveColor = isRecording ? Color.fromRGBO(255, 165, 0, 1.0) : Color.fromRGBO(173, 216, 230, 1.0);
                                       final int row = isReversed
                                           ? 7 - (index ~/ 8)
                                           : index ~/ 8;
@@ -426,14 +515,25 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                           ? 7 - (index % 8)
                                           : index % 8;
                                       final Square square =
-                                          widget.board.board[row][col];
+                                      widget.board.board[row][col];
                                       bool isGameOver =
                                           widget.board.gameResult.value != 0;
-                                      bool isLastFromSquare = square.row == lastMoveFromRow && square.col == lastMoveFromCol;
-                                      bool isLastToSquare = square.row == lastMoveToRow && square.col == lastMoveToCol;
-                                      Color lastMoveColor = isRecording ? Color.fromRGBO(255, 165, 0, 1.0) : Color.fromRGBO(173, 216, 230, 1.0);
-                                      Color squareColor = square.isWhite ? whiteColor : blackColor;
-                                      squareColor = isLastFromSquare || isLastToSquare ? lastMoveColor : squareColor;
+                                      bool isLastFromSquare =
+                                          square.row == lastMoveFromRow &&
+                                              square.col == lastMoveFromCol;
+                                      bool isLastToSquare =
+                                          square.row == lastMoveToRow &&
+                                              square.col == lastMoveToCol;
+                                      Color squareColor = square.isWhite
+                                          ? whiteColor
+                                          : blackColor;
+                                      Color otherColor = !square.isWhite
+                                          ? whiteColor
+                                          : blackColor;
+                                      squareColor =
+                                      isLastFromSquare || isLastToSquare
+                                          ? lastMoveColor
+                                          : squareColor;
                                       return GestureDetector(
                                         onTap: () {
                                           if (isGameOver) return;
@@ -449,16 +549,16 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                               } else if (selectedSquare != null &&
                                                   validMoves.contains(square)) {
                                                 OpeningMove? move =
-                                                    isInCurrentOpening(
-                                                        selectedSquare!,
-                                                        Square(row, col));
+                                                isInCurrentOpening(
+                                                    selectedSquare!,
+                                                    Square(row, col));
                                                 if (move != null) {
                                                   moveInOpening(move);
                                                 } else {
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(const SnackBar(
-                                                          content: Text(
-                                                              "Move not available in you opening")));
+                                                      content: Text(
+                                                          "Move not available in you opening")));
                                                 }
                                                 selectedSquare = null;
                                                 validMoves = [];
@@ -506,23 +606,53 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                             isLastToSquare || isLastFromSquare
                                                 ? Container(
                                               decoration: BoxDecoration(
-                                                border: Border.all(
-                                                  color: Colors.black.withOpacity(0.5),
-                                                  width: 1,
-                                                ),
-                                                    color: squareColor),
+                                                  border: Border.all(
+                                                    color: Colors.black.withOpacity(0.5),
+                                                    width: 1,
+                                                  ),
+                                                  color: squareColor),
                                               child: _buildPiece(square.piece),
                                             )
                                                 : Container(
                                               decoration: BoxDecoration(
-                                                      color: squareColor),
+                                                  color: squareColor),
                                               child: _buildPiece(square.piece),
                                             ),
+                                            if (coordinatesIndexes.contains(index))
+                                              Positioned(
+                                                bottom: index > 56 ? 2 : null,
+                                                right: index > 56 ? 2 : null,
+                                                top: index <= 56 ? 2 : null,
+                                                left: index <= 56 ? 2 : null,
+                                                child: Text(
+                                                  indexes(index, isReversed),
+                                                  style: TextStyle(
+                                                    color: otherColor,
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            if (index == 56)
+                                              Positioned(
+                                                bottom: 2,
+                                                right: 2,
+                                                child: Text(
+                                                  !isReversed ? "a" : "h",
+                                                  style: TextStyle(
+                                                    color: otherColor,
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
                                             if (validMoves.contains(square) &&
                                                 square.piece == null &&
                                                 isInCurrentOpening(
-                                                        selectedSquare!,
-                                                        square) !=
+                                                    selectedSquare!,
+                                                    square) !=
                                                     null &&
                                                 !isRecording)
                                               Center(
@@ -572,10 +702,10 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                         painter: ArrowPainter(
                                             moves: widget.opening.moves
                                                 .where((move) =>
-                                                    move.moveNumber ==
-                                                        currentMoveNumber &&
-                                                    lastMoveId ==
-                                                        move.previousMoveId)
+                                            move.moveNumber ==
+                                                currentMoveNumber &&
+                                                lastMoveId ==
+                                                    move.previousMoveId)
                                                 .toList(),
                                             isReversed: isReversed),
                                       ),
@@ -585,82 +715,114 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                               ),
                             ),
                           ),
-                          const BottomCoordinatesComponent(),
-                          SizedBox(
-                            height: 10,
-                          ),
                         ],
                       ),
                     ],
                   ),
-                  Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          GestureDetector(
-                            onTap: () async {
-                              if (!isRecording) {
-                                setState(() {
-                                  isRecording = true;
-                                });
-                              } else if (newVariant.isNotEmpty) {
-                                await _showValidateVariantDialog();
-                              } else {
-                                setState(() {
-                                  isRecording = false;
-                                });
-                              }
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              width: 50.0,
-                              height: 50.0,
-                              decoration: BoxDecoration(
-                                color: isRecording ? Colors.red : Colors.grey,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  isRecording
-                                      ? Icons.stop
-                                      : Icons.fiber_manual_record,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
+                          CapturedPiecesComponent(
+                            capturedPieces: widget
+                                .board.capturedPieceNotifier.value
+                                .where((element) =>
+                            element.color ==
+                                (isReversed
+                                    ? PieceColor.white
+                                    : PieceColor.black))
+                                .toList(),
                           ),
-                          if (!isRecording)
-                            IconButton(onPressed: _showDeleteVariantDialog, icon: const Icon(
-                              Icons.delete_outline, color: Colors.white,
-                            ))
+                          bottomScore > 0
+                              ? Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              height: 30,
+                              width: 30,
+                              child: Center(
+                                  child: Text(
+                                    scoreStr(bottomScore),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: textColor,
+                                    ),
+                                  )))
+                              : Container(),
                         ],
                       ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                          child: CapturedPiecesComponent(
-                            capturedPieces: widget.board.capturedPieceNotifier.value.where((element) => element.color == (isReversed ? PieceColor.white: PieceColor.black)).toList(),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 10),
+                  Center(
+                    child:
+                    Column(
+                      children: [
+                        Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                GestureDetector(
+                                  onTap: () async {
+                                    if (!isRecording) {
+                                      setState(() {
+                                        isRecording = true;
+                                      });
+                                    } else if (newVariant.isNotEmpty) {
+                                      await _showValidateVariantDialog();
+                                    } else {
+                                      setState(() {
+                                        isRecording = false;
+                                      });
+                                    }
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    width: 50.0,
+                                    height: 50.0,
+                                    decoration: BoxDecoration(
+                                      color: isRecording ? Colors.red : Colors.grey,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        isRecording
+                                            ? Icons.stop
+                                            : Icons.fiber_manual_record,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (!isRecording)
+                                  IconButton(onPressed: _showDeleteVariantDialog, icon: const Icon(
+                                    Icons.delete_outline, color: Colors.white,
+                                  )),
+                              ],
+                            ),
+                            const SizedBox(height: 30),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-          Align(
-              alignment: Alignment.bottomCenter,
-              child: Text(
-                'Move n°$moveCountMessage',
-                style: const TextStyle(
-                  color: Colors.white,
-                ),
-              ))
-        ],
+            Align(
+                alignment: Alignment.bottomCenter,
+                child: Text(
+                  'Move n°$moveCountMessage',
+                  style: const TextStyle(
+                    color: Colors.white,
+                  ),
+                ))
+          ],
+        ),
       ),
     );
   }

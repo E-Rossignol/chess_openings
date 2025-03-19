@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class BottomCoordinatesComponent extends StatefulWidget {
-  const BottomCoordinatesComponent({super.key});
+  final bool isReversed;
+  const BottomCoordinatesComponent({super.key, required this.isReversed});
 
   @override
   State<BottomCoordinatesComponent> createState() => _BottomCoordinatesComponentState();
@@ -17,7 +18,9 @@ class _BottomCoordinatesComponentState extends State<BottomCoordinatesComponent>
           width:
           (MediaQuery.of(context).size.width - 25) / 8,
           alignment: Alignment.center,
-          child: Text(
+          child:
+          Text(
+            widget.isReversed ? String.fromCharCode(104 - index) :
             String.fromCharCode(65 + index),
             style: const TextStyle(
               fontStyle: FontStyle.italic,

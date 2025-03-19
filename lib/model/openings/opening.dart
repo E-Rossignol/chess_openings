@@ -19,6 +19,7 @@ class Opening{
   }
 
   List<OpeningMove>? findNextMove(OpeningMove previousMove){
+    List<OpeningMove> nextMoves = moves.where((element) => element.previousMoveId == previousMove.id).toList();
     return moves.where((element) => element.previousMoveId == previousMove.id ).toList();
   }
 
@@ -32,5 +33,28 @@ class Opening{
     else {
       moves.remove(deletedMove);
     }
+  }
+
+  List<String> toStr() {
+    List<String> result = [];
+    void dfs(OpeningMove move, String path) {
+      String newPath = path.isEmpty ? move.toStr() : '$path ${move.toStr()}';
+      List<OpeningMove> nextMoves = findNextMove(move) ?? [];
+      if (nextMoves.isEmpty) {
+        result.add(newPath);
+      } else {
+        for (OpeningMove nextMove in nextMoves) {
+          dfs(nextMove, newPath);
+        }
+      }
+    }
+
+    for (OpeningMove move in moves.where((m) => m.previousMoveId == -1)) {
+      dfs(move, '');
+    }
+    for (int i = 0; i < result.length; i++) {
+      result[i] = result[i].toLowerCase();
+    }
+    return result;
   }
 }

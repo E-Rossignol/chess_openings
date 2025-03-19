@@ -88,7 +88,25 @@ class DatabaseHelper {
   Future<List<String>> getOpeningsNames() async {
     final db = await database;
     final List<Map<String, dynamic>> maps =
-        await db.query('opening_names', columns: ['opening_name']);
+        await db.query('opening_names', columns: ['opening_name'], orderBy: 'is_default DESC, opening_name ASC',);
+    return List.generate(maps.length, (i) {
+      return maps[i]['opening_name'] as String;
+    });
+  }
+
+  Future<List<String>> getUsersOpeningsNames() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps =
+    await db.query('opening_names', columns: ['opening_name'], where: 'is_default = 0');
+    return List.generate(maps.length, (i) {
+      return maps[i]['opening_name'] as String;
+    });
+  }
+
+  Future<List<String>> getDefaultOpeningsNames() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps =
+    await db.query('opening_names', columns: ['opening_name'], where: 'is_default = 1');
     return List.generate(maps.length, (i) {
       return maps[i]['opening_name'] as String;
     });
@@ -99,6 +117,7 @@ class DatabaseHelper {
     await db.execute('DROP TABLE IF EXISTS opening_names');
     await db.execute('DROP TABLE IF EXISTS opening_moves');
     await _onCreate(db, 1);
+    await insertDefaultOpenings();
     return true;
   }
 
@@ -172,71 +191,57 @@ class DatabaseHelper {
 
   Future<List<OpeningMove>?> insertVariant(List<List<Square>> newVariant,
       String openingName) async {
+    List<List<Square>> tmp = [];
+    tmp.addAll(newVariant);
     Opening? op = await getOpeningByName(openingName);
-    int? openingID = await getOpeningIdByName(openingName);
-    int lastMoveId = -1;
-    if (op == null || openingID == null) {
+    if (op == null) {
       return null;
     }
-    List<OpeningMove> newMoves = [];
-    for (List<Square> move in newVariant) {
-      if (move[0].row == -1 ||
-          move[1].row == -1 ||
-          move[0].col == -1 ||
-          move[1].col == -1) {
-        continue;
-      }
-      newMoves.add(OpeningMove(
-          from: move[0],
-          to: move[1],
-          moveNumber: newVariant.indexOf(move),
-          openingId: openingID,
-          id: -1));
-    }
-    int counter = 0;
+    List<OpeningMove> tmpMoves = [];
+    tmpMoves.addAll(op.moves);
+    int? openingID = await getOpeningIdByName(openingName);
+    int lastMoveId = -1;
     bool keepGoing = true;
-    while (keepGoing) {
-      List<OpeningMove> opmv = op.moves
-          .where((element) =>
-              element.moveNumber == counter &&
-              element.from.row == newMoves[counter].from.row &&
-              element.from.col == newMoves[counter].from.col &&
-              element.to.row == newMoves[counter].to.row &&
-              element.to.col == newMoves[counter].to.col)
-          .toList();
-      if (opmv.isNotEmpty) {
-        newMoves[counter].openingId = -1;
-        keepGoing = true;
-        lastMoveId = opmv.first.id;
-      } else {
+    int moveCount = 0;
+    while(keepGoing){
+      List<OpeningMove> nextMoves = tmpMoves.where((element) => element.previousMoveId == lastMoveId).toList();
+      List<OpeningMove> coucou = nextMoves.where((element) => element.from.row == tmp.first[0].row && element.from.col == tmp.first[0].col && element.to.row == tmp.first[1].row && element.to.col == tmp.first[1].col).toList();
+      if (coucou.isNotEmpty){
+        moveCount++;
+        lastMoveId = coucou.first.id;
+        tmp.removeAt(0);
+      }
+      else {
         keepGoing = false;
       }
-      counter++;
     }
-    // THE VARIANT IS NEW FROM HERE
-    newMoves.removeWhere((element) => element.openingId == -1);
-    final db = await database;
     int newMoveId = lastMoveId;
-    List<OpeningMove> result = [];
-    for (int i = 0; i < newMoves.length; i++) {
-      int tmp = newMoveId;
+    List<OpeningMove> res = [];
+    var db = await database;
+    while (tmp.isNotEmpty){
       newMoveId = await db.insert(
         'opening_moves',
         {
           'id_table': openingID,
-          'move_nbr': newMoves[i].moveNumber,
-          'start_square': squareToString(newMoves[i].from),
-          'end_square': squareToString(newMoves[i].to),
-          'is_after': tmp
+          'move_nbr': moveCount,
+          'start_square': squareToString(tmp.first[0]),
+          'end_square': squareToString(tmp.first[1]),
+          'is_after': lastMoveId
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      newMoves[i].previousMoveId = tmp;
-      newMoves[i].id = newMoveId;
-      result.add(newMoves[i]);
+      lastMoveId = newMoveId;
+      moveCount++;
+      res.add(OpeningMove(
+          openingId: openingID!,
+          id: newMoveId,
+          from: tmp.first[0],
+          to: tmp.first[1],
+          moveNumber: moveCount,
+          previousMoveId: lastMoveId));
+      tmp.remove(tmp.first);
     }
-
-    return result;
+    return res;
   }
 
   Future<void> deleteOpeningMoveAndDescendants(int openingMoveId) async {
@@ -269,11 +274,16 @@ class DatabaseHelper {
   }
 
   Future<void> insertDefaultOpenings() async {
-    if ((await getOpeningsNames()).contains('Italian') &&
-        (await getOpeningsNames()).contains('Queen\'s Gambit') &&
-        (await getOpeningsNames()).contains('Sicilian Defense') &&
-        (await getOpeningsNames()).contains('French Defense') &&
-        (await getOpeningsNames()).contains('Englund\'s Gambit')) {
+    bool defaultDone = false;
+    for (String name in defaultOpenings()) {
+      if ((await getOpeningsNames()).contains(name)) {
+        defaultDone = true;
+      } else {
+        defaultDone = false;
+        break;
+      }
+    }
+    if (defaultDone) {
       return;
     }
     await insertItalianOpening();
@@ -284,7 +294,7 @@ class DatabaseHelper {
   }
 
   Future<void> insertItalianOpening() async {
-    insertOpening('Italian', 'white', true);
+    await insertOpening('Italian', 'white', true);
     List<String> italian = italianOpening();
     List<List<Square>> italianMoves = [];
     for (String move in italian) {
@@ -301,7 +311,7 @@ class DatabaseHelper {
   }
 
   Future<void> insertQueensGambitOpening() async {
-    insertOpening('Queen\'s Gambit', 'white', true);
+    await insertOpening('Queen\'s Gambit', 'white', true);
     List<String> queensGambit = queensGambitOpening();
     List<List<Square>> queensGambitMoves = [];
     for (String move in queensGambit) {
@@ -318,7 +328,7 @@ class DatabaseHelper {
   }
 
   Future<void> insertSicilianDefenseOpening() async {
-    insertOpening('Sicilian Defense', 'black', true);
+    await insertOpening('Sicilian Defense', 'black', true);
     List<String> sicilian = sicilianOpening();
     List<List<Square>> sicilianMoves = [];
     for (String move in sicilian) {
@@ -335,7 +345,7 @@ class DatabaseHelper {
   }
 
   Future<void> insertFrenchDefenseOpening() async {
-    insertOpening('French Defense', 'black', true);
+    await insertOpening('French Defense', 'black', true);
     List<String> french = frenchOpening();
     List<List<Square>> frenchMoves = [];
     for (String move in french) {
@@ -352,7 +362,7 @@ class DatabaseHelper {
   }
 
   Future<void> insertEnglundOpening() async {
-    insertOpening('Englund\'s Gambit', 'black', true);
+    await insertOpening('Englund\'s Gambit', 'black', true);
     List<String> englund = englundOpening();
     List<List<Square>> englundMoves = [];
     for (String move in englund) {
@@ -365,6 +375,23 @@ class DatabaseHelper {
       }
       await insertVariant(englundMoves, 'Englund\'s Gambit');
       englundMoves = [];
+    }
+  }
+
+  Future<void> insertLatvianOpening() async {
+    await insertOpening('Latvian Gambit', 'black', true);
+    List<String> latvian = latvianOpening();
+    List<List<Square>> latvianMoves = [];
+    for (String move in latvian) {
+      List<String> moves = move.trim().split(' ');
+      for (String m in moves) {
+        latvianMoves.add([
+          stringToSquare(m.substring(0, 2)),
+          stringToSquare(m.substring(2, 4))
+        ]);
+      }
+      await insertVariant(latvianMoves, 'Latvian Gambit');
+      latvianMoves = [];
     }
   }
 }

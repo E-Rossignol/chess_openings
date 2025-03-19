@@ -4,7 +4,6 @@ import 'package:chess_ouvertures/views/main_view.dart';
 import 'package:chess_ouvertures/views/openings/new_opening_view.dart';
 import 'package:chess_ouvertures/views/openings/opening_board_view.dart';
 import 'package:flutter/material.dart';
-
 import '../../constants.dart';
 import '../../model/board.dart';
 
@@ -16,93 +15,16 @@ class OpeningView extends StatefulWidget {
 }
 
 class _OpeningViewState extends State<OpeningView> {
-  Future<List<String>>? openingsName;
+  Future<List<String>> openingsName = DatabaseHelper().getOpeningsNames();
   String? selectedOpening;
-  String selectedDefaultOpening = "Italian";
-  List<String> defaultOpeningsList = defaultOpenings();
-
-  Future<void> _loadOpenings() async {
-    openingsName = DatabaseHelper().getOpeningsNames();
-  }
-
-  Future<Opening?> _loadDefaultOpening(String openingName) async {
-    DatabaseHelper db = DatabaseHelper();
-    Opening? op = await db.getOpeningByName(openingName);
-    return op;
-  }
-
-  void _openDefaultOpeningsDialog() {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Openings'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Choose opening'),
-                DropdownButton<String>(
-                  value: selectedDefaultOpening,
-                  items: defaultOpeningsList.map((String opening) {
-                    return DropdownMenuItem<String>(
-                      value: opening,
-                      child: Text(opening),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedDefaultOpening = newValue!;
-                    });
-                    Navigator.of(context).pop();
-                    _openDefaultOpeningsDialog();
-                  },
-                ),
-              ],
-            ),
-            actions: <Widget>[
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Ferme la boîte de dialogue
-                },
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Opening? op =
-                      await _loadDefaultOpening(selectedDefaultOpening);
-                  if (op != null) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OpeningBoardView(
-                          board: Board(),
-                          opening: op,
-                        ),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Error'),
-                      ),
-                    );
-                  }
-                },
-                child: const Text('Ok'),
-              ),
-            ],
-          );
-        });
-  }
-
   @override
   void initState() {
     super.initState();
-    _loadOpenings();
   }
 
   @override
   Widget build(BuildContext context) {
+    List<String> defaultOp = defaultOpenings();
     BoxDecoration iconButtonDecoration = BoxDecoration(
       gradient: LinearGradient(
         colors: [Colors.grey.shade200, Colors.grey.shade700],
@@ -123,250 +45,243 @@ class _OpeningViewState extends State<OpeningView> {
       body: Stack(children: [
         Container(
           decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/background.jpg'),
-              fit: BoxFit.cover,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color.fromRGBO(48, 46, 43, 1),
+                Color.fromRGBO(38, 37, 34, 1)
+              ],
             ),
           ),
-        ),
-        Column(
-          children: [
-            const SizedBox(height: 50),
-            Align(
-              alignment: Alignment.topLeft,
-              child: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_sharp,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MainView()),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-        Opacity(
-          opacity: 1,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.7,
-                  child: Center(
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      child: Center(
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
                                         const NewOpeningView(
                                             openingId: null,
                                             name: null,
                                             isWhite: null,
                                             isEdit: false)),
-                              );
-                            },
-                            child: const Text("New opening",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.black,
-                                )),
-                          ),
-                        ]),
-                  ),
-                ),
-                SizedBox(
-                  height: 50,
-                  width: MediaQuery.of(context).size.width,
-                ),
-                Container(
-                  decoration: iconButtonDecoration,
-                  child: IntrinsicWidth(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        minWidth: 180,
+                                  );
+                                },
+                                child: const Text("New opening",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Colors.black,
+                                    )),
+                              ),
+                            ]),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  selectedOpening = null;
-                                });
-                              },
-                              icon: const Icon(
-                                Icons.refresh,
-                                color: Colors.black,
-                              )),
-                          FutureBuilder<List<String>>(
-                            future: openingsName,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const CircularProgressIndicator();
-                              } else if (snapshot.hasError) {
-                                return Text('Error: ${snapshot.error}');
-                              } else if (!snapshot.hasData ||
-                                  snapshot.data!.isEmpty) {
-                                return const Text(
-                                  'No opening yet',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                );
-                              } else {
-                                return DropdownButton<String>(
-                                  icon: const Icon(
-                                    Icons.arrow_drop_down,
-                                    color: Colors.black,
-                                  ),
-                                  value: selectedOpening,
-                                  hint: Text(
-                                    "Select opening",
-                                    style:
-                                        TextStyle(color: Colors.grey.shade700),
-                                  ),
-                                  items: snapshot.data!.map((String opening) {
-                                    return DropdownMenuItem<String>(
-                                      value: opening,
-                                      child: Text(
-                                        opening,
-                                        style: const TextStyle(
-                                          fontSize: 19,
-                                          fontStyle: FontStyle.italic,
-                                          fontWeight: FontWeight.bold,
+                    ),
+                    SizedBox(
+                      height: 50,
+                      width: MediaQuery.of(context).size.width,
+                    ),
+                    Container(
+                      decoration: iconButtonDecoration,
+                      child: IntrinsicWidth(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            minWidth: 180,
+                            minHeight: 50,
+                          ),
+                          child: Center(
+                            child: FutureBuilder<List<String>>(
+                              future: openingsName,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const CircularProgressIndicator();
+                                } else if (snapshot.hasError) {
+                                  return Text('Error: ${snapshot.error}');
+                                } else if (!snapshot.hasData ||
+                                    snapshot.data!.isEmpty) {
+                                  return const Text(
+                                    "No openings",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  );
+                                } else {
+                                  List<String> nonDefaultOpenings = snapshot.data!
+                                      .where((opening) =>
+                                  !defaultOp.contains(opening))
+                                      .toList();
+                                  List<String> defaultOpenings = snapshot.data!
+                                      .where((opening) =>
+                                      defaultOp.contains(opening))
+                                      .toList();
+
+                                  return DropdownButton<String>(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    icon: const Icon(
+                                      Icons.arrow_drop_down,
+                                      color: Colors.black,
+                                    ),
+                                    alignment: Alignment.center,
+                                    value: selectedOpening,
+                                    hint: Text(
+                                      "Your openings",
+                                      style:
+                                      TextStyle(color: Colors.grey.shade700),
+                                    ),
+                                    items: [
+                                      ...nonDefaultOpenings.map((String opening) {
+                                        return DropdownMenuItem<String>(
+                                          value: opening,
+                                          child: Text(
+                                            opening,
+                                            style: const TextStyle(
+                                              fontSize: 19,
+                                              fontStyle: FontStyle.italic,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                      const DropdownMenuItem<String>(
+                                        enabled: false,
+                                        child: Text(
+                                          "Default:",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontStyle: FontStyle.italic,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
-                                    );
-                                  }).toList(),
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      selectedOpening = newValue;
-                                    });
+                                      ...defaultOpenings.map((String opening) {
+                                        return DropdownMenuItem<String>(
+                                          value: opening,
+                                          child: Text(
+                                            opening,
+                                            style: TextStyle(
+                                              fontSize: 19,
+                                              fontStyle: FontStyle.italic,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey.shade800,
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ],
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        selectedOpening = newValue;
+                                      });
+                                    },
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (selectedOpening != null)
+                      SizedBox(
+                        height: 30,
+                        width: MediaQuery.of(context).size.width,
+                      ),
+                    if (selectedOpening != null)
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Container(
+                                decoration: iconButtonDecoration,
+                                child: IconButton(
+                                  onPressed: () async {
+                                    Opening? opening = await DatabaseHelper()
+                                        .getOpeningByName(selectedOpening!);
+                                    Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => OpeningBoardView(
+                                            board: Board(),
+                                            opening: opening!,
+                                          ),
+                                        ));
                                   },
-                                );
-                              }
-                            },
+                                  icon: const Icon(
+                                    Icons.play_circle,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              if (!defaultOp.contains(selectedOpening))
+                                Container(
+                                  decoration: iconButtonDecoration,
+                                  child: IconButton(
+                                    onPressed: () async {
+                                      Opening? opening = await DatabaseHelper()
+                                          .getOpeningByName(selectedOpening!);
+                                      int? id = await DatabaseHelper()
+                                          .getOpeningIdByName(selectedOpening!);
+                                      Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => NewOpeningView(
+                                              openingId: id!,
+                                              isEdit: true,
+                                              name: opening!.name,
+                                              isWhite:
+                                              opening.color == PieceColor.white,
+                                            ),
+                                          ));
+                                    },
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              if (!defaultOp.contains(selectedOpening))
+                                Container(
+                                  decoration: iconButtonDecoration,
+                                  child: IconButton(
+                                    onPressed: () {
+                                      _showDeleteDialog(context);
+                                    },
+                                    icon: const Icon(
+                                      Icons.delete_outlined,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
+                  ],
                 ),
-                if (selectedOpening != null)
-                  SizedBox(
-                    height: 30,
-                    width: MediaQuery.of(context).size.width,
-                  ),
-                if (selectedOpening != null)
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.7,
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Container(
-                            decoration: iconButtonDecoration,
-                            child: IconButton(
-                              onPressed: () async {
-                                Opening? opening = await DatabaseHelper()
-                                    .getOpeningByName(selectedOpening!);
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => OpeningBoardView(
-                                        board: Board(),
-                                        opening: opening!,
-                                      ),
-                                    ));
-                              },
-                              icon: const Icon(
-                                Icons.play_circle,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            decoration: iconButtonDecoration,
-                            child: IconButton(
-                              onPressed: () async {
-                                Opening? opening = await DatabaseHelper()
-                                    .getOpeningByName(selectedOpening!);
-                                int? id = await DatabaseHelper()
-                                    .getOpeningIdByName(selectedOpening!);
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => NewOpeningView(
-                                        openingId: id!,
-                                        isEdit: true,
-                                        name: opening!.name,
-                                        isWhite:
-                                            opening.color == PieceColor.white,
-                                      ),
-                                    ));
-                              },
-                              icon: const Icon(
-                                Icons.edit,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            decoration: iconButtonDecoration,
-                            child: IconButton(
-                              onPressed: () {
-                                _showDeleteDialog(context);
-                              },
-                              icon: const Icon(
-                                Icons.delete_outlined,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                SizedBox(
-                  height: 50,
-                  width: MediaQuery.of(context).size.width,
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.7,
-                  child: Center(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _openDefaultOpeningsDialog();
-                      },
-                      child: const Text("Default openings",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            color: Colors.black,
-                          )),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ]),
     );
   }
-
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -387,7 +302,6 @@ class _OpeningViewState extends State<OpeningView> {
                   await DatabaseHelper().deleteOpening(selectedOpening!);
                   setState(() {
                     selectedOpening = null;
-                    _loadOpenings();
                   });
                   Navigator.of(context).pop(); // Ferme la boîte de dialogue
                 }

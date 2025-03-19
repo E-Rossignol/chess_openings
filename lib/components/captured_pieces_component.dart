@@ -31,7 +31,6 @@ class _CapturedPiecesComponentState extends State<CapturedPiecesComponent> {
       height: 30,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
-        color: background,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
