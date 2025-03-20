@@ -6,6 +6,23 @@ import 'package:chess_ouvertures/views/openings/opening_board_view.dart';
 import 'package:flutter/material.dart';
 import '../../constants.dart';
 import '../../model/board.dart';
+import '../board_view.dart';
+
+class OpeningMainView extends StatelessWidget {
+  final Key key;
+
+  const OpeningMainView({required this.key}): super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Navigator(
+      onGenerateRoute: (routeSettings) {
+        return MaterialPageRoute(
+          builder: (context) => const OpeningView(),
+        );
+      },
+    );
+  }
+}
 
 class OpeningView extends StatefulWidget {
   const OpeningView({super.key});
@@ -17,6 +34,58 @@ class OpeningView extends StatefulWidget {
 class _OpeningViewState extends State<OpeningView> {
   Future<List<String>> openingsName = DatabaseHelper().getOpeningsNames();
   String? selectedOpening;
+
+  void _navigateToNewOpeningView() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const NewOpeningView(
+          openingId: null,
+          name: null,
+          isWhite: null,
+          isEdit: false,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _navigateToOpeningBoardView(String openingName) async  {
+    Opening? opening = await DatabaseHelper().getOpeningByName(openingName);
+    if (opening != null){
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OpeningBoardView(
+            board: Board(),
+            opening: opening,
+          ),
+        ),
+      );
+    }
+    else {
+      return;
+    }
+  }
+
+  Future<void> _navigateToEditOpeningView(String selectedOpening) async{
+    Opening? opening = await DatabaseHelper()
+        .getOpeningByName(selectedOpening!);
+    int? id = await DatabaseHelper()
+        .getOpeningIdByName(selectedOpening!);
+    Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              NewOpeningView(
+                openingId: id!,
+                isEdit: true,
+                name: opening!.name,
+                isWhite: opening.color ==
+                    PieceColor.white,
+              ),
+        ));
+  }
+
   @override
   void initState() {
     super.initState();
@@ -69,16 +138,7 @@ class _OpeningViewState extends State<OpeningView> {
                             children: [
                               ElevatedButton(
                                 onPressed: () {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                        const NewOpeningView(
-                                            openingId: null,
-                                            name: null,
-                                            isWhite: null,
-                                            isEdit: false)),
-                                  );
+                                  _navigateToNewOpeningView();
                                 },
                                 child: const Text("New opening",
                                     style: TextStyle(
@@ -121,13 +181,14 @@ class _OpeningViewState extends State<OpeningView> {
                                     ),
                                   );
                                 } else {
-                                  List<String> nonDefaultOpenings = snapshot.data!
+                                  List<String> nonDefaultOpenings = snapshot
+                                      .data!
                                       .where((opening) =>
-                                  !defaultOp.contains(opening))
+                                          !defaultOp.contains(opening))
                                       .toList();
                                   List<String> defaultOpenings = snapshot.data!
                                       .where((opening) =>
-                                      defaultOp.contains(opening))
+                                          defaultOp.contains(opening))
                                       .toList();
 
                                   return DropdownButton<String>(
@@ -139,12 +200,13 @@ class _OpeningViewState extends State<OpeningView> {
                                     alignment: Alignment.center,
                                     value: selectedOpening,
                                     hint: Text(
-                                      "Your openings",
-                                      style:
-                                      TextStyle(color: Colors.grey.shade700),
+                                      "Select opening",
+                                      style: TextStyle(
+                                          color: Colors.grey.shade700),
                                     ),
                                     items: [
-                                      ...nonDefaultOpenings.map((String opening) {
+                                      ...nonDefaultOpenings
+                                          .map((String opening) {
                                         return DropdownMenuItem<String>(
                                           value: opening,
                                           child: Text(
@@ -181,9 +243,9 @@ class _OpeningViewState extends State<OpeningView> {
                                             ),
                                           ),
                                         );
-                                      }).toList(),
+                                      }),
                                     ],
-                                    onChanged: (String? newValue) {
+                                    onChanged: (String? newValue) async{
                                       setState(() {
                                         selectedOpening = newValue;
                                       });
@@ -212,16 +274,7 @@ class _OpeningViewState extends State<OpeningView> {
                                 decoration: iconButtonDecoration,
                                 child: IconButton(
                                   onPressed: () async {
-                                    Opening? opening = await DatabaseHelper()
-                                        .getOpeningByName(selectedOpening!);
-                                    Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => OpeningBoardView(
-                                            board: Board(),
-                                            opening: opening!,
-                                          ),
-                                        ));
+                                    await _navigateToOpeningBoardView(selectedOpening!);
                                   },
                                   icon: const Icon(
                                     Icons.play_circle,
@@ -234,21 +287,7 @@ class _OpeningViewState extends State<OpeningView> {
                                   decoration: iconButtonDecoration,
                                   child: IconButton(
                                     onPressed: () async {
-                                      Opening? opening = await DatabaseHelper()
-                                          .getOpeningByName(selectedOpening!);
-                                      int? id = await DatabaseHelper()
-                                          .getOpeningIdByName(selectedOpening!);
-                                      Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => NewOpeningView(
-                                              openingId: id!,
-                                              isEdit: true,
-                                              name: opening!.name,
-                                              isWhite:
-                                              opening.color == PieceColor.white,
-                                            ),
-                                          ));
+                                      await _navigateToEditOpeningView(selectedOpening!);
                                     },
                                     icon: const Icon(
                                       Icons.edit,
@@ -282,6 +321,7 @@ class _OpeningViewState extends State<OpeningView> {
       ]),
     );
   }
+
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
