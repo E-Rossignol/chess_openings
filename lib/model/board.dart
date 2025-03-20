@@ -5,10 +5,9 @@ import '../constants.dart';
 import 'square.dart';
 
 class Board{
-  List<Map<String, dynamic>> capturedHistory = [];
   final List<List<Square>> board;
   ValueNotifier<bool> boardNotifier = ValueNotifier(false);
-  List<Piece> capturedPiece = []; // List of captured pieces
+  ValueNotifier<List<Piece>> capturedPieceNotifier = ValueNotifier([]);
   PieceColor currentTurn = PieceColor.white;
   int whiteScore = 0;
   int blackScore = 0;
@@ -32,8 +31,8 @@ class Board{
     for (List<Square> move in history){
       movePiece(move[0].row, move[0].col, move[1].row, move[1].col);
     }
-    moveCount.notifyListeners();
-    boardNotifier.notifyListeners();
+    moveCount.value = moveCount.value;
+    boardNotifier.value = boardNotifier.value;
   }
 
   List<Square> getValidMoves(Piece piece,
@@ -549,14 +548,8 @@ class Board{
         }
         final captured = board[toRow][toCol].piece;
         if (captured != null) {
-          capturedHistory.add({
-            'piece': board[toRow][toCol].piece,
-            'row': toRow,
-            'col': toCol,
-            'moveCount': moveCount.value,
-          });
           toPlay = 'capture.mp3';
-          capturedPiece.add(captured);
+          capturedPieceNotifier.value.add(captured);
           _updateScore(captured);
           findPiece(captured)!.piece = null;
         } else {
@@ -592,17 +585,6 @@ class Board{
     return false;
   }
 
-  Piece? promotePawn(Piece pawn, PieceType newType) {
-    Square square = findPiece(pawn)!;
-    if (pawn.type == PieceType.pawn &&
-        (pawn.color == PieceColor.white && square.row == 0 ||
-            pawn.color == PieceColor.black && square.row == 7)) {
-      Piece newPiece = Piece(color: pawn.color, id: pawn.id, type: newType, hasMove: true);
-      return newPiece;
-    }
-    return null;
-  }
-
   Future<void> _playSound(String fileName) async {
       await _audioPlayer.setVolume(70);
       await _audioPlayer.setAsset('assets/audio/$fileName');
@@ -610,28 +592,10 @@ class Board{
   }
 
   void _updateScore(Piece captured) {
-    int score = 0;
-    switch (captured.type) {
-      case PieceType.pawn:
-        score = 1;
-        break;
-      case PieceType.bishop:
-      case PieceType.knight:
-        score = 3;
-        break;
-      case PieceType.rook:
-        score = 5;
-        break;
-      case PieceType.queen:
-        score = 10;
-        break;
-      default:
-        break;
-    }
     if (captured.color == PieceColor.white) {
-      blackScore += score;
+      blackScore += pieceValue(captured.type);
     } else {
-      whiteScore += score;
+      whiteScore += pieceValue(captured.type);
     }
   }
 
@@ -643,7 +607,7 @@ class Board{
     }
     moveCount.value = 0;
     _initializePieces();
-    capturedPiece.clear();
+    capturedPieceNotifier.value.clear();
     currentTurn = PieceColor.white;
     gameResult.value = 0;
     whiteScore = 0;
@@ -664,7 +628,21 @@ class Board{
     if (remainingPieces.length == 2 && remainingPieces.elementAt(0).type == PieceType.king && remainingPieces.elementAt(1).type == PieceType.king){
       gameResult.value = -1;
     }
+    List<List<Square>> moves = [];
+    for (var row in board){
+      for (var square in row){
+        if (square.piece != null && square.piece!.color == currentTurn){
+          moves.add(getValidMoves(square.piece!));
+        }
+      }
+    }
+    moves.removeWhere((element) => element.isEmpty);
+    if (moves.isEmpty && !isCheck(currentTurn)){
+      gameResult.value = -1;
+    }
   }
+
+
 
   void _initializePieces() {
     Piece whitePawn1 =
