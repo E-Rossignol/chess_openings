@@ -1,7 +1,6 @@
 import 'package:chess_ouvertures/components/sound_control_component.dart';
 import 'package:chess_ouvertures/constants.dart';
 import 'package:chess_ouvertures/views/style_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SettingsView extends StatefulWidget {
@@ -20,7 +19,7 @@ class _SettingsViewState extends State<SettingsView> {
       width: 100,
       child: ListView(
         children: [
-          SizedBox(
+          const SizedBox(
             height: 60,
           ),
           const SoundControlComponent(),
@@ -35,12 +34,12 @@ class _SettingsViewState extends State<SettingsView> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              icon: Icon(Icons.language, size: 30)),
+              icon: const Icon(Icons.language, size: 30)),
           IconButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            icon: Icon(Icons.close_outlined, size: 30),
+            icon: const Icon(Icons.close_outlined, size: 30),
           ),
         ],
       ),

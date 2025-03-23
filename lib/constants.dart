@@ -29,45 +29,66 @@ Color lighterColor(Color init) {
   return Color.fromRGBO(red, green, blue, 1);
 }
 
-List<Color> displayColors = [
-  Color.fromRGBO(33, 142, 25, 1.0),
-  Color.fromRGBO(64, 50, 225, 1.0),
-  Color.fromRGBO(119, 70, 52, 1.0),
-  Color.fromRGBO(86, 86, 86, 1.0),
-  Color.fromRGBO(154, 0, 1, 1.0),
-];
-
 List<List<Color>> boardColors = [
   [
-    Color.fromRGBO(33, 142, 25, 1.0),
-    Color.fromRGBO(246, 238, 228, 1.0),
-    Color.fromRGBO(127, 255, 58, 1.0),
-    Color.fromRGBO(25, 91, 142, 1),
+    const Color.fromRGBO(115, 149, 82, 1),
+    const Color.fromRGBO(235, 236, 208,1),
+    const Color.fromRGBO(150, 253, 42, 1.0),
+    const Color.fromRGBO(48, 66, 36, 1.0),
   ],
   [
-    Color.fromRGBO(64, 50, 225, 1.0),
-    Color.fromRGBO(246, 238, 228, 1.0),
-    Color.fromRGBO(0, 187, 255, 1),
-    Color.fromRGBO(225, 50, 123, 1),
+    const Color.fromRGBO(35, 42, 54, 1),
+    const Color.fromRGBO(104, 113, 130, 1),
+    const Color.fromRGBO(53, 100, 194, 1.0),
+    const Color.fromRGBO(18, 21, 28, 1.0),
   ],
   [
-    Color.fromRGBO(119, 70, 52, 1.0),
-    Color.fromRGBO(246, 238, 228, 1.0),
-    Color.fromRGBO(255, 148, 108, 1),
-    Color.fromRGBO(68, 119, 52, 1),
+    const Color.fromRGBO(184, 135, 98, 1),
+    const Color.fromRGBO(237, 214, 176, 1),
+    const Color.fromRGBO(232, 135, 69, 1.0),
+    const Color.fromRGBO(77, 55, 40, 1.0),
   ],
   [
-    Color.fromRGBO(86, 86, 86, 1.0),
-    Color.fromRGBO(246, 238, 228, 1.0),
-    Color.fromRGBO(78, 255, 236, 1),
-    Color.fromRGBO(147, 78, 255, 1.0),
+    const Color.fromRGBO(132, 118, 186, 1),
+    const Color.fromRGBO(240, 241, 240, 1),
+    const Color.fromRGBO(161, 135, 255, 1.0),
+    const Color.fromRGBO(59, 56, 87, 1.0),
   ],
   [
-    Color.fromRGBO(154, 0, 1, 1.0),
-    Color.fromRGBO(100, 100, 100, 1.0),
-    Color.fromRGBO(255, 0, 2, 1),
-    Color.fromRGBO(255, 125, 0, 1),
+    const Color.fromRGBO(50, 103, 75, 1),
+    const Color.fromRGBO(231, 231, 229, 1),
+    const Color.fromRGBO(94, 196, 141, 1.0),
+    const Color.fromRGBO(25, 51, 36, 1.0),
   ],
+
+  [
+    const Color.fromRGBO(75, 115, 153, 1),
+    const Color.fromRGBO(234, 233, 210, 1),
+    const Color.fromRGBO(100, 174, 241, 1.0),
+    const Color.fromRGBO(36, 56, 73, 1.0),
+  ],
+  [
+    const Color.fromRGBO(209, 136, 21, 1),
+    const Color.fromRGBO(250, 228, 174, 1.0),
+    const Color.fromRGBO(255, 176, 49, 1.0),
+    const Color.fromRGBO(94, 63, 10, 1.0),
+  ],
+  [
+    const Color.fromRGBO(187, 87, 70,1),
+    const Color.fromRGBO(245, 219, 195,1),
+    const Color.fromRGBO(255, 115, 94, 1.0),
+    const Color.fromRGBO(98, 47, 37, 1.0),
+  ],
+];
+List<Color> displayColors = [
+  boardColors[0][0],
+  boardColors[1][0],
+  boardColors[2][0],
+  boardColors[3][0],
+  boardColors[4][0],
+  boardColors[5][0],
+  boardColors[6][0],
+  boardColors[7][0],
 ];
 
 List<Color> getColor(String? name) {
@@ -79,12 +100,18 @@ List<Color> getColor(String? name) {
       return boardColors[0];
     case 'blue':
       return boardColors[1];
-    case 'wood':
+    case 'brown':
       return boardColors[2];
-    case 'black':
+    case 'purple':
       return boardColors[3];
-    case 'red':
+    case 'teal':
       return boardColors[4];
+    case 'orange':
+      return boardColors[5];
+    case 'yellow':
+      return boardColors[6];
+    case 'red':
+      return boardColors[7];
     default:
       return boardColors[0];
   }
@@ -177,10 +204,10 @@ List<List<SvgPicture>> displayPieces = [
   ],
 ];
 
-Color primaryThemeDarkColor = Color.fromRGBO(18, 19, 24, 1.0);
-Color primaryThemeLightColor = Color.fromRGBO(118, 119, 124, 1.0);
-Color secondaryThemeDarkColor = Color.fromRGBO(42, 43, 48, 1.0);
-Color secondaryThemeLightColor = Color.fromRGBO(142, 143, 148, 1.0);
+Color primaryThemeDarkColor = const Color.fromRGBO(18, 19, 24, 1.0);
+Color primaryThemeLightColor = const Color.fromRGBO(118, 119, 124, 1.0);
+Color secondaryThemeDarkColor = const Color.fromRGBO(42, 43, 48, 1.0);
+Color secondaryThemeLightColor = const Color.fromRGBO(142, 143, 148, 1.0);
 
 PieceColor toggleColor(PieceColor color) {
   return color == PieceColor.white ? PieceColor.black : PieceColor.white;
@@ -304,7 +331,7 @@ List<String> defaultOpenings() {
   result.add('Sicilian Defense');
   result.add('French Defense');
   result.add('Englund\'s Gambit');
-  result.add('Latvian Gambit');
+  result.add('Scandinavian Defense');
   return result;
 }
 
@@ -349,11 +376,29 @@ List<String> sicilianOpening() {
 
 List<String> englundOpening() {
   List<String> result = [];
-
+  result.add(
+      "d2d4 e7e5 d4e5 b8c6 g1f3 d8e7 c1f4 e7b4 f4d2 b4b2 d2c3 f8b4 d1d2 b4c3 d2c3 b2c1");
+  result.add("d2d4 e7e5 d4e5 b8c6 g1f3 d8e7 c1f4 e7b4 c2c3 b4f4");
+  result.add("d2d4 e7e5 d4e5 b8c6 g1f3 d8e7 c1f4 e7b4 b1c3 b4f4");
+  result.add("d2d4 e7e5 d4e5 b8c6 g1f3 d8e7 c1f4 e7b4 d1d2 b4b2 c2c4 b2a1");
+  result.add(
+      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 c1f4 c8g4 e5d6 d8f6 e2e3 f8d6 f4d6 e8c8 b1c3 d8d6");
+  result.add(
+      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 b1c3 d6h2 f3h2 d8d1");
+  result.add(
+      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 b1d2 h7h5 h2h3 g8f6 h3g4 h5g4 f3d4 d6h2 g1h1");
+  result.add(
+      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 b1d2 h7h5 h2h3 g7g5 h3g4 h5g4 f3d4 d6h2 g1h1 f7f5");
+  result.add(
+      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 d1e1 h7h5 h2h3 g8f6 h3g4 h5g4 f3d4 d6h2 g1h1 e7e5");
+  result.add(
+      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 d1e1 h7h5 h2h3 g8f6 b1c3 g4f3 e2f3 e7e5 g2g3 h5h4 g3h4 e5h2");
+  result.add(
+      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 c1g5 f7f6 g5h4 d8e7 e2e3 c8g4 f1e2 e8c8 e1g1 d6h2 f3h2 d8d1");
   return result;
 }
 
-List<String> latvianOpening() {
+List<String> scandinavianOpening() {
   List<String> result = [];
   return result;
 }

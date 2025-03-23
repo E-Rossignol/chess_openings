@@ -291,6 +291,7 @@ class DatabaseHelper {
     await insertSicilianDefenseOpening();
     await insertFrenchDefenseOpening();
     await insertEnglundOpening();
+    await insertScandinavianOpening();
   }
 
   Future<void> insertItalianOpening() async {
@@ -378,9 +379,9 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> insertLatvianOpening() async {
-    await insertOpening('Latvian Gambit', 'black', true);
-    List<String> latvian = latvianOpening();
+  Future<void> insertScandinavianOpening() async {
+    await insertOpening('Scandinavian Defense', 'black', true);
+    List<String> latvian = scandinavianOpening();
     List<List<Square>> latvianMoves = [];
     for (String move in latvian) {
       List<String> moves = move.trim().split(' ');
@@ -390,7 +391,7 @@ class DatabaseHelper {
           stringToSquare(m.substring(2, 4))
         ]);
       }
-      await insertVariant(latvianMoves, 'Latvian Gambit');
+      await insertVariant(latvianMoves, 'Scandinavian Opening');
       latvianMoves = [];
     }
   }

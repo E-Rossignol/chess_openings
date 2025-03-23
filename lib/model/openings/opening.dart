@@ -19,7 +19,6 @@ class Opening{
   }
 
   List<OpeningMove>? findNextMove(OpeningMove previousMove){
-    List<OpeningMove> nextMoves = moves.where((element) => element.previousMoveId == previousMove.id).toList();
     return moves.where((element) => element.previousMoveId == previousMove.id ).toList();
   }
 

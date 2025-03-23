@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:chess_ouvertures/views/database_main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
@@ -45,7 +47,7 @@ class _DatabaseViewState extends State<DatabaseView> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => DatabaseMainView(),
+                builder: (context) => const DatabaseMainView(),
               ),
             );
           },
@@ -55,7 +57,7 @@ class _DatabaseViewState extends State<DatabaseView> {
       body: _tables.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Center(
-            child: Container(
+            child: SizedBox(
                     width: MediaQuery.of(context).size.width / 2,
               child: ListView.builder(
                       itemCount: _tables.length,
@@ -65,7 +67,7 @@ class _DatabaseViewState extends State<DatabaseView> {
                   border: Border.all(color: Colors.teal),
                 ),
                 child: ListTile(
-                  title: Text(_tables[index]['name'], style: TextStyle(color: Colors.white),),
+                  title: Text(_tables[index]['name'], style: const TextStyle(color: Colors.white),),
                   onTap: () async {
                     final data = await _database.rawQuery('SELECT * FROM ${_tables[index]['name']}');
                     Navigator.pushReplacement(
@@ -97,14 +99,14 @@ class TableView extends StatelessWidget {
       backgroundColor: primaryThemeDarkColor,
       appBar: AppBar(
         backgroundColor: primaryThemeDarkColor,
-        title: Text('Table: $tableName', style: TextStyle(color: Colors.white),),
+        title: Text('Table: $tableName', style: const TextStyle(color: Colors.white),),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
         onPressed: (){
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => DatabaseView(),
+              builder: (context) => const DatabaseView(),
             ),
           );
         },
@@ -118,7 +120,7 @@ class TableView extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.teal),
               ),
-                child: Text(data[index].toString(), style: TextStyle(color: Colors.tealAccent),)),
+                child: Text(data[index].toString(), style: const TextStyle(color: Colors.tealAccent),)),
           );
         },
       ),

@@ -54,7 +54,7 @@ class _BotViewState extends State<BotView> {
     String? id = await api.createGame(widget.difficulty, widget.isBotWhite);
     if (id != null) {
       gameID = id;
-      Map<String, dynamic>? state = await api.getGameState(id);
+      //Map<String, dynamic>? state = await api.getGameState(id);
     }
   }
 

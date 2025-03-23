@@ -16,13 +16,13 @@ class BoardColorPicker extends StatelessWidget {
   final Color color1;
   final Color color2;
 
-  const BoardColorPicker({required this.color1, required this.color2, Key? key}) : super(key: key);
+  const BoardColorPicker({required this.color1, required this.color2, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 160,
-      height: 160,
+    return SizedBox(
+      width: 140,
+      height: 140,
       child: Column(
         children: [
           Row(
@@ -74,7 +74,7 @@ class BoardColorPicker extends StatelessWidget {
 class PieceStylePicker extends StatelessWidget{
   final List<SvgPicture> pieces;
 
-  const PieceStylePicker({required this.pieces, Key? key}) : super(key: key);
+  const PieceStylePicker({required this.pieces, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +113,7 @@ class PieceStylePicker extends StatelessWidget{
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: _buildPiece([pieces[0], pieces[1], pieces[2]]),
                                 ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: _buildPiece([pieces[3], pieces[4], pieces[5]]),
@@ -206,26 +206,30 @@ class _StyleViewState extends State<StyleView> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     if (displayColors.contains(color)) {
       switch(displayColors.indexOf(color)){
-        case 0: {
+        case 0:
           prefs.setString('selected_color', 'green');
           break;
-        }
-        case 1: {
+        case 1:
           prefs.setString('selected_color', 'blue');
           break;
-        }
-        case 2: {
-          prefs.setString('selected_color', 'wood');
+        case 2:
+          prefs.setString('selected_color', 'brown');
           break;
-        }
-        case 3: {
-          prefs.setString('selected_color', 'black');
+        case 3:
+          prefs.setString('selected_color', 'purple');
           break;
-        }
-        case 4: {
+        case 4:
+          prefs.setString('selected_color', 'teal');
+          break;
+        case 5:
+          prefs.setString('selected_color', 'orange');
+          break;
+        case 6:
+          prefs.setString('selected_color', 'yellow');
+          break;
+        case 7:
           prefs.setString('selected_color', 'red');
           break;
-        }
       }
     }
   }

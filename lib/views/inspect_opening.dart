@@ -6,7 +6,7 @@ import 'package:chess_ouvertures/model/openings/opening_move.dart';
 class InspectOpeningView extends StatefulWidget {
   final Opening opening;
 
-  InspectOpeningView({super.key, required this.opening});
+  const InspectOpeningView({super.key, required this.opening});
 
   @override
   State<InspectOpeningView> createState() => _InspectOpeningViewState();
@@ -23,8 +23,6 @@ class _InspectOpeningViewState extends State<InspectOpeningView> {
     currentMoves = widget.opening.moves
         .where((move) => move.previousMoveId == -1)
         .toList();
-    List<String> strOpening = widget.opening.toStr();
-    print(strOpening);
   }
 
   void _onMoveTap(OpeningMove move) {
@@ -56,15 +54,15 @@ class _InspectOpeningViewState extends State<InspectOpeningView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Inspect Opening'),
+        title: const Text('Inspect Opening'),
         leading: IconButton(
-          icon: Icon(Icons.home),
+          icon: const Icon(Icons.home),
           onPressed: () => Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => MainView(key: UniqueKey()))),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             onPressed: _onBackTap,
           ),
         ],

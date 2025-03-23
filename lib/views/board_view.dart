@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:chess_ouvertures/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -133,7 +135,7 @@ class _BoardViewState extends State<BoardView> {
     }
     lastMoveFromRow = moveHistory.isNotEmpty ? moveHistory.last[0].row : null;
     lastMoveFromCol = moveHistory.isNotEmpty ? moveHistory.last[0].col : null;
-    lastMoveToRow = moveHistory.isNotEmpty ? moveHistory.last[1]?.row : null;
+    lastMoveToRow = moveHistory.isNotEmpty ? moveHistory.last[1].row : null;
     lastMoveToCol = moveHistory.isNotEmpty ? moveHistory.last[1].col : null;
     _updateBoard();
   }
@@ -239,7 +241,7 @@ class _BoardViewState extends State<BoardView> {
         ),
         child: Column(
           children: [
-            SizedBox(
+            const SizedBox(
               height: 50,
             ),
             Center(
@@ -513,7 +515,7 @@ class _BoardViewState extends State<BoardView> {
                               ),
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 10,
                           ),
                         ],

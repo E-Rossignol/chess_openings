@@ -1,3 +1,5 @@
+// ignore_for_file: must_be_immutable, library_private_types_in_public_api, use_build_context_synchronously
+
 import 'package:chess_ouvertures/components/captured_pieces_component.dart';
 import 'package:chess_ouvertures/constants.dart';
 import 'package:chess_ouvertures/model/openings/opening.dart';
@@ -131,7 +133,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
       }
     }
     else {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error")));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error")));
     }
   }
 
@@ -179,7 +181,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                     ],
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
                 Row(
@@ -425,7 +427,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => OpeningView()),
+                        builder: (context) => const OpeningView()),
                   );
                 },
               ),

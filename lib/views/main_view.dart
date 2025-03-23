@@ -1,3 +1,5 @@
+// ignore_for_file: overridden_fields, library_private_types_in_public_api
+
 import 'package:chess_ouvertures/constants.dart';
 import 'package:chess_ouvertures/database/database_helper.dart';
 import 'package:chess_ouvertures/views/board_view.dart';
@@ -12,7 +14,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 class MainView extends StatefulWidget {
   @override
   final Key key;
-  MainView({required this.key}): super(key: key);
+  const MainView({required this.key}): super(key: key);
 
   @override
   _MainViewState createState() => _MainViewState();

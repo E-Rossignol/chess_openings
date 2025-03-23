@@ -1,3 +1,5 @@
+// ignore_for_file: overridden_fields, use_build_context_synchronously
+
 import 'package:chess_ouvertures/database/database_helper.dart';
 import 'package:chess_ouvertures/model/openings/opening.dart';
 import 'package:chess_ouvertures/views/openings/new_opening_view.dart';
@@ -8,6 +10,7 @@ import '../../model/board.dart';
 import 'package:flutter/services.dart';
 
 class OpeningMainView extends StatelessWidget {
+  @override
   final Key key;
 
   const OpeningMainView({required this.key}): super(key: key);
@@ -219,7 +222,7 @@ class _OpeningViewState extends State<OpeningView> {
                                             ),
                                           ),
                                         );
-                                      }).toList(),
+                                      }),
                                       const DropdownMenuItem<String>(
                                         enabled: false,
                                         child: Center(

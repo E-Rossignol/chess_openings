@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 class ChessBoardPreview extends StatelessWidget {
   final Color selectedColor;
 
-  const ChessBoardPreview({required this.selectedColor, Key? key}) : super(key: key);
+  const ChessBoardPreview({required this.selectedColor, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 200,
       height: 200,
       child: GridView.builder(
