@@ -1,7 +1,8 @@
+import 'package:chess_ouvertures/views/database_main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
+import '../constants.dart';
 import '../database/database_helper.dart';
-import 'main_view.dart';
 
 class DatabaseView extends StatefulWidget {
   const DatabaseView({super.key});
@@ -35,32 +36,39 @@ class _DatabaseViewState extends State<DatabaseView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: primaryThemeDarkColor,
       appBar: AppBar(
+        backgroundColor: primaryThemeDarkColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
           onPressed: (){
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainView()));
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DatabaseMainView(),
+              ),
+            );
           },
         ),
-        title: const Text('Inspecteur de la base de données'),
+        title: const Text('Inspecteur de la base de données', style: TextStyle(color: Colors.white),),
       ),
       body: _tables.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Center(
-            child: SizedBox(
+            child: Container(
                     width: MediaQuery.of(context).size.width / 2,
               child: ListView.builder(
                       itemCount: _tables.length,
                       itemBuilder: (context, index) {
               return Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
+                  border: Border.all(color: Colors.teal),
                 ),
                 child: ListTile(
-                  title: Text(_tables[index]['name']),
+                  title: Text(_tables[index]['name'], style: TextStyle(color: Colors.white),),
                   onTap: () async {
                     final data = await _database.rawQuery('SELECT * FROM ${_tables[index]['name']}');
-                    Navigator.push(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                         builder: (context) => TableView(tableName: _tables[index]['name'], data: data),
@@ -86,14 +94,31 @@ class TableView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: primaryThemeDarkColor,
       appBar: AppBar(
-        title: Text('Table: $tableName'),
+        backgroundColor: primaryThemeDarkColor,
+        title: Text('Table: $tableName', style: TextStyle(color: Colors.white),),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+        onPressed: (){
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DatabaseView(),
+            ),
+          );
+        },
+      ),
       ),
       body: ListView.builder(
         itemCount: data.length,
         itemBuilder: (context, index) {
           return ListTile(
-            title: Text(data[index].toString()),
+            title: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.teal),
+              ),
+                child: Text(data[index].toString(), style: TextStyle(color: Colors.tealAccent),)),
           );
         },
       ),

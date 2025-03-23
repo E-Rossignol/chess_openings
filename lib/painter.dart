@@ -5,13 +5,14 @@ import 'model/square.dart';
 class ArrowPainter extends CustomPainter {
   final List<OpeningMove>? moves;
   final bool isReversed;
+  Color color;
 
-  ArrowPainter({required this.moves, required this.isReversed});
+  ArrowPainter({required this.moves, required this.isReversed, required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.deepPurpleAccent
+      ..color = color
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
     if (moves == null){

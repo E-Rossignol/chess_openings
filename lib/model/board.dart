@@ -1,6 +1,7 @@
 import 'package:chess_ouvertures/model/piece.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
 import 'square.dart';
 
@@ -586,6 +587,11 @@ class Board{
   }
 
   Future<void> _playSound(String fileName) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      bool isMuted = prefs.getBool('isMuted') ?? false;
+      if (isMuted) {
+        return;
+      }
       await _audioPlayer.setVolume(70);
       await _audioPlayer.setAsset('assets/audio/$fileName');
       _audioPlayer.play();

@@ -1,14 +1,11 @@
 import 'package:chess_ouvertures/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '../components/bottom_coordinates_component.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../components/captured_pieces_component.dart';
-import '../components/left_coordinates_component.dart';
 import '../model/board.dart';
 import '../model/piece.dart';
 import '../model/square.dart';
-import '../test.dart';
-import 'main_view.dart';
 
 class BoardView extends StatefulWidget {
   final Board board;
@@ -32,10 +29,14 @@ class _BoardViewState extends State<BoardView> {
   String moveCountMessage = '0';
   List<List<Square>> moveHistory = [];
   String gameResultMessage = '';
+  Color whiteColor = Colors.white;
+  Color blackColor = Colors.black;
+  String pieceStyle = 'classic';
 
   @override
   void initState() {
     super.initState();
+    _loadColorsFromPrefs();
     widget.board.gameResult.addListener(_updateGameResult);
     widget.board.boardNotifier.addListener(_updateBoard);
     widget.board.moveCount.addListener(_updateMoveCount);
@@ -56,6 +57,19 @@ class _BoardViewState extends State<BoardView> {
       setState(() {
         moveCountMessage = (widget.board.moveCount.value ~/ 2).toString();
       });
+  }
+
+  Future<void> _loadColorsFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? color = prefs.getString('selected_color');
+    pieceStyle = prefs.getString('piece_style') ?? 'classic';
+    if (color != null) {
+      List<Color> colors = getColor(color);
+      setState(() {
+        blackColor = colors[0];
+        whiteColor = colors[1];
+      });
+    }
   }
 
   void _updateGameResult() {
@@ -203,9 +217,7 @@ class _BoardViewState extends State<BoardView> {
   @override
   Widget build(BuildContext context) {
     int currentMoveNumber = widget.board.moveCount.value;
-    Color whiteColor = const Color.fromRGBO(246, 238, 228, 1.0);
-    Color blackColor = const Color.fromRGBO(151, 131, 101, 1.0);
-    Color bgColor = const Color.fromRGBO(60, 60, 60, 1);
+    List<Color> bgColor = !isReversed ? [primaryThemeDarkColor, primaryThemeLightColor]: [primaryThemeLightColor, primaryThemeDarkColor];
     Color textColor = whiteColor;
     int topScore = isReversed
         ? (widget.board.whiteScore - widget.board.blackScore)
@@ -219,11 +231,17 @@ class _BoardViewState extends State<BoardView> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          color: bgColor,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: bgColor,
+          ),
         ),
         child: Column(
           children: [
-            const SizedBox(height: 130),
+            SizedBox(
+              height: 50,
+            ),
             Center(
               child: Column(
                 children: [
@@ -453,6 +471,19 @@ class _BoardViewState extends State<BoardView> {
                                                   ),
                                                 ),
                                               ),
+                                            if (square.piece != null && square.piece!.type == PieceType.king && widget.board.isCheck(square.piece!.color))
+                                              Positioned(
+                                                top: 2,
+                                                right: 2,
+                                                child: Container(
+                                                  width: 10,
+                                                  height: 10,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.redAccent.withOpacity(1),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                ),
+                                              ),
                                             if (validMoves.contains(square) &&
                                                 square.piece == null)
                                               Center(
@@ -558,7 +589,7 @@ class _BoardViewState extends State<BoardView> {
                 .map((type) => ListTile(
                       //title: Text(type.toString().split('.').last),
                       title: SvgPicture.asset(
-                        'assets/images/${pieceTypeToSVG(type, pawn.color)}',
+                        'assets/images/${pieceTypeToSVG(type, pawn.color, pieceStyle)}',
                         width: 60,
                         height: 60,
                       ),
@@ -586,7 +617,7 @@ class _BoardViewState extends State<BoardView> {
     }
     return Center(
       child: SvgPicture.asset(
-        'assets/images/${pieceTypeToSVG(piece.type, piece.color)}',
+        'assets/images/${pieceTypeToSVG(piece.type, piece.color, pieceStyle)}',
         width: 50,
         height: 50,
       ),

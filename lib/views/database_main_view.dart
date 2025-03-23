@@ -1,3 +1,4 @@
+import 'package:chess_ouvertures/constants.dart';
 import 'package:flutter/material.dart';
 
 import '../database/database_helper.dart';
@@ -61,13 +62,13 @@ class _DatabaseMainViewState extends State<DatabaseMainView> {
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color.fromRGBO(48, 46, 43, 1),
-              Color.fromRGBO(38, 37, 34, 1)
+              primaryThemeDarkColor,
+              primaryThemeLightColor,
             ],
           ),
         ),

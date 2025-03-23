@@ -3,7 +3,6 @@ import 'package:chess_ouvertures/views/openings/opening_main_view.dart';
 import 'package:flutter/material.dart';
 import '../../database/database_helper.dart';
 import '../../model/board.dart';
-import '../main_view.dart';
 import 'opening_board_view.dart';
 import '../../constants.dart';
 
@@ -41,10 +40,13 @@ class _NewOpeningViewState extends State<NewOpeningView> {
       color: Colors.white12,
       borderRadius: BorderRadius.circular(8.0),
     );
-    Color bgColor = const Color.fromRGBO(60, 60, 60, 1);
     return Container(
       decoration: BoxDecoration(
-        color: bgColor,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [primaryThemeDarkColor, primaryThemeLightColor],
+        ),
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,

@@ -212,7 +212,7 @@ class _BotViewState extends State<BotView> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const MainView()),
+                              builder: (context) => MainView(key: UniqueKey())),
                         );
                       },
                     ),
@@ -457,7 +457,7 @@ class _BotViewState extends State<BotView> {
                 .map((type) => ListTile(
                       //title: Text(type.toString().split('.').last),
                       title: SvgPicture.asset(
-                        'assets/images/${pieceTypeToSVG(type, pawn.color)}',
+                        'assets/images/${pieceTypeToSVG(type, pawn.color, 'classic')}',
                         width: 60,
                         height: 60,
                       ),
@@ -485,7 +485,7 @@ class _BotViewState extends State<BotView> {
     }
     return Center(
       child: SvgPicture.asset(
-        'assets/images/${pieceTypeToSVG(piece.type, piece.color)}',
+        'assets/images/${pieceTypeToSVG(piece.type, piece.color, 'classic')}',
         width: 60,
         height: 60,
       ),

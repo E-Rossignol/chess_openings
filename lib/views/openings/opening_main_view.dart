@@ -1,12 +1,11 @@
 import 'package:chess_ouvertures/database/database_helper.dart';
 import 'package:chess_ouvertures/model/openings/opening.dart';
-import 'package:chess_ouvertures/views/main_view.dart';
 import 'package:chess_ouvertures/views/openings/new_opening_view.dart';
 import 'package:chess_ouvertures/views/openings/opening_board_view.dart';
 import 'package:flutter/material.dart';
 import '../../constants.dart';
 import '../../model/board.dart';
-import '../board_view.dart';
+import 'package:flutter/services.dart';
 
 class OpeningMainView extends StatelessWidget {
   final Key key;
@@ -36,7 +35,7 @@ class _OpeningViewState extends State<OpeningView> {
   String? selectedOpening;
 
   void _navigateToNewOpeningView() {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => const NewOpeningView(
@@ -52,7 +51,7 @@ class _OpeningViewState extends State<OpeningView> {
   Future<void> _navigateToOpeningBoardView(String openingName) async  {
     Opening? opening = await DatabaseHelper().getOpeningByName(openingName);
     if (opening != null){
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => OpeningBoardView(
@@ -69,9 +68,9 @@ class _OpeningViewState extends State<OpeningView> {
 
   Future<void> _navigateToEditOpeningView(String selectedOpening) async{
     Opening? opening = await DatabaseHelper()
-        .getOpeningByName(selectedOpening!);
+        .getOpeningByName(selectedOpening);
     int? id = await DatabaseHelper()
-        .getOpeningIdByName(selectedOpening!);
+        .getOpeningIdByName(selectedOpening);
     Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -113,13 +112,13 @@ class _OpeningViewState extends State<OpeningView> {
     return Scaffold(
       body: Stack(children: [
         Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color.fromRGBO(48, 46, 43, 1),
-                Color.fromRGBO(38, 37, 34, 1)
+                primaryThemeDarkColor,
+                primaryThemeLightColor
               ],
             ),
           ),
@@ -190,7 +189,6 @@ class _OpeningViewState extends State<OpeningView> {
                                       .where((opening) =>
                                           defaultOp.contains(opening))
                                       .toList();
-
                                   return DropdownButton<String>(
                                     borderRadius: BorderRadius.circular(12.0),
                                     icon: const Icon(
@@ -209,37 +207,46 @@ class _OpeningViewState extends State<OpeningView> {
                                           .map((String opening) {
                                         return DropdownMenuItem<String>(
                                           value: opening,
-                                          child: Text(
-                                            opening,
-                                            style: const TextStyle(
-                                              fontSize: 19,
-                                              fontStyle: FontStyle.italic,
-                                              fontWeight: FontWeight.bold,
+                                          child: Center(
+                                            child: Text(
+                                              opening,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 19,
+                                                fontStyle: FontStyle.italic,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                           ),
                                         );
                                       }).toList(),
                                       const DropdownMenuItem<String>(
                                         enabled: false,
-                                        child: Text(
-                                          "Default:",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontStyle: FontStyle.italic,
-                                            fontWeight: FontWeight.bold,
+                                        child: Center(
+                                          child: Text(
+                                            "Default:",
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontStyle: FontStyle.italic,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
                                           ),
                                         ),
                                       ),
                                       ...defaultOpenings.map((String opening) {
                                         return DropdownMenuItem<String>(
                                           value: opening,
-                                          child: Text(
-                                            opening,
-                                            style: TextStyle(
-                                              fontSize: 19,
-                                              fontStyle: FontStyle.italic,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey.shade800,
+                                          child: Center(
+                                            child: Text(
+                                              opening,
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 19,
+                                                fontStyle: FontStyle.italic,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.grey.shade700,
+                                              ),
                                             ),
                                           ),
                                         );
@@ -308,6 +315,18 @@ class _OpeningViewState extends State<OpeningView> {
                                     ),
                                   ),
                                 ),
+                              Container(
+                                decoration: iconButtonDecoration,
+                                child: IconButton(
+                                  onPressed: () {
+                                    _showListStrDialog(context, selectedOpening!);
+                                  },
+                                  icon: const Icon(
+                                    Icons.list,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -343,11 +362,110 @@ class _OpeningViewState extends State<OpeningView> {
                   setState(() {
                     selectedOpening = null;
                   });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Ouverture supprimée'),
+                    ),
+                  );
+                  setState(() {
+                    openingsName = DatabaseHelper().getOpeningsNames();
+                  });
                   Navigator.of(context).pop(); // Ferme la boîte de dialogue
                 }
               },
               child: const Text('Supprimer'),
             ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showListStrDialog(BuildContext context, String selectedOpening) async {
+    Opening? op = await DatabaseHelper().getOpeningByName(selectedOpening);
+    List<String> moves = op!.toStr();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Liste des lignes'),
+          content: Column(
+            children: [
+              for (int i = 0; i < moves.length; i++)
+                Text(moves[i]),
+            ],
+          ),
+          actions: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    String str = "";
+                    for (int i = 0; i < moves.length; i++) {
+                      str += "${moves[i]} \n";
+                    }
+                    Clipboard.setData(ClipboardData(text: str));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Copié dans le presse-papiers'),
+                      ),
+                    );
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Paste'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    String tmp = op.name.toLowerCase();
+                    for (int i = 0; i < tmp.length; i++) {
+                      if (tmp[i] == ' ') {
+                        tmp = tmp.substring(0, i) + tmp[i + 1].toUpperCase() + tmp.substring(i + 2);
+                      }
+                      if (tmp[i] == '\'') {
+                        tmp = tmp.substring(0, i) + tmp.substring(i + 1);
+                      }
+                    }
+                    String str = 'List<String>${tmp}Opening(){ List<String> result = [];';
+                    for (int i = 0; i < moves.length; i++) {
+                      str += 'result.add("${moves[i]}");';
+                    }
+                    str += 'return result;}';
+                    Clipboard.setData(ClipboardData(text: str));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('List<String> copiée dans le presse-papiers'),
+                      ),
+                    );
+                    Navigator.of(context).pop();
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('List<String> générée'),
+                          content: Text(str),
+                          actions: <Widget>[
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: const Text('Generate List'),
+                ),
+              ],
+            )
           ],
         );
       },

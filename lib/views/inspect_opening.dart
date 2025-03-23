@@ -1,4 +1,3 @@
-import 'package:chess_ouvertures/constants.dart';
 import 'package:chess_ouvertures/views/main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:chess_ouvertures/model/openings/opening.dart';
@@ -61,7 +60,7 @@ class _InspectOpeningViewState extends State<InspectOpeningView> {
         leading: IconButton(
           icon: Icon(Icons.home),
           onPressed: () => Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const MainView())),
+              MaterialPageRoute(builder: (context) => MainView(key: UniqueKey()))),
         ),
         actions: [
           IconButton(

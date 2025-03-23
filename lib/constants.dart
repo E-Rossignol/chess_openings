@@ -1,7 +1,9 @@
+import 'package:flutter_svg/svg.dart';
 
 import 'model/openings/opening_move.dart';
 import 'model/piece.dart';
 import 'model/square.dart';
+import 'package:flutter/material.dart';
 
 enum PieceType {
   pawn,
@@ -17,24 +19,202 @@ enum PieceColor {
   black,
 }
 
+Color lighterColor(Color init) {
+  int red = init.red;
+  int green = init.green;
+  int blue = init.blue;
+  red + 50 > 255 ? red = 255 : red += 50;
+  green + 50 > 255 ? green = 255 : green += 50;
+  blue + 50 > 255 ? blue = 255 : blue += 50;
+  return Color.fromRGBO(red, green, blue, 1);
+}
+
+List<Color> displayColors = [
+  Color.fromRGBO(33, 142, 25, 1.0),
+  Color.fromRGBO(64, 50, 225, 1.0),
+  Color.fromRGBO(119, 70, 52, 1.0),
+  Color.fromRGBO(86, 86, 86, 1.0),
+  Color.fromRGBO(154, 0, 1, 1.0),
+];
+
+List<List<Color>> boardColors = [
+  [
+    Color.fromRGBO(33, 142, 25, 1.0),
+    Color.fromRGBO(246, 238, 228, 1.0),
+    Color.fromRGBO(127, 255, 58, 1.0),
+    Color.fromRGBO(25, 91, 142, 1),
+  ],
+  [
+    Color.fromRGBO(64, 50, 225, 1.0),
+    Color.fromRGBO(246, 238, 228, 1.0),
+    Color.fromRGBO(0, 187, 255, 1),
+    Color.fromRGBO(225, 50, 123, 1),
+  ],
+  [
+    Color.fromRGBO(119, 70, 52, 1.0),
+    Color.fromRGBO(246, 238, 228, 1.0),
+    Color.fromRGBO(255, 148, 108, 1),
+    Color.fromRGBO(68, 119, 52, 1),
+  ],
+  [
+    Color.fromRGBO(86, 86, 86, 1.0),
+    Color.fromRGBO(246, 238, 228, 1.0),
+    Color.fromRGBO(78, 255, 236, 1),
+    Color.fromRGBO(147, 78, 255, 1.0),
+  ],
+  [
+    Color.fromRGBO(154, 0, 1, 1.0),
+    Color.fromRGBO(100, 100, 100, 1.0),
+    Color.fromRGBO(255, 0, 2, 1),
+    Color.fromRGBO(255, 125, 0, 1),
+  ],
+];
+
+List<Color> getColor(String? name) {
+  if (name == null) {
+    return boardColors[0];
+  }
+  switch (name) {
+    case 'green':
+      return boardColors[0];
+    case 'blue':
+      return boardColors[1];
+    case 'wood':
+      return boardColors[2];
+    case 'black':
+      return boardColors[3];
+    case 'red':
+      return boardColors[4];
+    default:
+      return boardColors[0];
+  }
+}
+
+List<List<SvgPicture>> displayPieces = [
+  [
+    SvgPicture.asset('assets/images/pieces/classic/wP.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/classic/bN.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/classic/wB.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/classic/bR.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/classic/wQ.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/classic/bK.svg',
+        height: 70, width: 70),
+  ],
+  [
+    SvgPicture.asset('assets/images/pieces/alpha/wP.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/alpha/bN.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/alpha/wB.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/alpha/bR.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/alpha/wQ.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/alpha/bK.svg',
+        height: 70, width: 70),
+  ],
+  [
+    SvgPicture.asset('assets/images/pieces/cardinal/wP.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/cardinal/bN.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/cardinal/wB.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/cardinal/bR.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/cardinal/wQ.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/cardinal/bK.svg',
+        height: 70, width: 70),
+  ],
+  [
+    SvgPicture.asset('assets/images/pieces/chessnut/wP.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/chessnut/bN.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/chessnut/wB.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/chessnut/bR.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/chessnut/wQ.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/chessnut/bK.svg',
+        height: 70, width: 70),
+  ],
+  [
+    SvgPicture.asset('assets/images/pieces/spatial/wP.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/spatial/bN.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/spatial/wB.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/spatial/bR.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/spatial/wQ.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/spatial/bK.svg',
+        height: 70, width: 70),
+  ],
+  [
+    SvgPicture.asset('assets/images/pieces/tatiana/wP.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/tatiana/bN.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/tatiana/wB.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/tatiana/bR.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/tatiana/wQ.svg',
+        height: 70, width: 70),
+    SvgPicture.asset('assets/images/pieces/tatiana/bK.svg',
+        height: 70, width: 70),
+  ],
+];
+
+Color primaryThemeDarkColor = Color.fromRGBO(18, 19, 24, 1.0);
+Color primaryThemeLightColor = Color.fromRGBO(118, 119, 124, 1.0);
+Color secondaryThemeDarkColor = Color.fromRGBO(42, 43, 48, 1.0);
+Color secondaryThemeLightColor = Color.fromRGBO(142, 143, 148, 1.0);
+
 PieceColor toggleColor(PieceColor color) {
   return color == PieceColor.white ? PieceColor.black : PieceColor.white;
 }
 
-String pieceTypeToSVG(PieceType type, PieceColor color) {
+String pieceTypeToSVG(PieceType type, PieceColor color, String style) {
+  if (style == '') {
+    style = 'classic';
+  }
   switch (type) {
     case PieceType.pawn:
-      return color == PieceColor.white ? 'wP.svg' : 'bP.svg';
+      return color == PieceColor.white
+          ? 'pieces/$style/wP.svg'
+          : 'pieces/$style/bP.svg';
     case PieceType.rook:
-      return color == PieceColor.white ? 'wR.svg' : 'bR.svg';
+      return color == PieceColor.white
+          ? 'pieces/$style/wR.svg'
+          : 'pieces/$style/bR.svg';
     case PieceType.knight:
-      return color == PieceColor.white ? 'wN.svg' : 'bN.svg';
+      return color == PieceColor.white
+          ? 'pieces/$style/wN.svg'
+          : 'pieces/$style/bN.svg';
     case PieceType.bishop:
-      return color == PieceColor.white ? 'wB.svg' : 'bB.svg';
+      return color == PieceColor.white
+          ? 'pieces/$style/wB.svg'
+          : 'pieces/$style/bB.svg';
     case PieceType.queen:
-      return color == PieceColor.white ? 'wQ.svg' : 'bQ.svg';
+      return color == PieceColor.white
+          ? 'pieces/$style/wQ.svg'
+          : 'pieces/$style/bQ.svg';
     case PieceType.king:
-      return color == PieceColor.white ? 'wK.svg' : 'bK.svg';
+      return color == PieceColor.white
+          ? 'pieces/$style/wK.svg'
+          : 'pieces/$style/bK.svg';
   }
 }
 
@@ -117,7 +297,7 @@ String squareToString(Square square) {
   return col + row;
 }
 
-List<String> defaultOpenings(){
+List<String> defaultOpenings() {
   List<String> result = [];
   result.add("Italian");
   result.add('Queen\'s Gambit');
@@ -150,28 +330,30 @@ List<String> italianOpening() {
   return result;
 }
 
-List<String> queensGambitOpening(){
+List<String> queensGambitOpening() {
+  List<String> result = [];
+  result.add("d2d4 d7d5 c2c4 d5c4 e2e3 b7b5 a2a4 b5a4 d1a4 c8d7 a4c4");
+  result.add("d2d4 d7d5 c2c4 e7e6");
+  return result;
+}
+
+List<String> frenchOpening() {
   List<String> result = [];
   return result;
 }
 
-List<String> frenchOpening(){
+List<String> sicilianOpening() {
   List<String> result = [];
   return result;
 }
 
-List<String> sicilianOpening(){
-  List<String> result = [];
-  return result;
-}
-
-List<String> englundOpening(){
+List<String> englundOpening() {
   List<String> result = [];
 
   return result;
 }
 
-List<String> latvianOpening(){
+List<String> latvianOpening() {
   List<String> result = [];
   return result;
 }

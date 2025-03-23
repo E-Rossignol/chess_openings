@@ -1,3 +1,7 @@
+import 'package:chess_ouvertures/components/sound_control_component.dart';
+import 'package:chess_ouvertures/constants.dart';
+import 'package:chess_ouvertures/views/style_view.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SettingsView extends StatefulWidget {
@@ -10,51 +14,36 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<SettingsView> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.fromRGBO(48, 46, 43, 1),
-              Color.fromRGBO(38, 37, 34, 1)
-            ],
+    return Drawer(
+      backgroundColor: primaryThemeDarkColor,
+      shadowColor: secondaryThemeDarkColor,
+      width: 100,
+      child: ListView(
+        children: [
+          SizedBox(
+            height: 60,
           ),
-        ),
-        child: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              const DrawerHeader(
-                child: Text(
-                  'Chess Ouvertures',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
-                ),
-              ),
-              ListTile(
-                title: const Text('Couleur'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: const Text('Langue'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: const Text('Reset'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
+          const SoundControlComponent(),
+          IconButton(
+              onPressed: () {
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) => const StyleView()));
+              },
+              icon: const Icon(Icons.palette_outlined,
+                  size: 30, color: Colors.white)),
+          IconButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.language, size: 30)),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: Icon(Icons.close_outlined, size: 30),
           ),
-        ),
+        ],
+      ),
     );
   }
 }
