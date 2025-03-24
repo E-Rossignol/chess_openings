@@ -87,8 +87,8 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
         colors = widget.stylePreferences.selectedColor.value;
         whiteColor = colors[0];
         blackColor = colors[1];
-        arrowColor = colors[2];
-        lastMoveColor = colors[3];
+        arrowColor = colors[3];
+        lastMoveColor = colors[2];
       },
     );
   }

@@ -1,12 +1,11 @@
 // ignore_for_file: overridden_fields, library_private_types_in_public_api
 
-import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:chess_ouvertures/database/database_helper.dart';
+import 'package:chess_ouvertures/model/style_preferences.dart';
 import 'package:chess_ouvertures/views/board_view.dart';
 import 'package:chess_ouvertures/views/database/database_main_view.dart';
 import 'package:chess_ouvertures/views/settings/settings_view.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../model/board.dart';
 import 'opening_main_view.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -25,28 +24,20 @@ class _MainViewState extends State<MainView> {
   int _selectedIndex = 0;
   Key _openingMainViewKey = UniqueKey();
   Color _selectedColor = Colors.green;
+  final StylePreferences _stylePreferences = StylePreferences();
 
   @override
   void initState() {
     super.initState();
-    _getColor();
+    _loadColorsFromPrefs();
     _initializeDatabase();
   }
 
-  Future<void> _getColor() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? color = prefs.getString('selected_color');
-    if (color != null) {
-      if (color == 'black') {
-        setState(() {
-          _selectedColor = lighterColor(getColor('black')[1]);
-        });
-      } else {
-        setState(() {
-          _selectedColor = lighterColor(getColor(color)[0]);
-        });
-      }
-    }
+  void _loadColorsFromPrefs() {
+    _stylePreferences.loadPreferences();
+    setState(() {
+      _selectedColor = _stylePreferences.selectedColor.value[0];
+    });
   }
 
   void _onItemTapped(int index) {

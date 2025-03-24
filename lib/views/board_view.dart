@@ -64,7 +64,7 @@ class _BoardViewState extends State<BoardView> {
       colors = StylePreferences().selectedColor.value;
       whiteColor = colors[0];
       blackColor = colors[1];
-      lastColor = colors[3];
+      lastColor = colors[2];
     });
   }
 
