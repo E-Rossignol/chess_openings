@@ -1,8 +1,8 @@
 import 'package:flutter_svg/svg.dart';
 
-import 'model/openings/opening_move.dart';
-import 'model/piece.dart';
-import 'model/square.dart';
+import '../model/openings/opening_move.dart';
+import '../model/piece.dart';
+import '../model/square.dart';
 import 'package:flutter/material.dart';
 
 enum PieceType {
@@ -32,7 +32,7 @@ Color lighterColor(Color init) {
 List<List<Color>> boardColors = [
   [
     const Color.fromRGBO(115, 149, 82, 1),
-    const Color.fromRGBO(235, 236, 208,1),
+    const Color.fromRGBO(235, 236, 208, 1),
     const Color.fromRGBO(150, 253, 42, 1.0),
     const Color.fromRGBO(48, 66, 36, 1.0),
   ],
@@ -60,7 +60,6 @@ List<List<Color>> boardColors = [
     const Color.fromRGBO(94, 196, 141, 1.0),
     const Color.fromRGBO(25, 51, 36, 1.0),
   ],
-
   [
     const Color.fromRGBO(75, 115, 153, 1),
     const Color.fromRGBO(234, 233, 210, 1),
@@ -74,8 +73,8 @@ List<List<Color>> boardColors = [
     const Color.fromRGBO(94, 63, 10, 1.0),
   ],
   [
-    const Color.fromRGBO(187, 87, 70,1),
-    const Color.fromRGBO(245, 219, 195,1),
+    const Color.fromRGBO(187, 87, 70, 1),
+    const Color.fromRGBO(245, 219, 195, 1),
     const Color.fromRGBO(255, 115, 94, 1.0),
     const Color.fromRGBO(98, 47, 37, 1.0),
   ],
@@ -90,6 +89,34 @@ List<Color> displayColors = [
   boardColors[6][0],
   boardColors[7][0],
 ];
+
+String colorToStr(Color color) {
+  if (color == boardColors[0][0]) {
+    return 'green';
+  }
+  if (color == boardColors[1][0]) {
+    return 'blue';
+  }
+  if (color == boardColors[2][0]) {
+    return 'brown';
+  }
+  if (color == boardColors[3][0]) {
+    return 'purple';
+  }
+  if (color == boardColors[4][0]) {
+    return 'teal';
+  }
+  if (color == boardColors[5][0]) {
+    return 'orange';
+  }
+  if (color == boardColors[6][0]) {
+    return 'yellow';
+  }
+  if (color == boardColors[7][0]) {
+    return 'red';
+  }
+  return 'green';
+}
 
 List<Color> getColor(String? name) {
   if (name == null) {
@@ -419,3 +446,77 @@ int pieceValue(PieceType type) {
       return 0;
   }
 }
+
+String indexes(int index, bool isReversed) {
+  String res = "";
+  // 0,8,16,32,40,48,56,57,58,59,60,61,62,63
+  switch (index) {
+    case 0:
+      res = isReversed ? "1" : "8";
+      break;
+    case 8:
+      res = isReversed ? "2" : "7";
+      break;
+    case 16:
+      res = isReversed ? "3" : "6";
+      break;
+    case 24:
+      res = isReversed ? "4" : "5";
+      break;
+    case 32:
+      res = isReversed ? "5" : "4";
+      break;
+    case 40:
+      res = isReversed ? "6" : "3";
+      break;
+    case 48:
+      res = isReversed ? "7" : "2";
+      break;
+    case 56:
+      res = isReversed ? "8" : "1";
+      break;
+    case 57:
+      res = isReversed ? "g" : "b";
+      break;
+    case 58:
+      res = isReversed ? "f" : "c";
+      break;
+    case 59:
+      res = isReversed ? "e" : "d";
+      break;
+    case 60:
+      res = isReversed ? "d" : "e";
+      break;
+    case 61:
+      res = isReversed ? "c" : "f";
+      break;
+    case 62:
+      res = isReversed ? "b" : "g";
+      break;
+    case 63:
+      res = isReversed ? "a" : "h";
+      break;
+    default:
+      res = "0";
+      break;
+  }
+  return res;
+}
+
+List<int> coordinatesIndexes = [
+  0,
+  8,
+  16,
+  24,
+  32,
+  40,
+  48,
+  56,
+  57,
+  58,
+  59,
+  60,
+  61,
+  62,
+  63
+];

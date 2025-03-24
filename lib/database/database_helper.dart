@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:chess_ouvertures/constants.dart';
+import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:chess_ouvertures/model/openings/opening_move.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -13,7 +13,6 @@ class DatabaseHelper {
   static Database? _database;
 
   DatabaseHelper._internal();
-
 
   Future<Database> get database async {
     _database = await _initDatabase();
@@ -59,7 +58,8 @@ class DatabaseHelper {
     ''');
   }
 
-  Future<bool> insertOpening(String openingName, String pieceColor, bool isDefault) async {
+  Future<bool> insertOpening(
+      String openingName, String pieceColor, bool isDefault) async {
     List<String> existingOpenings = await getOpeningsNames();
     if (existingOpenings.contains(openingName)) {
       return false;
@@ -67,7 +67,11 @@ class DatabaseHelper {
     final db = await database;
     await db.insert(
       'opening_names',
-      {'opening_name': openingName, 'piece_color': pieceColor, 'is_default': isDefault ? 1 : 0},
+      {
+        'opening_name': openingName,
+        'piece_color': pieceColor,
+        'is_default': isDefault ? 1 : 0
+      },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
     return true;
@@ -87,8 +91,11 @@ class DatabaseHelper {
 
   Future<List<String>> getOpeningsNames() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps =
-        await db.query('opening_names', columns: ['opening_name'], orderBy: 'is_default DESC, opening_name ASC',);
+    final List<Map<String, dynamic>> maps = await db.query(
+      'opening_names',
+      columns: ['opening_name'],
+      orderBy: 'is_default DESC, piece_color DESC, opening_name ASC',
+    );
     return List.generate(maps.length, (i) {
       return maps[i]['opening_name'] as String;
     });
@@ -96,8 +103,8 @@ class DatabaseHelper {
 
   Future<List<String>> getUsersOpeningsNames() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps =
-    await db.query('opening_names', columns: ['opening_name'], where: 'is_default = 0');
+    final List<Map<String, dynamic>> maps = await db.query('opening_names',
+        columns: ['opening_name'], where: 'is_default = 0');
     return List.generate(maps.length, (i) {
       return maps[i]['opening_name'] as String;
     });
@@ -105,8 +112,8 @@ class DatabaseHelper {
 
   Future<List<String>> getDefaultOpeningsNames() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps =
-    await db.query('opening_names', columns: ['opening_name'], where: 'is_default = 1');
+    final List<Map<String, dynamic>> maps = await db.query('opening_names',
+        columns: ['opening_name'], where: 'is_default = 1');
     return List.generate(maps.length, (i) {
       return maps[i]['opening_name'] as String;
     });
@@ -189,8 +196,8 @@ class DatabaseHelper {
     return maps;
   }
 
-  Future<List<OpeningMove>?> insertVariant(List<List<Square>> newVariant,
-      String openingName) async {
+  Future<List<OpeningMove>?> insertVariant(
+      List<List<Square>> newVariant, String openingName) async {
     List<List<Square>> tmp = [];
     tmp.addAll(newVariant);
     Opening? op = await getOpeningByName(openingName);
@@ -203,22 +210,29 @@ class DatabaseHelper {
     int lastMoveId = -1;
     bool keepGoing = true;
     int moveCount = 0;
-    while(keepGoing){
-      List<OpeningMove> nextMoves = tmpMoves.where((element) => element.previousMoveId == lastMoveId).toList();
-      List<OpeningMove> coucou = nextMoves.where((element) => element.from.row == tmp.first[0].row && element.from.col == tmp.first[0].col && element.to.row == tmp.first[1].row && element.to.col == tmp.first[1].col).toList();
-      if (coucou.isNotEmpty){
+    while (keepGoing) {
+      List<OpeningMove> nextMoves = tmpMoves
+          .where((element) => element.previousMoveId == lastMoveId)
+          .toList();
+      List<OpeningMove> coucou = nextMoves
+          .where((element) =>
+              element.from.row == tmp.first[0].row &&
+              element.from.col == tmp.first[0].col &&
+              element.to.row == tmp.first[1].row &&
+              element.to.col == tmp.first[1].col)
+          .toList();
+      if (coucou.isNotEmpty) {
         moveCount++;
         lastMoveId = coucou.first.id;
         tmp.removeAt(0);
-      }
-      else {
+      } else {
         keepGoing = false;
       }
     }
     int newMoveId = lastMoveId;
     List<OpeningMove> res = [];
     var db = await database;
-    while (tmp.isNotEmpty){
+    while (tmp.isNotEmpty) {
       newMoveId = await db.insert(
         'opening_moves',
         {

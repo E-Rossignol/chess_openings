@@ -1,20 +1,20 @@
 // ignore_for_file: overridden_fields, library_private_types_in_public_api
 
-import 'package:chess_ouvertures/constants.dart';
+import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:chess_ouvertures/database/database_helper.dart';
 import 'package:chess_ouvertures/views/board_view.dart';
-import 'package:chess_ouvertures/views/database_main_view.dart';
-import 'package:chess_ouvertures/views/settings_view.dart';
+import 'package:chess_ouvertures/views/database/database_main_view.dart';
+import 'package:chess_ouvertures/views/settings/settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/board.dart';
-import 'openings/opening_main_view.dart';
+import 'opening_main_view.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 class MainView extends StatefulWidget {
   @override
   final Key key;
-  const MainView({required this.key}): super(key: key);
+  const MainView({required this.key}) : super(key: key);
 
   @override
   _MainViewState createState() => _MainViewState();
@@ -37,12 +37,11 @@ class _MainViewState extends State<MainView> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? color = prefs.getString('selected_color');
     if (color != null) {
-      if (color == 'black'){
+      if (color == 'black') {
         setState(() {
           _selectedColor = lighterColor(getColor('black')[1]);
         });
-      }
-      else {
+      } else {
         setState(() {
           _selectedColor = lighterColor(getColor(color)[0]);
         });
@@ -52,7 +51,7 @@ class _MainViewState extends State<MainView> {
 
   void _onItemTapped(int index) {
     setState(() {
-      if (index == 0){
+      if (index == 0) {
         _openingMainViewKey = UniqueKey();
       }
       _selectedIndex = index;
@@ -66,20 +65,20 @@ class _MainViewState extends State<MainView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        actions: [
-          IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white,),
+      appBar: AppBar(backgroundColor: Colors.black, actions: [
+        IconButton(
+          icon: const Icon(
+            Icons.menu,
+            color: Colors.white,
+          ),
           onPressed: () {
             _scaffoldKey.currentState!.openEndDrawer();
           },
-        )]
-      ),
+        )
+      ]),
       key: _scaffoldKey,
       endDrawer: const SettingsView(),
       bottomNavigationBar: BottomNavigationBar(
-
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.black,
         selectedItemColor: _selectedColor,
@@ -108,7 +107,8 @@ class _MainViewState extends State<MainView> {
             child: Navigator(
               onGenerateRoute: (routeSettings) {
                 return MaterialPageRoute(
-                  builder: (context) => OpeningMainView(key: _openingMainViewKey),
+                  builder: (context) =>
+                      OpeningMainView(key: _openingMainViewKey),
                 );
               },
             ),

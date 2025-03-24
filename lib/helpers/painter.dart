@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'model/openings/opening_move.dart';
-import 'model/square.dart';
+import '../model/openings/opening_move.dart';
+import '../model/square.dart';
 
 class ArrowPainter extends CustomPainter {
   final List<OpeningMove>? moves;
   final bool isReversed;
   Color color;
 
-  ArrowPainter({required this.moves, required this.isReversed, required this.color});
+  ArrowPainter(
+      {required this.moves, required this.isReversed, required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -15,7 +16,7 @@ class ArrowPainter extends CustomPainter {
       ..color = color
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
-    if (moves == null){
+    if (moves == null) {
       return;
     }
     for (var move in moves!) {
@@ -30,7 +31,8 @@ class ArrowPainter extends CustomPainter {
     final squareSize = size.width / 8;
     final row = isReversed ? 7 - square.row : square.row;
     final col = isReversed ? 7 - square.col : square.col;
-    return Offset(col * squareSize + squareSize / 2, row * squareSize + squareSize / 2);
+    return Offset(
+        col * squareSize + squareSize / 2, row * squareSize + squareSize / 2);
   }
 
   void _drawArrowHead(Canvas canvas, Paint paint, Offset from, Offset to) {

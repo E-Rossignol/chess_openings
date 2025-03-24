@@ -1,20 +1,19 @@
 // ignore_for_file: library_private_types_in_public_api
 
-import 'package:chess_ouvertures/constants.dart';
+import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../components/captured_pieces_component.dart';
 import '../model/board.dart';
 import '../model/piece.dart';
 import '../model/square.dart';
+import '../model/style_preferences.dart';
 
 class BoardView extends StatefulWidget {
   final Board board;
-  final PieceColor botColor;
+  final StylePreferences stylePreferences = StylePreferences();
 
-  const BoardView(
-      {super.key, required this.board, this.botColor = PieceColor.black});
+  BoardView({super.key, required this.board});
 
   @override
   _BoardViewState createState() => _BoardViewState();
@@ -33,22 +32,57 @@ class _BoardViewState extends State<BoardView> {
   String gameResultMessage = '';
   Color whiteColor = Colors.white;
   Color blackColor = Colors.black;
+  Color validMoveColor = Colors.deepPurple;
+  Color lastColor = Colors.tealAccent;
   String pieceStyle = 'classic';
+  List<Color> colors = [];
 
   @override
   void initState() {
     super.initState();
     _loadColorsFromPrefs();
-    widget.board.gameResult.addListener(_updateGameResult);
     widget.board.boardNotifier.addListener(_updateBoard);
     widget.board.moveCount.addListener(_updateMoveCount);
+    widget.board.gameResult.addListener(_updateGameResult);
+    widget.stylePreferences.selectedColor.addListener(_updateColors);
+    widget.stylePreferences.selectedStyle.addListener(_updateStyle);
   }
 
   @override
   void dispose() {
-    widget.board.gameResult.removeListener(_updateGameResult);
     widget.board.boardNotifier.removeListener(_updateBoard);
+    widget.board.moveCount.removeListener(_updateMoveCount);
+    widget.board.gameResult.removeListener(_updateGameResult);
+    widget.stylePreferences.selectedColor.removeListener(_updateColors);
+    widget.stylePreferences.selectedStyle.removeListener(_updateStyle);
     super.dispose();
+  }
+
+  void _loadColorsFromPrefs() {
+    widget.stylePreferences.loadPreferences();
+    setState(() {
+      colors = StylePreferences().selectedColor.value;
+      whiteColor = colors[0];
+      blackColor = colors[1];
+      lastColor = colors[3];
+    });
+  }
+
+  void _updateColors() {
+    setState(
+      () {
+        colors = widget.stylePreferences.selectedColor.value;
+        whiteColor = colors[0];
+        blackColor = colors[1];
+        lastColor = colors[3];
+      },
+    );
+  }
+
+  void _updateStyle() {
+    setState(() {
+      pieceStyle = widget.stylePreferences.selectedStyle.value;
+    });
   }
 
   void _updateBoard() {
@@ -56,22 +90,9 @@ class _BoardViewState extends State<BoardView> {
   }
 
   void _updateMoveCount() {
-      setState(() {
-        moveCountMessage = (widget.board.moveCount.value ~/ 2).toString();
-      });
-  }
-
-  Future<void> _loadColorsFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? color = prefs.getString('selected_color');
-    pieceStyle = prefs.getString('piece_style') ?? 'classic';
-    if (color != null) {
-      List<Color> colors = getColor(color);
-      setState(() {
-        blackColor = colors[0];
-        whiteColor = colors[1];
-      });
-    }
+    setState(() {
+      moveCountMessage = (widget.board.moveCount.value ~/ 2).toString();
+    });
   }
 
   void _updateGameResult() {
@@ -161,65 +182,12 @@ class _BoardViewState extends State<BoardView> {
     );
   }
 
-  String indexes(int index, bool isReversed){
-    String res = "";
-    // 0,8,16,32,40,48,56,57,58,59,60,61,62,63
-    switch(index){
-      case 0:
-        res = isReversed ? "1" : "8";
-            break;
-      case 8:
-        res = isReversed ? "2" : "7";
-        break;
-      case 16:
-        res = isReversed ? "3" : "6";
-        break;
-      case 24:
-        res = isReversed ? "4" : "5";
-        break;
-      case 32:
-        res = isReversed ? "5" : "4";
-        break;
-      case 40:
-        res = isReversed ? "6" : "3";
-        break;
-      case 48:
-        res = isReversed ? "7" : "2";
-        break;
-      case 56:
-        res = isReversed ? "8" : "1";
-        break;
-      case 57:
-        res = isReversed ? "g" : "b";
-        break;
-      case 58:
-        res = isReversed ? "f" : "c";
-        break;
-      case 59:
-        res = isReversed ? "e" : "d";
-        break;
-      case 60:
-        res = isReversed ? "d" : "e";
-        break;
-      case 61:
-        res = isReversed ? "c" : "f";
-        break;
-      case 62:
-        res = isReversed ? "b" : "g";
-        break;
-      case 63:
-        res = isReversed ? "a" : "h";
-        break;
-      default: res = "0";
-          break;
-    }
-    return res;
-  }
-
   @override
   Widget build(BuildContext context) {
     int currentMoveNumber = widget.board.moveCount.value;
-    List<Color> bgColor = !isReversed ? [primaryThemeDarkColor, primaryThemeLightColor]: [primaryThemeLightColor, primaryThemeDarkColor];
+    List<Color> bgColor = !isReversed
+        ? [primaryThemeDarkColor, primaryThemeLightColor]
+        : [primaryThemeLightColor, primaryThemeDarkColor];
     Color textColor = whiteColor;
     int topScore = isReversed
         ? (widget.board.whiteScore - widget.board.blackScore)
@@ -227,9 +195,6 @@ class _BoardViewState extends State<BoardView> {
     int bottomScore = isReversed
         ? (widget.board.blackScore - widget.board.whiteScore)
         : (widget.board.whiteScore - widget.board.blackScore);
-    List<int> coordinatesIndexes = [
-      0,8,16,24,32,40,48,56,57,58,59,60,61,62,63
-    ];
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -252,8 +217,7 @@ class _BoardViewState extends State<BoardView> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.keyboard_double_arrow_left),
-                        onPressed:
-                        currentMoveNumber > 0 ? _undoLastMove : null,
+                        onPressed: currentMoveNumber > 0 ? _undoLastMove : null,
                         disabledColor: Colors.grey,
                         color: Colors.white,
                       ),
@@ -350,9 +314,7 @@ class _BoardViewState extends State<BoardView> {
                                       bool isLastToSquare =
                                           square.row == lastMoveToRow &&
                                               square.col == lastMoveToCol;
-                                      Color lastMoveColor =
-                                          const Color.fromRGBO(
-                                              173, 216, 230, 1.0);
+                                      Color lastMoveColor = lastColor;
                                       Color squareColor = square.isWhite
                                           ? whiteColor
                                           : blackColor;
@@ -443,22 +405,22 @@ class _BoardViewState extends State<BoardView> {
                                                     child: _buildPiece(
                                                         square.piece),
                                                   ),
-                                            if (coordinatesIndexes.contains(index))
-                                            Positioned(
-                                              bottom: index > 56 ? 2 : null,
-                                              right: index > 56 ? 2 : null,
-                                              top: index <= 56 ? 2 : null,
-                                              left: index <= 56 ? 2 : null,
-                                              child: Text(
-                                                indexes(index, isReversed),
-                                                style: TextStyle(
-                                                  color: otherColor,
-                                                  fontSize: 14,
-                                                  fontWeight:
-                                                  FontWeight.bold,
+                                            if (coordinatesIndexes
+                                                .contains(index))
+                                              Positioned(
+                                                bottom: index > 56 ? 2 : null,
+                                                right: index > 56 ? 2 : null,
+                                                top: index <= 56 ? 2 : null,
+                                                left: index <= 56 ? 2 : null,
+                                                child: Text(
+                                                  indexes(index, isReversed),
+                                                  style: TextStyle(
+                                                    color: otherColor,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
                                             if (index == 56)
                                               Positioned(
                                                 bottom: 2,
@@ -468,12 +430,15 @@ class _BoardViewState extends State<BoardView> {
                                                   style: TextStyle(
                                                     color: otherColor,
                                                     fontSize: 14,
-                                                    fontWeight:
-                                                    FontWeight.bold,
+                                                    fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
                                               ),
-                                            if (square.piece != null && square.piece!.type == PieceType.king && widget.board.isCheck(square.piece!.color))
+                                            if (square.piece != null &&
+                                                square.piece!.type ==
+                                                    PieceType.king &&
+                                                widget.board.isCheck(
+                                                    square.piece!.color))
                                               Positioned(
                                                 top: 2,
                                                 right: 2,
@@ -481,7 +446,8 @@ class _BoardViewState extends State<BoardView> {
                                                   width: 10,
                                                   height: 10,
                                                   decoration: BoxDecoration(
-                                                    color: Colors.redAccent.withOpacity(1),
+                                                    color: Colors.redAccent
+                                                        .withOpacity(1),
                                                     shape: BoxShape.circle,
                                                   ),
                                                 ),
@@ -493,8 +459,7 @@ class _BoardViewState extends State<BoardView> {
                                                   width: 10,
                                                   height: 10,
                                                   decoration: BoxDecoration(
-                                                    color: Colors.deepPurple
-                                                        .withOpacity(0.9),
+                                                    color: validMoveColor,
                                                     shape: BoxShape.circle,
                                                   ),
                                                 ),

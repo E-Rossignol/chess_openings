@@ -1,6 +1,6 @@
 import 'package:chess_ouvertures/components/sound_control_component.dart';
-import 'package:chess_ouvertures/constants.dart';
-import 'package:chess_ouvertures/views/style_view.dart';
+import 'package:chess_ouvertures/helpers/constants.dart';
+import 'package:chess_ouvertures/views/settings/style_view.dart';
 import 'package:flutter/material.dart';
 
 class SettingsView extends StatefulWidget {
@@ -25,7 +25,7 @@ class _SettingsViewState extends State<SettingsView> {
           const SoundControlComponent(),
           IconButton(
               onPressed: () {
-                Navigator.pushReplacement(context,
+                Navigator.push(context,
                     MaterialPageRoute(builder: (context) => const StyleView()));
               },
               icon: const Icon(Icons.palette_outlined,

@@ -17,7 +17,7 @@ class OpeningMove {
     this.previousMoveId,
   });
 
-  String toStr(){
+  String toStr() {
     return '${from.toStr()}${to.toStr()}';
   }
 }

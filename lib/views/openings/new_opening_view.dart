@@ -1,20 +1,24 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:chess_ouvertures/model/openings/opening.dart';
-import 'package:chess_ouvertures/views/openings/opening_main_view.dart';
+import 'package:chess_ouvertures/views/opening_main_view.dart';
 import 'package:flutter/material.dart';
 import '../../database/database_helper.dart';
 import '../../model/board.dart';
 import 'opening_board_view.dart';
-import '../../constants.dart';
+import '../../helpers/constants.dart';
 
 class NewOpeningView extends StatefulWidget {
   final String? name;
   final bool? isWhite;
   final bool isEdit;
   final int? openingId;
-  const NewOpeningView({super.key, required this.name, required this.isWhite, required this.isEdit, required this.openingId});
-
+  const NewOpeningView(
+      {super.key,
+      required this.name,
+      required this.isWhite,
+      required this.isEdit,
+      required this.openingId});
 
   @override
   State<NewOpeningView> createState() => _NewOpeningViewState();
@@ -29,10 +33,11 @@ class _NewOpeningViewState extends State<NewOpeningView> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name ?? '');
-    if (widget.isWhite != null){
-      _pieceColor = widget.isWhite! ? 'white': 'black';
+    if (widget.isWhite != null) {
+      _pieceColor = widget.isWhite! ? 'white' : 'black';
     }
   }
+
   @override
   Widget build(BuildContext context) {
     TextStyle txtStyle = const TextStyle(
@@ -154,21 +159,22 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                             _formKey.currentState!.save();
                             bool result = false;
                             String message = "";
-                            if (widget.openingId != null){
-                              result = await DatabaseHelper()
-                                  .editOpening(widget.openingId!, _nameController.value.text, _pieceColor);
+                            if (widget.openingId != null) {
+                              result = await DatabaseHelper().editOpening(
+                                  widget.openingId!,
+                                  _nameController.value.text,
+                                  _pieceColor);
                               message = "Ouverture edited";
-                            }
-                            else {
-                              result = await DatabaseHelper()
-                                  .insertOpening(_nameController.value.text, _pieceColor, false);
+                            } else {
+                              result = await DatabaseHelper().insertOpening(
+                                  _nameController.value.text,
+                                  _pieceColor,
+                                  false);
                               message = "Ouverture created";
                             }
                             if (result) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content:
-                                    Text(message)),
+                                SnackBar(content: Text(message)),
                               );
                               Opening? opening = await DatabaseHelper()
                                   .getOpeningByName(_nameController.value.text);

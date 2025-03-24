@@ -1,13 +1,14 @@
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 
+import 'package:audio_session/audio_session.dart';
 import 'package:chess_ouvertures/model/piece.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../constants.dart';
+import '../helpers/constants.dart';
 import 'square.dart';
 
-class Board{
+class Board {
   final List<List<Square>> board;
   ValueNotifier<bool> boardNotifier = ValueNotifier(false);
   ValueNotifier<List<Piece>> capturedPieceNotifier = ValueNotifier([]);
@@ -31,7 +32,7 @@ class Board{
 
   void undoLastMove(List<List<Square>> history) {
     reset();
-    for (List<Square> move in history){
+    for (List<Square> move in history) {
       movePiece(move[0].row, move[0].col, move[1].row, move[1].col);
     }
     moveCount.value = moveCount.value;
@@ -371,7 +372,8 @@ class Board{
         }
         // Castling logic
         if (originSquare.row == (piece.color == PieceColor.white ? 7 : 0) &&
-            originSquare.col == 4 && !piece.hasMove) {
+            originSquare.col == 4 &&
+            !piece.hasMove) {
           // Check for kingside castling
           if (board[originSquare.row][5].piece == null &&
               board[originSquare.row][6].piece == null &&
@@ -577,7 +579,7 @@ class Board{
         }
         _playSound(toPlay);
         boardNotifier.value = !boardNotifier.value;
-        moveCount.value ++;
+        moveCount.value++;
         boardNotifier.notifyListeners();
         moveCount.notifyListeners();
         piece.hasMove = true;
@@ -589,14 +591,18 @@ class Board{
   }
 
   Future<void> _playSound(String fileName) async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      bool isMuted = prefs.getBool('isMuted') ?? false;
-      if (isMuted) {
-        return;
-      }
-      await _audioPlayer.setVolume(70);
-      await _audioPlayer.setAsset('assets/audio/$fileName');
-      _audioPlayer.play();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isMuted = prefs.getBool('isMuted') ?? false;
+    if (isMuted) {
+      return;
+    }
+    await _audioPlayer.setVolume(70);
+    await _audioPlayer.setAsset('assets/audio/$fileName');
+    await _audioPlayer
+        .setAudioSource(AudioSource.uri(Uri.parse('assets/audio/$fileName')));
+    await _audioPlayer.setAndroidAudioAttributes(
+        const AndroidAudioAttributes(usage: AndroidAudioUsage.game));
+    _audioPlayer.play();
   }
 
   void _updateScore(Piece captured) {
@@ -624,99 +630,123 @@ class Board{
     lastMoveTo = null;
   }
 
-  void isDraw(){
+  void isDraw() {
     List<Piece> remainingPieces = [];
-    for(var row in board){
-      for (var square in row){
-        if (square.piece != null){
+    for (var row in board) {
+      for (var square in row) {
+        if (square.piece != null) {
           remainingPieces.add(square.piece!);
         }
       }
     }
-    if (remainingPieces.length == 2 && remainingPieces.elementAt(0).type == PieceType.king && remainingPieces.elementAt(1).type == PieceType.king){
+    if (remainingPieces.length == 2 &&
+        remainingPieces.elementAt(0).type == PieceType.king &&
+        remainingPieces.elementAt(1).type == PieceType.king) {
       gameResult.value = -1;
     }
     List<List<Square>> moves = [];
-    for (var row in board){
-      for (var square in row){
-        if (square.piece != null && square.piece!.color == currentTurn){
+    for (var row in board) {
+      for (var square in row) {
+        if (square.piece != null && square.piece!.color == currentTurn) {
           moves.add(getValidMoves(square.piece!));
         }
       }
     }
     moves.removeWhere((element) => element.isEmpty);
-    if (moves.isEmpty && !isCheck(currentTurn)){
+    if (moves.isEmpty && !isCheck(currentTurn)) {
       gameResult.value = -1;
     }
   }
 
-
-
   void _initializePieces() {
-    Piece whitePawn1 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 1, hasMove: false);
-    Piece whitePawn2 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 2, hasMove: false);
-    Piece whitePawn3 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 3, hasMove: false);
-    Piece whitePawn4 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 4, hasMove: false);
-    Piece whitePawn5 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 5, hasMove: false);
-    Piece whitePawn6 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 6, hasMove: false);
-    Piece whitePawn7 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 7, hasMove: false);
-    Piece whitePawn8 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 8, hasMove: false);
-    Piece whiteRook1 =
-        Piece(type: PieceType.rook, color: PieceColor.white, id: 9, hasMove: false);
-    Piece whiteRook2 =
-        Piece(type: PieceType.rook, color: PieceColor.white, id: 10, hasMove: false);
-    Piece whiteKnight1 =
-        Piece(type: PieceType.knight, color: PieceColor.white, id: 11, hasMove: false);
-    Piece whiteKnight2 =
-        Piece(type: PieceType.knight, color: PieceColor.white, id: 12, hasMove: false);
-    Piece whiteBishop1 =
-        Piece(type: PieceType.bishop, color: PieceColor.white, id: 13, hasMove: false);
-    Piece whiteBishop2 =
-        Piece(type: PieceType.bishop, color: PieceColor.white, id: 14, hasMove: false);
-    Piece whiteQueen =
-        Piece(type: PieceType.queen, color: PieceColor.white, id: 15, hasMove: false);
-    Piece whiteKing =
-        Piece(type: PieceType.king, color: PieceColor.white, id: 16, hasMove: false);
-    Piece blackPawn1 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 17, hasMove: false);
-    Piece blackPawn2 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 18, hasMove: false);
-    Piece blackPawn3 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 19, hasMove: false);
-    Piece blackPawn4 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 20, hasMove: false);
-    Piece blackPawn5 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 21, hasMove: false);
-    Piece blackPawn6 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 22, hasMove: false);
-    Piece blackPawn7 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 23, hasMove: false);
-    Piece blackPawn8 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 24, hasMove: false);
-    Piece blackRook1 =
-        Piece(type: PieceType.rook, color: PieceColor.black, id: 25, hasMove: false);
-    Piece blackRook2 =
-        Piece(type: PieceType.rook, color: PieceColor.black, id: 26, hasMove: false);
-    Piece blackKnight1 =
-        Piece(type: PieceType.knight, color: PieceColor.black, id: 27, hasMove: false);
-    Piece blackKnight2 =
-        Piece(type: PieceType.knight, color: PieceColor.black, id: 28, hasMove: false);
-    Piece blackBishop1 =
-        Piece(type: PieceType.bishop, color: PieceColor.black, id: 29, hasMove: false);
-    Piece blackBishop2 =
-        Piece(type: PieceType.bishop, color: PieceColor.black, id: 30, hasMove: false);
-    Piece blackQueen =
-        Piece(type: PieceType.queen, color: PieceColor.black, id: 31, hasMove: false);
-    Piece blackKing =
-        Piece(type: PieceType.king, color: PieceColor.black, id: 32, hasMove: false);
+    Piece whitePawn1 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 1, hasMove: false);
+    Piece whitePawn2 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 2, hasMove: false);
+    Piece whitePawn3 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 3, hasMove: false);
+    Piece whitePawn4 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 4, hasMove: false);
+    Piece whitePawn5 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 5, hasMove: false);
+    Piece whitePawn6 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 6, hasMove: false);
+    Piece whitePawn7 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 7, hasMove: false);
+    Piece whitePawn8 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 8, hasMove: false);
+    Piece whiteRook1 = Piece(
+        type: PieceType.rook, color: PieceColor.white, id: 9, hasMove: false);
+    Piece whiteRook2 = Piece(
+        type: PieceType.rook, color: PieceColor.white, id: 10, hasMove: false);
+    Piece whiteKnight1 = Piece(
+        type: PieceType.knight,
+        color: PieceColor.white,
+        id: 11,
+        hasMove: false);
+    Piece whiteKnight2 = Piece(
+        type: PieceType.knight,
+        color: PieceColor.white,
+        id: 12,
+        hasMove: false);
+    Piece whiteBishop1 = Piece(
+        type: PieceType.bishop,
+        color: PieceColor.white,
+        id: 13,
+        hasMove: false);
+    Piece whiteBishop2 = Piece(
+        type: PieceType.bishop,
+        color: PieceColor.white,
+        id: 14,
+        hasMove: false);
+    Piece whiteQueen = Piece(
+        type: PieceType.queen, color: PieceColor.white, id: 15, hasMove: false);
+    Piece whiteKing = Piece(
+        type: PieceType.king, color: PieceColor.white, id: 16, hasMove: false);
+    Piece blackPawn1 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 17, hasMove: false);
+    Piece blackPawn2 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 18, hasMove: false);
+    Piece blackPawn3 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 19, hasMove: false);
+    Piece blackPawn4 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 20, hasMove: false);
+    Piece blackPawn5 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 21, hasMove: false);
+    Piece blackPawn6 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 22, hasMove: false);
+    Piece blackPawn7 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 23, hasMove: false);
+    Piece blackPawn8 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 24, hasMove: false);
+    Piece blackRook1 = Piece(
+        type: PieceType.rook, color: PieceColor.black, id: 25, hasMove: false);
+    Piece blackRook2 = Piece(
+        type: PieceType.rook, color: PieceColor.black, id: 26, hasMove: false);
+    Piece blackKnight1 = Piece(
+        type: PieceType.knight,
+        color: PieceColor.black,
+        id: 27,
+        hasMove: false);
+    Piece blackKnight2 = Piece(
+        type: PieceType.knight,
+        color: PieceColor.black,
+        id: 28,
+        hasMove: false);
+    Piece blackBishop1 = Piece(
+        type: PieceType.bishop,
+        color: PieceColor.black,
+        id: 29,
+        hasMove: false);
+    Piece blackBishop2 = Piece(
+        type: PieceType.bishop,
+        color: PieceColor.black,
+        id: 30,
+        hasMove: false);
+    Piece blackQueen = Piece(
+        type: PieceType.queen, color: PieceColor.black, id: 31, hasMove: false);
+    Piece blackKing = Piece(
+        type: PieceType.king, color: PieceColor.black, id: 32, hasMove: false);
     board[1][0].piece = blackPawn1;
     board[1][1].piece = blackPawn2;
     board[1][2].piece = blackPawn3;

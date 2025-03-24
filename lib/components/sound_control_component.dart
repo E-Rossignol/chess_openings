@@ -31,10 +31,12 @@ class _SoundControlComponentState extends State<SoundControlComponent> {
     });
     _prefs!.setBool('isMuted', _isMuted);
   }
+
   @override
   Widget build(BuildContext context) {
-    return IconButton(onPressed: _toggleMute, icon: Icon(
-        _isMuted ? Icons.volume_off : Icons.volume_up,
-    color: Colors.white, size: 30));
+    return IconButton(
+        onPressed: _toggleMute,
+        icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up,
+            color: Colors.white, size: 30));
   }
 }

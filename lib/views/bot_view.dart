@@ -1,6 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api
 
-import 'package:chess_ouvertures/constants.dart';
+import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:chess_ouvertures/services/bot_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -73,36 +73,36 @@ class _BotViewState extends State<BotView> {
       to.col,
     );
     _updateBoard();
-    PieceColor botColor = widget.isBotWhite ? PieceColor.white : PieceColor.black;
-    if (widget.board.currentTurn == botColor){
+    PieceColor botColor =
+        widget.isBotWhite ? PieceColor.white : PieceColor.black;
+    if (widget.board.currentTurn == botColor) {
       String currentMove = squareToString(from) + squareToString(to);
       await api.makeMove(gameID, currentMove);
     }
     lastMove = squareToString(from) + squareToString(to);
     bool botPlayed = false;
-    while (!botPlayed){
+    while (!botPlayed) {
       botPlayed = await _listenBot();
-      if (!botPlayed){
+      if (!botPlayed) {
         await Future.delayed(const Duration(milliseconds: 150));
       }
     }
- }
+  }
 
   Future<bool> _listenBot() async {
     Map<String, dynamic>? status = await api.getGameState(gameID);
     String moves = "";
-    if (status != null){
+    if (status != null) {
       moves = status['state']['moves'];
     }
     if (moves.isEmpty) return false;
     String lastBotMove = moves.substring(moves.length - 4);
-    if (lastBotMove != lastMove){
+    if (lastBotMove != lastMove) {
       Square from = stringToSquare(lastBotMove.substring(0, 2));
       Square to = stringToSquare(lastBotMove.substring(2, 4));
       await _playMove(from, to);
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }

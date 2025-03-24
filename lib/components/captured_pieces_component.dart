@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../constants.dart';
+import '../helpers/constants.dart';
 import '../model/piece.dart';
 
 class CapturedPiecesComponent extends StatefulWidget {
@@ -12,7 +12,8 @@ class CapturedPiecesComponent extends StatefulWidget {
   CapturedPiecesComponent({super.key, required this.capturedPieces});
 
   @override
-  State<CapturedPiecesComponent> createState() => _CapturedPiecesComponentState();
+  State<CapturedPiecesComponent> createState() =>
+      _CapturedPiecesComponentState();
 }
 
 class _CapturedPiecesComponentState extends State<CapturedPiecesComponent> {
@@ -29,7 +30,8 @@ class _CapturedPiecesComponentState extends State<CapturedPiecesComponent> {
   }
 
   Widget _capturedPieces() {
-    widget.capturedPieces.sort((a,b) => pieceValue(a.type).compareTo(pieceValue(b.type)));
+    widget.capturedPieces
+        .sort((a, b) => pieceValue(a.type).compareTo(pieceValue(b.type)));
     List<Widget> images = widget.capturedPieces.map((piece) {
       return SvgPicture.asset(
         'assets/images/${pieceTypeToSVG(piece.type, piece.color, pieceStyle)}',

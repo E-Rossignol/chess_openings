@@ -58,7 +58,7 @@ class BotService {
       try {
         return jsonDecode(response.body);
       } catch (e) {
-        if (e is FormatException && e.message == "Unexpected character"){
+        if (e is FormatException && e.message == "Unexpected character") {
           await getGameState(gameId);
         }
       }
