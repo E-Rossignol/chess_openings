@@ -72,8 +72,8 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
       colors = StylePreferences().selectedColor.value;
       whiteColor = colors[0];
       blackColor = colors[1];
-      arrowColor = colors[2];
-      lastMoveColor = colors[3];
+      arrowColor = colors[3];
+      lastMoveColor = colors[2];
     });
   }
 
@@ -140,23 +140,11 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
   }
 
   Future<void> _reloadOpening() async {
-    List<int> tmpMoveId = moveIdHistory;
-    _resetBoard();
     Opening? op = await DatabaseHelper().getOpeningByName(widget.opening.name);
     if (op != null) {
-      List<OpeningMove> tmp = op.moves;
       widget.opening = op;
-      for (int i = 0; i < tmpMoveId.length; i++) {
-        OpeningMove? move =
-            tmp.firstWhere((element) => element.id == tmpMoveId[i]);
-        if (move.id != -1) {
-          moveInOpening(move);
-        }
-      }
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Error")));
     }
+    _resetBoard();
   }
 
   void moveInOpening(OpeningMove move) {
@@ -223,8 +211,8 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                             content: Text(message),
                           ));
-                          Navigator.of(context).pop();
                           isRecording = false;
+                          Navigator.of(context).pop();
                           await _reloadOpening();
                         },
                         child: const Text('Yes'),
@@ -235,6 +223,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                       child: ElevatedButton(
                         onPressed: () {
                           setState(() {
+                            isRecording = false;
                             isRecording = false;
                           });
                           Navigator.of(context)
@@ -276,9 +265,8 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                             content: Text(message),
                           ));
-                          await _reloadOpening();
-                          _resetBoard();
                           Navigator.of(context).pop();
+                          await _reloadOpening();
                         },
                         child: const Text('Yes'),
                       ),
@@ -359,9 +347,16 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     Color tmpArrowColor = arrowColor;
     Color tmpLastMoveColor = lastMoveColor;
     if (isRecording) {
-      tmpWhiteColor = const Color.fromRGBO(255, 216, 216, 1.0);
-      tmpBlackColor = const Color.fromRGBO(200, 0, 0, 1.0);
-      tmpLastMoveColor = const Color.fromRGBO(255, 165, 0, 1.0);
+      if (isReversed){
+        tmpBlackColor = const Color.fromRGBO(255, 216, 216, 1.0);
+        tmpWhiteColor = const Color.fromRGBO(200, 0, 0, 1.0);
+        tmpLastMoveColor = const Color.fromRGBO(255, 165, 0, 1.0);
+      }
+      else {
+        tmpWhiteColor = const Color.fromRGBO(255, 216, 216, 1.0);
+        tmpBlackColor = const Color.fromRGBO(200, 0, 0, 1.0);
+        tmpLastMoveColor = const Color.fromRGBO(255, 165, 0, 1.0);
+      }
     }
     List<Color> bgColor = !isReversed
         ? [primaryThemeDarkColor, primaryThemeLightColor]

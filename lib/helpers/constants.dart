@@ -356,9 +356,9 @@ List<String> defaultOpenings() {
   result.add("Italian");
   result.add('Queen\'s Gambit');
   result.add('Sicilian Defense');
-  result.add('French Defense');
   result.add('Englund\'s Gambit');
   result.add('Scandinavian Defense');
+  result.add('Scotch Game');
   return result;
 }
 
@@ -391,13 +391,14 @@ List<String> queensGambitOpening() {
   return result;
 }
 
-List<String> frenchOpening() {
-  List<String> result = [];
-  return result;
-}
-
 List<String> sicilianOpening() {
   List<String> result = [];
+  result.add(
+      "e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 e7e6 c1e3 f8b4 f2f3 d7d5 d4c6 b7c6 e4e5 f6d7");
+  result.add(
+      "e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 e7e6 d4c6 b7c6 e4e5 f6d5");
+  result.add(
+      "e2e4 c7c5 g1f3 b8c6 f1c4 e7e6 e1g1 d7d5 e4d5 e6d5 c4b5 g8f6 d2d4 f8e7");
   return result;
 }
 
@@ -426,6 +427,12 @@ List<String> englundOpening() {
 }
 
 List<String> scandinavianOpening() {
+  List<String> result = [];
+  result.add('e2e4 d7d5 e4d5 d8d5 b1c3 d5a5 d2d4 c7c6 c1d2 a5c7');
+  return result;
+}
+
+List<String> scotchOpening(){
   List<String> result = [];
   return result;
 }

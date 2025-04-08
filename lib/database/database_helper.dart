@@ -303,9 +303,9 @@ class DatabaseHelper {
     await insertItalianOpening();
     await insertQueensGambitOpening();
     await insertSicilianDefenseOpening();
-    await insertFrenchDefenseOpening();
     await insertEnglundOpening();
     await insertScandinavianOpening();
+    await insertScotchOpening();
   }
 
   Future<void> insertItalianOpening() async {
@@ -359,23 +359,6 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> insertFrenchDefenseOpening() async {
-    await insertOpening('French Defense', 'black', true);
-    List<String> french = frenchOpening();
-    List<List<Square>> frenchMoves = [];
-    for (String move in french) {
-      List<String> moves = move.trim().split(' ');
-      for (String m in moves) {
-        frenchMoves.add([
-          stringToSquare(m.substring(0, 2)),
-          stringToSquare(m.substring(2, 4))
-        ]);
-      }
-      await insertVariant(frenchMoves, 'French Defense');
-      frenchMoves = [];
-    }
-  }
-
   Future<void> insertEnglundOpening() async {
     await insertOpening('Englund\'s Gambit', 'black', true);
     List<String> englund = englundOpening();
@@ -395,9 +378,9 @@ class DatabaseHelper {
 
   Future<void> insertScandinavianOpening() async {
     await insertOpening('Scandinavian Defense', 'black', true);
-    List<String> latvian = scandinavianOpening();
+    List<String> scandinavian = scandinavianOpening();
     List<List<Square>> latvianMoves = [];
-    for (String move in latvian) {
+    for (String move in scandinavian) {
       List<String> moves = move.trim().split(' ');
       for (String m in moves) {
         latvianMoves.add([
@@ -406,6 +389,23 @@ class DatabaseHelper {
         ]);
       }
       await insertVariant(latvianMoves, 'Scandinavian Opening');
+      latvianMoves = [];
+    }
+  }
+
+  Future<void> insertScotchOpening() async {
+    await insertOpening('Scotch Game', 'white', true);
+    List<String> scandinavian = scotchOpening();
+    List<List<Square>> latvianMoves = [];
+    for (String move in scandinavian) {
+      List<String> moves = move.trim().split(' ');
+      for (String m in moves) {
+        latvianMoves.add([
+          stringToSquare(m.substring(0, 2)),
+          stringToSquare(m.substring(2, 4))
+        ]);
+      }
+      await insertVariant(latvianMoves, 'Scotch Game');
       latvianMoves = [];
     }
   }
