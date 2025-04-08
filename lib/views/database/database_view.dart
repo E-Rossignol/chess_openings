@@ -31,6 +31,8 @@ class _DatabaseViewState extends State<DatabaseView> {
   Future<void> _loadTables() async {
     final tables = await _database
         .rawQuery('SELECT name FROM sqlite_master WHERE type="table"');
+    tables.removeAt(0);
+    tables.removeAt(1);
     setState(() {
       _tables = tables;
     });
@@ -44,7 +46,7 @@ class _DatabaseViewState extends State<DatabaseView> {
         backgroundColor: primaryThemeDarkColor,
         leading: IconButton(
           icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
           onPressed: () {
             Navigator.pushReplacement(
               context,
@@ -55,7 +57,7 @@ class _DatabaseViewState extends State<DatabaseView> {
           },
         ),
         title: const Text(
-          'Inspecteur de la base de données',
+          'Inspect',
           style: TextStyle(color: Colors.white),
         ),
       ),
@@ -106,6 +108,11 @@ class TableView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (tableName == 'opening_names') {
+      for (var i = 0; i < data.length; i++) {
+        data[i]['piece_color'] = null;
+      }
+    }
     return Scaffold(
       backgroundColor: primaryThemeDarkColor,
       appBar: AppBar(

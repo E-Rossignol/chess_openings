@@ -4,14 +4,13 @@ import 'package:chess_ouvertures/database/database_helper.dart';
 import 'package:chess_ouvertures/model/style_preferences.dart';
 import 'package:chess_ouvertures/views/board_view.dart';
 import 'package:chess_ouvertures/views/database/database_main_view.dart';
-import 'package:chess_ouvertures/views/openings/opening_board_view.dart';
 import 'package:chess_ouvertures/views/settings/settings_view.dart';
 import 'package:flutter/material.dart';
-import '../helpers/constants.dart';
 import '../model/board.dart';
-import '../model/openings/opening.dart';
 import 'opening_main_view.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+
+import 'openings/global_opening_board_view.dart';
 
 class MainView extends StatefulWidget {
   @override
@@ -142,7 +141,7 @@ class _MainViewState extends State<MainView> {
               onGenerateRoute: (routeSettings) {
                 return MaterialPageRoute(
                   builder: (context) =>
-                      OpeningBoardView(board: Board(), key: _globalOpeningViewKey, opening: Opening(name: "GLOBAL", color: PieceColor.white, moves: [])),
+                      GlobalOpeningBoardView(board: Board(), key: _globalOpeningViewKey),
                 );
               },
             ),

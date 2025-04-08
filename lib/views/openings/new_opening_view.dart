@@ -98,6 +98,8 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                           controller: _nameController,
                           decoration: const InputDecoration(
                             labelText: 'Opening Name',
+                            focusColor: Colors.white,
+                            hoverColor: Colors.white,
                             labelStyle: TextStyle(
                               fontSize: 16,
                               color: Colors.white38,
@@ -127,6 +129,7 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                               style: txtStyle,
                             ),
                             leading: Radio<String>(
+                              activeColor: Colors.white,
                               value: 'white',
                               groupValue: _pieceColor,
                               onChanged: (value) {
@@ -139,6 +142,7 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                           ListTile(
                             title: Text('Black', style: txtStyle),
                             leading: Radio<String>(
+                              activeColor: Colors.white,
                               value: 'black',
                               groupValue: _pieceColor,
                               onChanged: (value) {
@@ -194,7 +198,11 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                             }
                           }
                         },
-                        child: const Text('Submit'),
+                        child: const Text('Submit',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                            )),
                       ),
                     ),
                   ],
