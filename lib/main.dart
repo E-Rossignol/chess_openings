@@ -1,13 +1,24 @@
 import 'package:chess_ouvertures/components/splash_screen.dart';
+import 'package:chess_ouvertures/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'database/database_helper.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   // Initialize shared preferences
   var prefs = await SharedPreferences.getInstance();
   // Check if the user has already entered the code
-  bool hasCode = prefs.getBool('hasCode') ?? false;
+  String? code = prefs.getString('pw');
+  bool hasCode = false;
+  if (code != null) {
+    hasCode = await DatabaseHelper().checkCode(code);
+  }
   runApp(MyApp(hasCode: hasCode));
 }
 

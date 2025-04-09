@@ -32,6 +32,8 @@ dependencies:
   just_audio: ^0.9.18
   flutter:
     sdk: flutter
+  cloud_firestore: ^4.8.0
+  firebase_core: ^2.16.0
   sqflite: any
   path: any
   http: ^1.2.2

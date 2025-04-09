@@ -2,7 +2,6 @@ import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chess_ouvertures/views/main_view.dart';
-
 import '../views/welcome_view.dart';
 
 class SplashScreen extends StatefulWidget {

@@ -3,9 +3,9 @@ import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:chess_ouvertures/model/openings/opening_move.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-
 import '../model/openings/opening.dart';
 import '../model/square.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -17,6 +17,25 @@ class DatabaseHelper {
   Future<Database> get database async {
     _database = await _initDatabase();
     return _database!;
+  }
+
+  Future<String?> fetchPw() async {
+    try {
+      QuerySnapshot querySnapshot =
+      await FirebaseFirestore.instance.collection('pw').get();
+      return querySnapshot.docs.first['value'];
+    } catch (e) {
+      print('Erreur : $e');
+    }
+    return null;
+  }
+
+  Future<bool> checkCode(String input) async {
+    var pw = await DatabaseHelper().fetchPw();
+    if (input != pw || pw == null) {
+      return false;
+    }
+    return true;
   }
 
   Future<Database> _initDatabase() async {

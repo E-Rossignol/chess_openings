@@ -1,3 +1,5 @@
+import 'package:chess_ouvertures/database/database_helper.dart';
+import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:flutter/material.dart';
 import 'main_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,11 +14,13 @@ class WelcomeView extends StatefulWidget {
 class _WelcomeViewState extends State<WelcomeView> {
   final TextEditingController _codeController = TextEditingController();
 
+
   void _validateCode() async {
     var prefs = await SharedPreferences.getInstance();
-    if (_codeController.text == "chess-izy") {
+    bool isOk = await DatabaseHelper().checkCode(_codeController.text);
+    if (isOk) {
       // Redirige vers MainView si le code est correct
-      prefs.setBool('hasCode', true);
+      prefs.setString('pw', _codeController.text);
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => MainView(key: UniqueKey())),
@@ -35,44 +39,53 @@ class _WelcomeViewState extends State<WelcomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Bienvenue"),
-      ),
+      backgroundColor: primaryThemeDarkColor,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              "Bienvenue dans Chess Izy !",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '"Chess is easy"',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: primaryThemeLightColor,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Veuillez entrer le code pour continuer :",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _codeController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: "Code",
+              const SizedBox(height: 20),
+              Text(
+                "Veuillez entrer le code pour continuer :",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: primaryThemeLightColor),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _validateCode,
-              child: const Text("Valider"),
-            ),
-          ],
+              const SizedBox(height: 20),
+              TextField(
+                controller: _codeController,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: "Password",
+                  labelStyle: TextStyle(color: primaryThemeLightColor),
+                  hoverColor: primaryThemeLightColor,
+                  focusColor: primaryThemeLightColor,
+                ),
+                style: TextStyle(color: primaryThemeLightColor),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryThemeLightColor,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                onPressed: _validateCode,
+                child: Text("Valider", style: TextStyle(fontSize: 16, color: primaryThemeDarkColor)),
+              ),
+            ],
+          ),
         ),
       ),
     );
