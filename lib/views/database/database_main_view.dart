@@ -36,11 +36,13 @@ class _DatabaseMainViewState extends State<DatabaseMainView> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (codeController.text == '256333') {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Welcome Erwan')),
                   );
+                  await DatabaseHelper().database;
+                  DatabaseHelper().insertErwanOpenings();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Invalid code')),

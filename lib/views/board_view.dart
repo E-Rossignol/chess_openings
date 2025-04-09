@@ -34,7 +34,7 @@ class _BoardViewState extends State<BoardView> {
   Color blackColor = Colors.black;
   Color validMoveColor = Colors.deepPurple;
   Color lastColor = Colors.tealAccent;
-  String pieceStyle = 'classic';
+  String pieceStyle = 'alpha';
   List<Color> colors = [];
 
   @override

@@ -16,13 +16,13 @@ class StylePreferences extends ChangeNotifier {
   }
 
   ValueNotifier<List<Color>> selectedColor = ValueNotifier(getColor('green'));
-  ValueNotifier<String> selectedStyle = ValueNotifier('classic');
+  ValueNotifier<String> selectedStyle = ValueNotifier('alpha');
 
   Future<void> loadPreferences() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     selectedColor.value =
         _getColor(prefs.getString('selected_color') ?? 'green');
-    selectedStyle.value = prefs.getString('piece_style') ?? 'classic';
+    selectedStyle.value = prefs.getString('piece_style') ?? 'alpha';
     notifyListeners();
   }
 
@@ -32,45 +32,10 @@ class StylePreferences extends ChangeNotifier {
     selectedColor.value = _getColor(color);
     notifyListeners();
   }
-
   Future<void> updateStyle(int index) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    switch (index) {
-      case 0:
-        {
-          prefs.setString('piece_style', 'classic');
-          break;
-        }
-      case 1:
-        {
-          prefs.setString('piece_style', 'alpha');
-          break;
-        }
-      case 2:
-        {
-          prefs.setString('piece_style', 'cardinal');
-          break;
-        }
-      case 3:
-        {
-          prefs.setString('piece_style', 'chessnut');
-          break;
-        }
-      case 4:
-        {
-          prefs.setString('piece_style', 'spatial');
-          break;
-        }
-      case 5:
-        {
-          prefs.setString('piece_style', 'tatiana');
-          break;
-        }
-      default:
-        prefs.setString('piece_style', 'classic');
-        break;
-    }
-    selectedStyle.value = prefs.getString('piece_style') ?? 'classic';
+    prefs.setString('piece_style', styleNames[index]);
+    selectedStyle.value = prefs.getString('piece_style') ?? 'alpha';
     notifyListeners();
   }
 

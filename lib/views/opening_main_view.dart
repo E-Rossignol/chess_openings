@@ -278,11 +278,11 @@ class _OpeningViewState extends State<OpeningView> {
                                                     children: [
                                                       isWhite
                                                           ? SvgPicture.asset(
-                                                              'assets/images/pieces/classic/wK.svg',
+                                                              'assets/images/pieces/alpha/wK.svg',
                                                               height: 30,
                                                               width: 30)
                                                           : SvgPicture.asset(
-                                                              'assets/images/pieces/classic/bK.svg',
+                                                              'assets/images/pieces/alpha/bK.svg',
                                                               height: 30,
                                                               width: 30),
                                                       Text(

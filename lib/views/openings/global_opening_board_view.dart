@@ -4,9 +4,9 @@ import 'package:chess_ouvertures/components/captured_pieces_component.dart';
 import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:chess_ouvertures/model/openings/opening.dart';
 import 'package:chess_ouvertures/model/style_preferences.dart';
-import 'package:chess_ouvertures/views/opening_main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../../database/database_helper.dart';
 import '../../model/board.dart';
 import '../../model/openings/opening_move.dart';
 import '../../model/piece.dart';
@@ -16,11 +16,6 @@ import '../../helpers/painter.dart';
 class GlobalOpeningBoardView extends StatefulWidget {
   final Board board;
   final StylePreferences stylePreferences = StylePreferences();
-  Opening opening = Opening(
-    name: "GLOBAL",
-    moves: [],
-    color: PieceColor.white,
-  );
 
   GlobalOpeningBoardView({super.key, required this.board});
 
@@ -47,12 +42,23 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
   Color lastMoveColor = Colors.orange;
   String pieceStyle = "";
   List<Color> colors = [];
+  Opening whiteOpening = Opening(
+    name: "GLOBAL",
+    moves: [],
+    color: PieceColor.white,
+  );
+  Opening blackOpening = Opening(
+    name: "GLOBAL",
+    moves: [],
+    color: PieceColor.black,
+  );
 
   @override
   void initState() {
     super.initState();
     _loadColorsFromPrefs();
-    isReversed = widget.opening.color == PieceColor.black;
+    _initOpenings();
+    isReversed = whiteOpening.color == PieceColor.black;
     widget.board.boardNotifier.addListener(_updateBoard);
     widget.board.moveCount.addListener(_updateMoveCount);
     widget.stylePreferences.selectedColor.addListener(_updateColors);
@@ -66,6 +72,27 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
     widget.stylePreferences.selectedColor.removeListener(_updateColors);
     widget.stylePreferences.selectedStyle.removeListener(_updateStyle);
     super.dispose();
+  }
+
+  Future<void> _initOpenings() async {
+    var db = DatabaseHelper();
+    await db.database;
+    List<Opening> whiteOpenings = [];
+    List<Opening> blackOpenings = [];
+    List<String> names = await db.getOpeningsNames();
+    for (var openingName in defaultOpenings()){
+      Opening? op = await db.getOpeningByName(openingName);
+      if (op != null && op.color == PieceColor.white) {
+        whiteOpenings.add(op);
+      }
+      else if (op != null){
+        blackOpenings.add(op);
+      }
+    }
+    Opening global = mergeOpenings(whiteOpenings);
+    whiteOpening = global;
+    global = mergeOpenings(blackOpenings);
+    blackOpening = global;
   }
 
   void _loadColorsFromPrefs() {
@@ -175,7 +202,7 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
   }
 
   void _playNextUniqueMove() {
-    List<OpeningMove> move = widget.opening.moves
+    List<OpeningMove> move = whiteOpening.moves
         .where((move) =>
     move.moveNumber == widget.board.moveCount.value &&
         move.previousMoveId == lastMoveId)
@@ -189,7 +216,7 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
   @override
   Widget build(BuildContext context) {
     int currentMoveNumber = widget.board.moveCount.value;
-    bool isNextMoveUnique = widget.opening.moves
+    bool isNextMoveUnique = whiteOpening.moves
         .where((move) =>
     move.moveNumber == currentMoveNumber &&
         move.previousMoveId == lastMoveId)
@@ -223,6 +250,9 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
             Center(
               child: Column(
                 children: [
+                  const SizedBox(
+                    height: 100
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -250,13 +280,22 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
                     ],
                   ),
                   Center(
-                    child: Text(widget.opening.name,
+                    child:
+                    getCurrentOpeningName(whiteOpening, currentMoveNumber, lastMoveId) != null ?
+                    Text(getCurrentOpeningName(whiteOpening, currentMoveNumber, lastMoveId)!,
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.italic)):
+                    const Text("Global",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                             fontStyle: FontStyle.italic)),
-                  ),
+                  )
+                  ,
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -498,7 +537,7 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
                                           MediaQuery.of(context).size.width -
                                               25),
                                       painter: ArrowPainter(
-                                          moves: widget.opening.moves
+                                          moves: whiteOpening.moves
                                               .where((move) =>
                                           move.moveNumber ==
                                               currentMoveNumber &&
@@ -572,7 +611,7 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
   }
 
   OpeningMove? isInCurrentOpening(Square from, Square to) {
-    List<OpeningMove>? doneMove = widget.opening.moves
+    List<OpeningMove>? doneMove = whiteOpening.moves
         .where((element) =>
     element.from.row == from.row &&
         element.from.col == from.col &&

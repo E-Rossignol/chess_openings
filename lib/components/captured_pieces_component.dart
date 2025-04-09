@@ -26,7 +26,7 @@ class _CapturedPiecesComponentState extends State<CapturedPiecesComponent> {
 
   Future<void> _loadPieceStyle() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    pieceStyle = prefs.getString('piece_style') ?? 'classic';
+    pieceStyle = prefs.getString('piece_style') ?? 'alpha';
   }
 
   Widget _capturedPieces() {

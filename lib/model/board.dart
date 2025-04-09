@@ -596,12 +596,10 @@ class Board {
     if (isMuted) {
       return;
     }
-    await _audioPlayer.setVolume(70);
+    await _audioPlayer.setVolume(60);
     await _audioPlayer.setAsset('assets/audio/$fileName');
     await _audioPlayer
         .setAudioSource(AudioSource.uri(Uri.parse('assets/audio/$fileName')));
-    await _audioPlayer.setAndroidAudioAttributes(
-        const AndroidAudioAttributes(usage: AndroidAudioUsage.game));
     _audioPlayer.play();
   }
 

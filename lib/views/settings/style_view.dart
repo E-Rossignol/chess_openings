@@ -82,18 +82,12 @@ class PieceStylePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String txt = "";
-    if (pieces.first.pictureProvider.toString().contains('alpha')) {
-      txt = 'Alpha';
-    } else if (pieces.first.pictureProvider.toString().contains('classic')) {
-      txt = 'Classic';
-    } else if (pieces.first.pictureProvider.toString().contains('cardinal')) {
-      txt = 'Cardinal';
-    } else if (pieces.first.pictureProvider.toString().contains('chessnut')) {
-      txt = 'Chessnut';
-    } else if (pieces.first.pictureProvider.toString().contains('spatial')) {
-      txt = 'Spatial';
-    } else if (pieces.first.pictureProvider.toString().contains('tatiana')) {
-      txt = 'Tatiana';
+    String str = pieces.first.pictureProvider.toString();
+    for (String name in styleNames) {
+      if (str.contains(name)) {
+        txt = name[0].toUpperCase() + name.substring(1);
+        break;
+      }
     }
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -175,42 +169,11 @@ class _StyleViewState extends State<StyleView> {
 
   Future<void> _getPieceStyle() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String style = prefs.getString('piece_style') ?? 'classic';
-    int res = 0;
-    switch (style) {
-      case 'classic':
-        {
-          res = 0;
-          break;
-        }
-      case 'alpha':
-        {
-          res = 1;
-          break;
-        }
-      case 'cardinal':
-        {
-          res = 2;
-          break;
-        }
-      case 'chessnut':
-        {
-          res = 3;
-          break;
-        }
-      case 'spatial':
-        {
-          res = 4;
-          break;
-        }
-      case 'tatiana':
-        {
-          res = 5;
-          break;
-        }
-      default:
-        res = 0;
-        break;
+    final String style = prefs.getString('piece_style') ?? 'alpha';
+    int res;
+    res = styleNames.indexOf(style);
+    if (res == -1) {
+      res = 0;
     }
     setState(() {
       selectedStyle = res;
@@ -220,7 +183,7 @@ class _StyleViewState extends State<StyleView> {
   @override
   Widget build(BuildContext context) {
     List<List<Color>> colors = boardColors;
-    List<List<SvgPicture>> pieces = displayPieces;
+    List<List<SvgPicture>> pieces = displayPieces();
     return Scaffold(
       backgroundColor: primaryThemeDarkColor,
       body: Center(

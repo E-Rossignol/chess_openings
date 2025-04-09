@@ -287,6 +287,10 @@ class DatabaseHelper {
     await deleteDescendants(openingMoveId);
   }
 
+  Future<void> insertErwanOpenings() async {
+    print("COUCOU ERWAN");
+  }
+
   Future<void> insertDefaultOpenings() async {
     bool defaultDone = false;
     for (String name in defaultOpenings()) {

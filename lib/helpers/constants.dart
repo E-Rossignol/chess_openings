@@ -1,5 +1,6 @@
 import 'package:flutter_svg/svg.dart';
 
+import '../model/openings/opening.dart';
 import '../model/openings/opening_move.dart';
 import '../model/piece.dart';
 import '../model/square.dart';
@@ -17,6 +18,54 @@ enum PieceType {
 enum PieceColor {
   white,
   black,
+}
+
+Opening mergeOpenings(List<Opening> openings) {
+  // Vérifie que toutes les ouvertures sont jouées par la même couleur
+  if (openings.isEmpty) {
+    throw ArgumentError('La liste des ouvertures ne peut pas être vide.');
+  }
+  final PieceColor color = openings.first.color;
+  for (var opening in openings) {
+    if (opening.color != color) {
+      throw ArgumentError('Toutes les ouvertures doivent être jouées par la même couleur.');
+    }
+  }
+
+  // Fusionne les coups en ajoutant un identifiant d'ouverture
+  List<OpeningMove> globalMoves = [];
+  for (var opening in openings) {
+    for (var move in opening.moves) {
+      globalMoves.add(
+        OpeningMove(
+          openingId: -2,
+          id: move.id,
+          from: move.from,
+          to: move.to,
+          moveNumber: move.moveNumber,
+          previousMoveId: move.previousMoveId,
+          openingName: opening.name, // Ajoute le nom de l'ouverture d'origine
+        ),
+      );
+    }
+  }
+
+  // Crée l'ouverture globale
+  return Opening(
+    name: "Global Opening",
+    moves: globalMoves,
+    color: color,
+  );
+}
+
+// Méthode pour identifier l'ouverture d'origine à un moment donné
+String? getCurrentOpeningName(Opening globalOpening, int moveNumber, int lastMoveId) {
+  for (var move in globalOpening.moves) {
+    if (move.moveNumber == moveNumber && move.previousMoveId == lastMoveId) {
+      return move.openingName; // Retourne le nom de l'ouverture d'origine
+    }
+  }
+  return null; // Aucun coup correspondant trouvé
 }
 
 Color lighterColor(Color init) {
@@ -144,92 +193,60 @@ List<Color> getColor(String? name) {
   }
 }
 
-List<List<SvgPicture>> displayPieces = [
-  [
-    SvgPicture.asset('assets/images/pieces/classic/wP.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/classic/bN.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/classic/wB.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/classic/bR.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/classic/wQ.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/classic/bK.svg',
-        height: 70, width: 70),
-  ],
-  [
-    SvgPicture.asset('assets/images/pieces/alpha/wP.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/alpha/bN.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/alpha/wB.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/alpha/bR.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/alpha/wQ.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/alpha/bK.svg',
-        height: 70, width: 70),
-  ],
-  [
-    SvgPicture.asset('assets/images/pieces/cardinal/wP.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/cardinal/bN.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/cardinal/wB.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/cardinal/bR.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/cardinal/wQ.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/cardinal/bK.svg',
-        height: 70, width: 70),
-  ],
-  [
-    SvgPicture.asset('assets/images/pieces/chessnut/wP.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/chessnut/bN.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/chessnut/wB.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/chessnut/bR.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/chessnut/wQ.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/chessnut/bK.svg',
-        height: 70, width: 70),
-  ],
-  [
-    SvgPicture.asset('assets/images/pieces/spatial/wP.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/spatial/bN.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/spatial/wB.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/spatial/bR.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/spatial/wQ.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/spatial/bK.svg',
-        height: 70, width: 70),
-  ],
-  [
-    SvgPicture.asset('assets/images/pieces/tatiana/wP.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/tatiana/bN.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/tatiana/wB.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/tatiana/bR.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/tatiana/wQ.svg',
-        height: 70, width: 70),
-    SvgPicture.asset('assets/images/pieces/tatiana/bK.svg',
-        height: 70, width: 70),
-  ],
-];
+List<String> styleNames = [
+  'alpha',
+  'mpchess',
+  'cburnett',
+  'kosal',
+  'merida',
+  'staunty',
+  'anarcandy',
+  'caliente',
+  'california',
+  'chess7',
+  'chessnut',
+  'companion',
+  'disguised',
+  'dubrovny',
+  'fantasy',
+  'fresca',
+  'gioco',
+  'governor',
+  'horsey',
+  'icpieces',
+  'leipzig',
+  'letter',
+  'maestro',
+  'monarchy',
+  'pirouetti',
+  'pixel',
+  'riohacha',
+  'rhosgfx',
+  'shapes',
+  'tatiana',
+  'xkcd'
+  ];
+
+List<List<SvgPicture>> displayPieces() {
+  List<List<SvgPicture>> list = [];
+  for (int i = 0; i < styleNames.length; i++) {
+    list.add([
+      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/wP.svg',
+          height: 60, width: 60),
+      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/bN.svg',
+          height: 60, width: 60),
+      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/wB.svg',
+          height: 60, width: 60),
+      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/bR.svg',
+          height: 60, width: 60),
+      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/wQ.svg',
+          height: 60, width: 60),
+      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/bK.svg',
+          height: 60, width: 60),
+    ]);
+  }
+  return list;
+}
 
 Color primaryThemeDarkColor = const Color.fromRGBO(18, 19, 24, 1.0);
 Color primaryThemeLightColor = const Color.fromRGBO(118, 119, 124, 1.0);
@@ -242,7 +259,7 @@ PieceColor toggleColor(PieceColor color) {
 
 String pieceTypeToSVG(PieceType type, PieceColor color, String style) {
   if (style == '') {
-    style = 'classic';
+    style = 'alpha';
   }
   switch (type) {
     case PieceType.pawn:

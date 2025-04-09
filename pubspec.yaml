@@ -66,12 +66,39 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/images/pieces/classic/
     - assets/images/pieces/alpha/
+    - assets/images/pieces/anarcandy/
+    - assets/images/pieces/california/
+    - assets/images/pieces/caliente/
     - assets/images/pieces/cardinal/
+    - assets/images/pieces/cburnett/
+    - assets/images/pieces/chess7/
     - assets/images/pieces/chessnut/
+    - assets/images/pieces/companion/
+    - assets/images/pieces/disguised/
+    - assets/images/pieces/dubrovny/
+    - assets/images/pieces/fantasy/
+    - assets/images/pieces/gioco/
+    - assets/images/pieces/fresca/
+    - assets/images/pieces/governor/
+    - assets/images/pieces/horsey/
+    - assets/images/pieces/icpieces/
+    - assets/images/pieces/kosal/
+    - assets/images/pieces/leipzig/
+    - assets/images/pieces/letter/
+    - assets/images/pieces/maestro/
+    - assets/images/pieces/merida/
+    - assets/images/pieces/monarchy/
+    - assets/images/pieces/mpchess/
+    - assets/images/pieces/pirouetti/
+    - assets/images/pieces/pixel/
+    - assets/images/pieces/riohacha/
+    - assets/images/pieces/rhosgfx/
+    - assets/images/pieces/shapes/
     - assets/images/pieces/spatial/
+    - assets/images/pieces/staunty/
     - assets/images/pieces/tatiana/
+    - assets/images/pieces/xkcd/
     - assets/audio/
 
   # An image asset can refer to one or more resolution-specific "variants", see

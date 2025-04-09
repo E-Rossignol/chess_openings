@@ -457,7 +457,7 @@ class _BotViewState extends State<BotView> {
                 .map((type) => ListTile(
                       //title: Text(type.toString().split('.').last),
                       title: SvgPicture.asset(
-                        'assets/images/${pieceTypeToSVG(type, pawn.color, 'classic')}',
+                        'assets/images/${pieceTypeToSVG(type, pawn.color, 'alpha')}',
                         width: 60,
                         height: 60,
                       ),
@@ -485,7 +485,7 @@ class _BotViewState extends State<BotView> {
     }
     return Center(
       child: SvgPicture.asset(
-        'assets/images/${pieceTypeToSVG(piece.type, piece.color, 'classic')}',
+        'assets/images/${pieceTypeToSVG(piece.type, piece.color, 'alpha')}',
         width: 60,
         height: 60,
       ),

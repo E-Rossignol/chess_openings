@@ -7,6 +7,7 @@ class OpeningMove {
   final int moveNumber;
   final Square to;
   int? previousMoveId;
+  String? openingName;
 
   OpeningMove({
     required this.openingId,
@@ -15,6 +16,7 @@ class OpeningMove {
     required this.moveNumber,
     required this.to,
     this.previousMoveId,
+    this.openingName,
   });
 
   String toStr() {

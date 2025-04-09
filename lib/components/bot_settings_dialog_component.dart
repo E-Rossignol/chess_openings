@@ -56,7 +56,7 @@ class _BotSettingsDialogComponentState
                   ),
                   child: Center(
                     child: SvgPicture.asset(
-                      'assets/images/${pieceTypeToSVG(PieceType.king, PieceColor.white, 'classic')}',
+                      'assets/images/${pieceTypeToSVG(PieceType.king, PieceColor.white, 'alpha')}',
                       width: isBotWhite ? 70 : 50,
                       height: isBotWhite ? 70 : 50,
                     ),
@@ -77,7 +77,7 @@ class _BotSettingsDialogComponentState
                   ),
                   child: Center(
                     child: SvgPicture.asset(
-                      'assets/images/${pieceTypeToSVG(PieceType.king, PieceColor.black, 'classic')}',
+                      'assets/images/${pieceTypeToSVG(PieceType.king, PieceColor.black, 'alpha')}',
                       width: !isBotWhite ? 70 : 50,
                       height: !isBotWhite ? 70 : 50,
                     ),
