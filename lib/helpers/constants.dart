@@ -67,6 +67,10 @@ String? getCurrentOpeningName(Opening globalOpening, int moveNumber, int lastMov
   }
   return null; // Aucun coup correspondant trouvé
 }
+Color primaryThemeDarkColor = const Color.fromRGBO(14,31,44, 1.0);
+Color primaryThemeLightColor = const Color.fromRGBO(242, 239, 229, 1.0);
+Color secondaryThemeDarkColor = const Color.fromRGBO(44, 27, 14, 1.0);
+Color secondaryThemeLightColor = const Color.fromRGBO(229, 232, 242, 1.0);
 
 Color lighterColor(Color init) {
   int red = init.red;
@@ -77,7 +81,6 @@ Color lighterColor(Color init) {
   blue + 50 > 255 ? blue = 255 : blue += 50;
   return Color.fromRGBO(red, green, blue, 1);
 }
-
 List<List<Color>> boardColors = [
   [
     const Color.fromRGBO(115, 149, 82, 1),
@@ -138,7 +141,6 @@ List<Color> displayColors = [
   boardColors[6][0],
   boardColors[7][0],
 ];
-
 String colorToStr(Color color) {
   if (color == boardColors[0][0]) {
     return 'green';
@@ -166,7 +168,6 @@ String colorToStr(Color color) {
   }
   return 'green';
 }
-
 List<Color> getColor(String? name) {
   if (name == null) {
     return boardColors[0];
@@ -192,7 +193,6 @@ List<Color> getColor(String? name) {
       return boardColors[0];
   }
 }
-
 List<String> styleNames = [
   'alpha',
   'mpchess',
@@ -226,7 +226,6 @@ List<String> styleNames = [
   'tatiana',
   'xkcd'
   ];
-
 List<List<SvgPicture>> displayPieces() {
   List<List<SvgPicture>> list = [];
   for (int i = 0; i < styleNames.length; i++) {
@@ -247,12 +246,6 @@ List<List<SvgPicture>> displayPieces() {
   }
   return list;
 }
-
-Color primaryThemeDarkColor = const Color.fromRGBO(18, 19, 24, 1.0);
-Color primaryThemeLightColor = const Color.fromRGBO(118, 119, 124, 1.0);
-Color secondaryThemeDarkColor = const Color.fromRGBO(42, 43, 48, 1.0);
-Color secondaryThemeLightColor = const Color.fromRGBO(142, 143, 148, 1.0);
-
 PieceColor toggleColor(PieceColor color) {
   return color == PieceColor.white ? PieceColor.black : PieceColor.white;
 }

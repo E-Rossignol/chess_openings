@@ -79,7 +79,6 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
     await db.database;
     List<Opening> whiteOpenings = [];
     List<Opening> blackOpenings = [];
-    List<String> names = await db.getOpeningsNames();
     for (var openingName in defaultOpenings()){
       Opening? op = await db.getOpeningByName(openingName);
       if (op != null && op.color == PieceColor.white) {

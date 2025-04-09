@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "298637865351",
+    "project_id": "chess-openings-fe05c",
+    "storage_bucket": "chess-openings-fe05c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:298637865351:android:018047fefef0fb38f7a322",
+        "android_client_info": {
+          "package_name": "com.example.chess_ouvertures"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBO7zEOlY8zlT7p8JZ58IRmWA40QBFnIJ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,12 +1,19 @@
-import 'package:chess_ouvertures/views/main_view.dart';
+import 'package:chess_ouvertures/components/splash_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Initialize shared preferences
+  var prefs = await SharedPreferences.getInstance();
+  // Check if the user has already entered the code
+  bool hasCode = prefs.getBool('hasCode') ?? false;
+  runApp(MyApp(hasCode: hasCode));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool hasCode;
+  const MyApp({super.key, required this.hasCode});
 
   // This widget is the root of your application.
   @override
@@ -33,7 +40,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MainView(key: UniqueKey()),
+      home: SplashScreen(hasCode: hasCode),
     );
   }
 }

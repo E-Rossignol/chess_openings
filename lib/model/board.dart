@@ -1,6 +1,4 @@
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-
-import 'package:audio_session/audio_session.dart';
 import 'package:chess_ouvertures/model/piece.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';

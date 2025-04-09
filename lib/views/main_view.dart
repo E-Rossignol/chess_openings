@@ -26,7 +26,7 @@ class _MainViewState extends State<MainView> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
   Key _openingMainViewKey = UniqueKey();
-  Key _globalOpeningViewKey = UniqueKey();
+  final Key _globalOpeningViewKey = UniqueKey();
   Color _selectedColor = Colors.green;
 
   @override
