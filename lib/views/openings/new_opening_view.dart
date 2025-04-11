@@ -40,9 +40,9 @@ class _NewOpeningViewState extends State<NewOpeningView> {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle txtStyle = const TextStyle(
+    TextStyle txtStyle = TextStyle(
       fontSize: 20,
-      color: Colors.white,
+      color: primaryThemeLightColor,
     );
     BoxDecoration decoration = BoxDecoration(
       color: Colors.white12,
@@ -96,13 +96,13 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                       decoration: decoration,
                       child: TextFormField(
                           controller: _nameController,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Opening Name',
                             focusColor: Colors.white,
                             hoverColor: Colors.white,
                             labelStyle: TextStyle(
                               fontSize: 16,
-                              color: Colors.white38,
+                              color: primaryThemeLightColor,
                             ),
                           ),
                           validator: (value) {
@@ -129,7 +129,7 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                               style: txtStyle,
                             ),
                             leading: Radio<String>(
-                              activeColor: Colors.white,
+                              activeColor: primaryThemeLightColor,
                               value: 'white',
                               groupValue: _pieceColor,
                               onChanged: (value) {
@@ -142,7 +142,7 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                           ListTile(
                             title: Text('Black', style: txtStyle),
                             leading: Radio<String>(
-                              activeColor: Colors.white,
+                              activeColor: primaryThemeLightColor,
                               value: 'black',
                               groupValue: _pieceColor,
                               onChanged: (value) {
@@ -158,6 +158,11 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                     const SizedBox(height: 20),
                     Center(
                       child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryThemeLightColor,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 32),
+                        ),
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
@@ -198,10 +203,10 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                             }
                           }
                         },
-                        child: const Text('Submit',
+                        child: Text('Submit',
                             style: TextStyle(
                               fontSize: 20,
-                              color: Colors.white,
+                              color: primaryThemeDarkColor,
                             )),
                       ),
                     ),

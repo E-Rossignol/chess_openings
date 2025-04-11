@@ -62,8 +62,8 @@ class _BoardViewState extends State<BoardView> {
     widget.stylePreferences.loadPreferences();
     setState(() {
       colors = StylePreferences().selectedColor.value;
-      whiteColor = colors[0];
-      blackColor = colors[1];
+      whiteColor = colors[1];
+      blackColor = colors[0];
       lastColor = colors[2];
     });
   }
@@ -72,8 +72,8 @@ class _BoardViewState extends State<BoardView> {
     setState(
       () {
         colors = widget.stylePreferences.selectedColor.value;
-        whiteColor = colors[0];
-        blackColor = colors[1];
+        whiteColor = colors[1];
+        blackColor = colors[0];
         lastColor = colors[2];
       },
     );
@@ -185,9 +185,7 @@ class _BoardViewState extends State<BoardView> {
   @override
   Widget build(BuildContext context) {
     int currentMoveNumber = widget.board.moveCount.value;
-    List<Color> bgColor = !isReversed
-        ? [primaryThemeDarkColor, primaryThemeLightColor]
-        : [primaryThemeLightColor, primaryThemeDarkColor];
+    List<Color> bgColor = [primaryThemeDarkColor, primaryThemeLightColor];
     Color textColor = whiteColor;
     int topScore = isReversed
         ? (widget.board.whiteScore - widget.board.blackScore)
@@ -207,7 +205,7 @@ class _BoardViewState extends State<BoardView> {
         child: Column(
           children: [
             const SizedBox(
-              height: 50,
+              height: 80,
             ),
             Center(
               child: Column(
@@ -524,7 +522,6 @@ class _BoardViewState extends State<BoardView> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 30),
                 ],
               ),
             ),

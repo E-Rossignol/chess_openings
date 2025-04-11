@@ -93,11 +93,7 @@ class _OpeningViewState extends State<OpeningView> {
   Widget build(BuildContext context) {
     List<String> defaultOp = defaultOpenings();
     BoxDecoration iconButtonDecoration = BoxDecoration(
-      gradient: LinearGradient(
-        colors: [Colors.grey.shade200, Colors.grey.shade700],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
+      color: primaryThemeLightColor,
       borderRadius: BorderRadius.circular(12.0),
       boxShadow: [
         BoxShadow(
@@ -132,14 +128,20 @@ class _OpeningViewState extends State<OpeningView> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryThemeLightColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                ),
                                 onPressed: () {
                                   _navigateToNewOpeningView();
                                 },
-                                child: const Text("New opening",
+                                child: Text("New opening",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 20,
-                                      color: Colors.black,
+                                      color: primaryThemeDarkColor,
                                     )),
                               ),
                             ]),

@@ -98,8 +98,8 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
     widget.stylePreferences.loadPreferences();
     setState(() {
       colors = StylePreferences().selectedColor.value;
-      whiteColor = colors[0];
-      blackColor = colors[1];
+      whiteColor = colors[1];
+      blackColor = colors[0];
       arrowColor = colors[3];
       lastMoveColor = colors[2];
       pieceStyle = StylePreferences().selectedStyle.value;
@@ -114,8 +114,8 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
     setState(
           () {
         colors = widget.stylePreferences.selectedColor.value;
-        whiteColor = colors[0];
-        blackColor = colors[1];
+        whiteColor = colors[1];
+        blackColor = colors[0];
         arrowColor = colors[3];
         lastMoveColor = colors[2];
       },
@@ -225,9 +225,7 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
     Color tmpBlackColor = blackColor;
     Color tmpArrowColor = arrowColor;
     Color tmpLastMoveColor = lastMoveColor;
-    List<Color> bgColor = !isReversed
-        ? [primaryThemeDarkColor, primaryThemeLightColor]
-        : [primaryThemeLightColor, primaryThemeDarkColor];
+    List<Color> bgColor = [primaryThemeDarkColor, primaryThemeLightColor];
     Color textColor = Colors.white;
     int topScore = isReversed
         ? (widget.board.whiteScore - widget.board.blackScore)
@@ -250,7 +248,7 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
               child: Column(
                 children: [
                   const SizedBox(
-                    height: 100
+                    height: 70
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

@@ -80,7 +80,7 @@ class _DatabaseMainViewState extends State<DatabaseMainView> {
             Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.grey.shade400, Colors.grey.shade800],
+                    colors: [primaryThemeDarkColor, primaryThemeLightColor],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -112,7 +112,7 @@ class _DatabaseMainViewState extends State<DatabaseMainView> {
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.grey.shade400, Colors.grey.shade800],
+                  colors: [primaryThemeDarkColor, primaryThemeLightColor],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -147,7 +147,7 @@ class _DatabaseMainViewState extends State<DatabaseMainView> {
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.grey.shade400, Colors.grey.shade800],
+                  colors: [primaryThemeDarkColor, primaryThemeLightColor],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),

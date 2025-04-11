@@ -1,6 +1,7 @@
 // ignore_for_file: overridden_fields, library_private_types_in_public_api
 
 import 'package:chess_ouvertures/database/database_helper.dart';
+import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:chess_ouvertures/model/style_preferences.dart';
 import 'package:chess_ouvertures/views/board_view.dart';
 import 'package:chess_ouvertures/views/database/database_main_view.dart';
@@ -73,7 +74,7 @@ class _MainViewState extends State<MainView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.black, actions: [
+      appBar: AppBar(backgroundColor: primaryThemeDarkColor, actions: [
         IconButton(
           icon: const Icon(
             Icons.menu,
@@ -88,7 +89,7 @@ class _MainViewState extends State<MainView> {
       endDrawer: const SettingsView(),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.black,
+        backgroundColor: primaryThemeDarkColor,
         selectedItemColor: _selectedColor,
         unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,

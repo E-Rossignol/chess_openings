@@ -1,5 +1,7 @@
 // ignore_for_file: must_be_immutable, library_private_types_in_public_api, use_build_context_synchronously
 
+import 'dart:math';
+
 import 'package:chess_ouvertures/components/captured_pieces_component.dart';
 import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:chess_ouvertures/model/openings/opening.dart';
@@ -7,7 +9,9 @@ import 'package:chess_ouvertures/model/style_preferences.dart';
 import 'package:chess_ouvertures/views/opening_main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../../components/analysis_bar.dart';
 import '../../database/database_helper.dart';
+import '../../helpers/lichess_helper.dart';
 import '../../model/board.dart';
 import '../../model/openings/opening_move.dart';
 import '../../model/piece.dart';
@@ -45,6 +49,8 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
   Color lastMoveColor = Colors.orange;
   String pieceStyle = "";
   List<Color> colors = [];
+  Random rdm = Random();
+  double rdmValue = 0;
 
   @override
   void initState() {
@@ -70,8 +76,8 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     widget.stylePreferences.loadPreferences();
     setState(() {
       colors = StylePreferences().selectedColor.value;
-      whiteColor = colors[0];
-      blackColor = colors[1];
+      whiteColor = colors[1];
+      blackColor = colors[0];
       arrowColor = colors[3];
       lastMoveColor = colors[2];
       pieceStyle = StylePreferences().selectedStyle.value;
@@ -79,15 +85,18 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
   }
 
   void _updateBoard() {
-    setState(() {});
+    setState(() {
+      rdmValue = rdm.nextDouble() * 20 - 10;
+      print("RDM : $rdmValue");
+    });
   }
 
   void _updateColors() {
     setState(
       () {
         colors = widget.stylePreferences.selectedColor.value;
-        whiteColor = colors[0];
-        blackColor = colors[1];
+        whiteColor = colors[1];
+        blackColor = colors[0];
         arrowColor = colors[3];
         lastMoveColor = colors[2];
       },
@@ -348,20 +357,11 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     Color tmpArrowColor = arrowColor;
     Color tmpLastMoveColor = lastMoveColor;
     if (isRecording) {
-      if (isReversed){
         tmpBlackColor = const Color.fromRGBO(255, 216, 216, 1.0);
         tmpWhiteColor = const Color.fromRGBO(200, 0, 0, 1.0);
         tmpLastMoveColor = const Color.fromRGBO(255, 165, 0, 1.0);
-      }
-      else {
-        tmpWhiteColor = const Color.fromRGBO(255, 216, 216, 1.0);
-        tmpBlackColor = const Color.fromRGBO(200, 0, 0, 1.0);
-        tmpLastMoveColor = const Color.fromRGBO(255, 165, 0, 1.0);
-      }
     }
-    List<Color> bgColor = !isReversed
-        ? [primaryThemeDarkColor, primaryThemeLightColor]
-        : [primaryThemeLightColor, primaryThemeDarkColor];
+    List<Color> bgColor = [primaryThemeDarkColor, primaryThemeLightColor];
     Color textColor = Colors.white;
     int topScore = isReversed
         ? (widget.board.whiteScore - widget.board.blackScore)
@@ -782,57 +782,74 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                   Center(
                     child: Column(
                       children: [
-                        Column(
+                        FutureBuilder(
+                          future: LichessHelper()
+                              .getAnalysisValue(widget.board),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const CircularProgressIndicator(color: Colors.black);
+                            } else if (snapshot.hasError) {
+                              return const Text('Error');
+                            } else {
+                              double value = snapshot.data ?? 0;
+                              return AnalysisBar(
+                                value: value,
+                                size: MediaQuery.of(context).size.width - 25,
+                              );
+                            }
+                          },
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                GestureDetector(
-                                  onTap: () async {
-                                    if (!isRecording) {
-                                      setState(() {
-                                        isRecording = true;
-                                      });
-                                    } else if (newVariant.isNotEmpty) {
-                                      await _showValidateVariantDialog();
-                                    } else {
-                                      setState(() {
-                                        isRecording = false;
-                                      });
-                                    }
-                                  },
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 300),
-                                    width: 50.0,
-                                    height: 50.0,
-                                    decoration: BoxDecoration(
-                                      color: isRecording
-                                          ? Colors.red
-                                          : Colors.grey,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        isRecording
-                                            ? Icons.stop
-                                            : Icons.fiber_manual_record,
-                                        color: Colors.white,
-                                      ),
-                                    ),
+                            GestureDetector(
+                              onTap: () async {
+                                if (!isRecording) {
+                                  setState(() {
+                                    isRecording = true;
+                                  });
+                                } else if (newVariant.isNotEmpty) {
+                                  await _showValidateVariantDialog();
+                                } else {
+                                  setState(() {
+                                    isRecording = false;
+                                  });
+                                }
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                width: 50.0,
+                                height: 50.0,
+                                decoration: BoxDecoration(
+                                  color: isRecording
+                                      ? Colors.red
+                                      : Colors.grey,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    isRecording
+                                        ? Icons.stop
+                                        : Icons.fiber_manual_record,
+                                    color: Colors.white,
                                   ),
                                 ),
-                                if (!isRecording)
-                                  IconButton(
-                                      onPressed: _showDeleteVariantDialog,
-                                      icon: const Icon(
-                                        Icons.delete_outline,
-                                        color: Colors.white,
-                                      )),
-                              ],
+                              ),
                             ),
-                            const SizedBox(height: 30),
+                            if (!isRecording)
+                              IconButton(
+                                  onPressed: _showDeleteVariantDialog,
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.white,
+                                  )),
                           ],
                         ),
+                        const SizedBox(height: 30),
                         const SizedBox(height: 10),
                       ],
                     ),

@@ -19,6 +19,10 @@ class Board {
   Square? lastMoveTo;
   final AudioPlayer _audioPlayer = AudioPlayer();
   ValueNotifier<int> moveCount = ValueNotifier<int>(0);
+  bool isWQCastlePossible = true;
+  bool isWKCastlePossible = true;
+  bool isBQCastlePossible = true;
+  bool isBKCastlePossible = true;
 
   Board()
       : board = List.generate(
@@ -595,10 +599,7 @@ class Board {
       return;
     }
     await _audioPlayer.setVolume(60);
-    await _audioPlayer.setAsset('assets/audio/$fileName');
-    await _audioPlayer
-        .setAudioSource(AudioSource.uri(Uri.parse('assets/audio/$fileName')));
-    _audioPlayer.play();
+    // TODO
   }
 
   void _updateScore(Piece captured) {
