@@ -18,13 +18,28 @@ class AnalysisBar extends StatelessWidget {
     value += 10;
     double percentage = value / 20;
     return Center(
-      child: LinearPercentIndicator(
-        width: size,
-        curve: Curves.linear,
-        lineHeight: 20.0,
-        percent: percentage,
-        backgroundColor: Colors.grey[300],
-        progressColor: percentage > 0 ? Colors.black : Colors.red,
+      child: Stack(
+        children: [
+          LinearPercentIndicator(
+            width: size,
+            curve: Curves.linear,
+            lineHeight: 20.0,
+            percent: percentage,
+            backgroundColor: Colors.black,
+            progressColor: Colors.white,
+          ),
+          Positioned(
+            left: percentage > 0.5 ? 100 : null,
+            right: percentage <= 0.5 ? 100 : null,
+            child: Text(
+              (value - 10).toStringAsFixed(1), // Affiche la valeur originale
+              style: TextStyle(
+                color: percentage > 0.5 ? Colors.black : Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

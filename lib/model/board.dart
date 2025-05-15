@@ -1,10 +1,12 @@
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+import 'package:chess_ouvertures/helpers/stockfish_helper.dart';
 import 'package:chess_ouvertures/model/piece.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/constants.dart';
 import 'square.dart';
+import '../helpers/stockfish_helper.dart';
 
 class Board {
   final List<List<Square>> board;
@@ -15,9 +17,9 @@ class Board {
   int blackScore = 0;
   ValueNotifier<int> gameResult = ValueNotifier<int>(
       0); // 0: ongoing, 1: white wins, 2: black wins, 3: draw
+  ValueNotifier<double> boardAnalysis = ValueNotifier<double>(0);
   Square? lastMoveFrom;
   Square? lastMoveTo;
-  final AudioPlayer _audioPlayer = AudioPlayer();
   ValueNotifier<int> moveCount = ValueNotifier<int>(0);
   bool isWQCastlePossible = true;
   bool isWKCastlePossible = true;
@@ -32,13 +34,51 @@ class Board {
     _initializePieces();
   }
 
-  void undoLastMove(List<List<Square>> history) {
+  String availableCastles(){
+    List<String> res = ["K", "Q", "k", "q"];
+    //Check if WQ castle is possible
+    if (board[7][0].piece == null || board[7][0].piece!.hasMove ||
+        board[7][4].piece == null || board[7][4].piece!.hasMove ||
+        board[7][1].piece != null || board[7][2].piece != null || board[7][3].piece != null ||
+        isThreatened(board[7][1], PieceColor.white) || isThreatened(board[7][2], PieceColor.white) || isThreatened(board[7][3], PieceColor.white) || isThreatened(board[7][4], PieceColor.white)){
+      res.remove("Q");
+    }
+    //Check if WK castle is possible
+    if (board[7][7].piece == null || board[7][7].piece!.hasMove ||
+        board[7][4].piece == null || board[7][4].piece!.hasMove ||
+        board[7][5].piece != null || board[7][6].piece != null ||
+        isThreatened(board[7][5], PieceColor.white) || isThreatened(board[7][6], PieceColor.white) || isThreatened(board[7][4], PieceColor.white)){
+      res.remove("K");
+    }
+    //Check if BQ castle is possible
+    if (board[0][0].piece == null || board[0][0].piece!.hasMove ||
+        board[0][4].piece == null || board[0][4].piece!.hasMove ||
+        board[0][1].piece != null || board[0][2].piece != null || board[0][3].piece != null ||
+        isThreatened(board[0][1], PieceColor.black) || isThreatened(board[0][2], PieceColor.black) || isThreatened(board[0][3], PieceColor.black) || isThreatened(board[0][4], PieceColor.black)){
+      res.remove("q");
+    }
+    //Check if BK castle is possible
+    if (board[0][7].piece == null || board[0][7].piece!.hasMove ||
+        board[0][4].piece == null || board[0][4].piece!.hasMove ||
+        board[0][5].piece != null || board[0][6].piece != null ||
+        isThreatened(board[0][5], PieceColor.black) || isThreatened(board[0][6], PieceColor.black) || isThreatened(board[0][4], PieceColor.black)){
+      res.remove("k");
+    }
+    return res.join("");
+  }
+
+  Future<void> undoLastMove(List<List<Square>> history) async {
     reset();
     for (List<Square> move in history) {
       movePiece(move[0].row, move[0].col, move[1].row, move[1].col);
+      await updateAnalysisValue();
     }
     moveCount.value = moveCount.value;
     boardNotifier.value = boardNotifier.value;
+  }
+
+  Future<void> updateAnalysisValue() async {
+    boardAnalysis.value = await StockfishHelper().getAnalysisValue(this);
   }
 
   List<Square> getValidMoves(Piece piece,
@@ -529,7 +569,7 @@ class Board {
     return null;
   }
 
-  bool movePiece(int fromRow, int fromCol, int toRow, int toCol) {
+  Future<bool> movePiece(int fromRow, int fromCol, int toRow, int toCol) async {
     String toPlay = "";
     bool castling = false;
     final piece = board[fromRow][fromCol].piece;
@@ -586,6 +626,7 @@ class Board {
         moveCount.notifyListeners();
         piece.hasMove = true;
         isDraw();
+        await updateAnalysisValue();
         return true;
       }
     }
@@ -598,8 +639,22 @@ class Board {
     if (isMuted) {
       return;
     }
-    await _audioPlayer.setVolume(60);
-    // TODO
+    try{
+      AudioPlayer audioPlayer = AudioPlayer();
+      audioPlayer.setAudioContext(AudioContext(
+        android: const AudioContextAndroid(
+            audioFocus: AndroidAudioFocus.gainTransientMayDuck
+        ),
+        iOS: AudioContextIOS(
+          category: AVAudioSessionCategory.playback,
+          options: const {AVAudioSessionOptions.mixWithOthers},
+        ),
+      ));
+      audioPlayer.setVolume(60);
+      await audioPlayer.play(AssetSource('assets/audio/$fileName'));
+    } catch(e){
+      print("Error: $e");
+    }
   }
 
   void _updateScore(Piece captured) {

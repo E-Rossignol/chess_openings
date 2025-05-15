@@ -8,6 +8,8 @@ import '../model/board.dart';
 import '../model/piece.dart';
 import '../model/square.dart';
 import '../model/style_preferences.dart';
+import '../helpers/stockfish_helper.dart';
+import '../components/analysis_bar.dart';
 
 class BoardView extends StatefulWidget {
   final Board board;
@@ -36,12 +38,14 @@ class _BoardViewState extends State<BoardView> {
   Color lastColor = Colors.tealAccent;
   String pieceStyle = 'alpha';
   List<Color> colors = [];
+  double analysisValue = 0;
 
   @override
   void initState() {
     super.initState();
     _loadColorsFromPrefs();
     widget.board.boardNotifier.addListener(_updateBoard);
+    widget.board.boardAnalysis.addListener(_updateBoardAnalysis);
     widget.board.moveCount.addListener(_updateMoveCount);
     widget.board.gameResult.addListener(_updateGameResult);
     widget.stylePreferences.selectedColor.addListener(_updateColors);
@@ -52,10 +56,17 @@ class _BoardViewState extends State<BoardView> {
   void dispose() {
     widget.board.boardNotifier.removeListener(_updateBoard);
     widget.board.moveCount.removeListener(_updateMoveCount);
+    widget.board.boardAnalysis.removeListener(_updateBoardAnalysis);
     widget.board.gameResult.removeListener(_updateGameResult);
     widget.stylePreferences.selectedColor.removeListener(_updateColors);
     widget.stylePreferences.selectedStyle.removeListener(_updateStyle);
     super.dispose();
+  }
+
+  void _updateBoardAnalysis(){
+    setState(() {
+      analysisValue = widget.board.boardAnalysis.value;
+    });
   }
 
   void _loadColorsFromPrefs() {
@@ -149,10 +160,10 @@ class _BoardViewState extends State<BoardView> {
     return res;
   }
 
-  void _undoLastMove() {
+  void _undoLastMove() async {
     if (moveHistory.isNotEmpty) {
       moveHistory.removeLast();
-      widget.board.undoLastMove(moveHistory);
+      await widget.board.undoLastMove(moveHistory);
     }
     lastMoveFromRow = moveHistory.isNotEmpty ? moveHistory.last[0].row : null;
     lastMoveFromCol = moveHistory.isNotEmpty ? moveHistory.last[0].col : null;
@@ -323,65 +334,45 @@ class _BoardViewState extends State<BoardView> {
                                           isLastFromSquare || isLastToSquare
                                               ? lastMoveColor
                                               : squareColor;
-                                      return GestureDetector(
-                                        onTap: () {
+                                      return GestureDetector (
+                                        onTap: () async {
                                           if (isGameOver) return;
-                                          setState(() {
                                             if (selectedSquare == null &&
                                                 square.piece != null &&
-                                                square.piece!.color ==
-                                                    widget.board.currentTurn) {
-                                              selectedSquare = square;
-                                              validMoves = widget.board
-                                                  .getValidMoves(square.piece!);
-                                            } else if (selectedSquare != null &&
-                                                validMoves.contains(square)) {
-                                              bool isPromoting =
-                                                  (selectedSquare!
-                                                              .piece?.type ==
-                                                          PieceType.pawn &&
-                                                      ((row == 7 &&
-                                                              selectedSquare!
-                                                                      .piece
-                                                                      ?.color ==
-                                                                  PieceColor
-                                                                      .black) ||
-                                                          (row == 0 &&
-                                                              selectedSquare!
-                                                                      .piece
-                                                                      ?.color ==
-                                                                  PieceColor
-                                                                      .white)));
+                                                square.piece!.color == widget.board.currentTurn) {
+                                              setState(() {
+                                                selectedSquare = square;
+                                                validMoves = widget.board.getValidMoves(square.piece!);
+                                              });
+                                            } else if (selectedSquare != null && validMoves.contains(square)) {
+                                              bool isPromoting = (selectedSquare!.piece?.type == PieceType.pawn &&
+                                                  ((row == 7 && selectedSquare!.piece?.color == PieceColor.black) ||
+                                                      (row == 0 && selectedSquare!.piece?.color == PieceColor.white)));
                                               if (isPromoting) {
-                                                _showPromotionDialog(
-                                                    selectedSquare!.piece!,
-                                                    widget.board,
-                                                    row,
-                                                    col);
+                                                _showPromotionDialog(selectedSquare!.piece!, widget.board, row, col);
                                               }
-                                              moveHistory.add(
-                                                  [selectedSquare!, square]);
-                                              widget.board.movePiece(
+                                              moveHistory.add([selectedSquare!, square]);
+                                              await widget.board.movePiece(
                                                 selectedSquare!.row,
                                                 selectedSquare!.col,
                                                 row,
                                                 col,
                                               );
                                               setState(() {
-                                                lastMoveFromRow =
-                                                    selectedSquare!.row;
-                                                lastMoveFromCol =
-                                                    selectedSquare!.col;
+                                                lastMoveFromRow = selectedSquare!.row;
+                                                lastMoveFromCol = selectedSquare!.col;
                                                 lastMoveToRow = row;
                                                 lastMoveToCol = col;
+                                                selectedSquare = null;
+                                                validMoves = [];
                                               });
-                                              selectedSquare = null;
-                                              validMoves = [];
+
                                             } else {
-                                              selectedSquare = null;
-                                              validMoves = [];
+                                              setState(() {
+                                                selectedSquare = null;
+                                                validMoves = [];
+                                              });
                                             }
-                                          });
                                         },
                                         child: Stack(
                                           children: [
@@ -525,14 +516,22 @@ class _BoardViewState extends State<BoardView> {
                 ],
               ),
             ),
-            Align(
-                alignment: Alignment.bottomCenter,
-                child: Text(
-                  'Move n°$moveCountMessage',
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
-                ))
+            Column(
+              children: [
+                Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Text(
+                      'Move n°$moveCountMessage',
+                      style: const TextStyle(
+                        color: Colors.white,
+                      ),
+                    )),
+                AnalysisBar(
+                  value: analysisValue,
+                  size: MediaQuery.of(context).size.width - 25,
+                ),
+              ]
+            )
           ],
         ),
       ),

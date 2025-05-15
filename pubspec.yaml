@@ -29,6 +29,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   flutter_svg: ^0.22.0
+  audioplayers: ^6.4.0
   just_audio: ^0.9.18
   flutter:
     sdk: flutter
@@ -36,7 +37,7 @@ dependencies:
   firebase_core: ^2.16.0
   sqflite: any
   path: any
-  http: ^1.2.2
+  http: ^0.13.6
   flutter_vector_icons: ^2.0.0
   shared_preferences: ^2.0.6
   audio_session: ^0.1.21
@@ -103,8 +104,8 @@ flutter:
     - assets/images/pieces/staunty/
     - assets/images/pieces/tatiana/
     - assets/images/pieces/xkcd/
+    - assets/images/
     - assets/audio/
-    - assets/video/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

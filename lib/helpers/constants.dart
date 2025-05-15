@@ -28,7 +28,8 @@ Opening mergeOpenings(List<Opening> openings) {
   final PieceColor color = openings.first.color;
   for (var opening in openings) {
     if (opening.color != color) {
-      throw ArgumentError('Toutes les ouvertures doivent être jouées par la même couleur.');
+      throw ArgumentError(
+          'Toutes les ouvertures doivent être jouées par la même couleur.');
     }
   }
 
@@ -59,7 +60,8 @@ Opening mergeOpenings(List<Opening> openings) {
 }
 
 // Méthode pour identifier l'ouverture d'origine à un moment donné
-String? getCurrentOpeningName(Opening globalOpening, int moveNumber, int lastMoveId) {
+String? getCurrentOpeningName(
+    Opening globalOpening, int moveNumber, int lastMoveId) {
   for (var move in globalOpening.moves) {
     if (move.moveNumber == moveNumber && move.previousMoveId == lastMoveId) {
       return move.openingName; // Retourne le nom de l'ouverture d'origine
@@ -67,7 +69,8 @@ String? getCurrentOpeningName(Opening globalOpening, int moveNumber, int lastMov
   }
   return null; // Aucun coup correspondant trouvé
 }
-Color primaryThemeDarkColor = const Color.fromRGBO(14,31,44, 1.0);
+
+Color primaryThemeDarkColor = const Color.fromRGBO(14, 31, 44, 1.0);
 Color primaryThemeLightColor = const Color.fromRGBO(242, 239, 229, 1.0);
 Color secondaryThemeDarkColor = const Color.fromRGBO(44, 27, 14, 1.0);
 Color secondaryThemeLightColor = const Color.fromRGBO(229, 232, 242, 1.0);
@@ -81,6 +84,7 @@ Color lighterColor(Color init) {
   blue + 50 > 255 ? blue = 255 : blue += 50;
   return Color.fromRGBO(red, green, blue, 1);
 }
+
 List<List<Color>> boardColors = [
   [
     const Color.fromRGBO(115, 149, 82, 1),
@@ -141,6 +145,7 @@ List<Color> displayColors = [
   boardColors[6][0],
   boardColors[7][0],
 ];
+
 String colorToStr(Color color) {
   if (color == boardColors[0][0]) {
     return 'green';
@@ -168,6 +173,7 @@ String colorToStr(Color color) {
   }
   return 'green';
 }
+
 List<Color> getColor(String? name) {
   if (name == null) {
     return boardColors[0];
@@ -193,6 +199,7 @@ List<Color> getColor(String? name) {
       return boardColors[0];
   }
 }
+
 List<String> styleNames = [
   'alpha',
   'mpchess',
@@ -225,7 +232,8 @@ List<String> styleNames = [
   'shapes',
   'tatiana',
   'xkcd'
-  ];
+];
+
 List<List<SvgPicture>> displayPieces() {
   List<List<SvgPicture>> list = [];
   for (int i = 0; i < styleNames.length; i++) {
@@ -246,6 +254,7 @@ List<List<SvgPicture>> displayPieces() {
   }
   return list;
 }
+
 PieceColor toggleColor(PieceColor color) {
   return color == PieceColor.white ? PieceColor.black : PieceColor.white;
 }
@@ -433,6 +442,13 @@ List<String> englundOpening() {
       "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 d1e1 h7h5 h2h3 g8f6 b1c3 g4f3 e2f3 e7e5 g2g3 h5h4 g3h4 e5h2");
   result.add(
       "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 c1g5 f7f6 g5h4 d8e7 e2e3 c8g4 f1e2 e8c8 e1g1 d6h2 f3h2 d8d1");
+  result.add("d2d4 e7e5 d4e5 b8c6 f2f4 d7d6 e5d6 f8d6 g1f3 d8e7 b1c3 g8f6");
+  result.add("d2d4 e7e5 d4e5 b8c6 c1f4 g7g5 f4g3 f8g7 g1f3 g5g4 f3d4");
+  result.add("d2d4 e7e5 d4d5 c7c6 c2c4 g8f6 b1c3 f8b4 c1d2 d7d6");
+  result.add("d2d4 e7e5 d4d5 c7c6 e2e4 g8f6 b1c3 f8b4 c1d2 d7d6");
+  result.add("d2d4 e7e5 d4d5 c7c6 d5c6 b8c6");
+  result.add("d2d4 e7e5 c2c3 e5e4 c1f4 d7d5");
+  result.add("d2d4 e7e5 e2e3 e5d4 e3d4 g8f6 g1f3 d7d5 f1d3 c8g4 h2h3 g4h5");
   return result;
 }
 
@@ -442,7 +458,7 @@ List<String> scandinavianOpening() {
   return result;
 }
 
-List<String> scotchOpening(){
+List<String> scotchOpening() {
   List<String> result = [];
   return result;
 }

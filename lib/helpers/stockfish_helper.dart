@@ -1,16 +1,13 @@
 import 'dart:math';
-
 import 'package:chess_ouvertures/model/board.dart';
 import 'package:chess_ouvertures/model/piece.dart';
-
 import 'constants.dart';
 
-class LichessHelper{
-  Future<double> getAnalysisValue(Board board){
-    String fen = boardToFen(board);
+class StockfishHelper {
+  Future<double> getAnalysisValue(Board board) async {
     Random rdm = Random();
-    double value = rdm.nextDouble() * 20 - 10;
-    return Future.value(value);
+    double randomValue = rdm.nextDouble() * 2 - 1;
+    return randomValue;
   }
 
   String boardToFen(Board board) {
@@ -48,7 +45,8 @@ class LichessHelper{
         res += "/";
       }
     }
-    res += " ${board.currentTurn == PieceColor.white ? 'w' : 'b'} KQkq - 0 ${board.moveCount.value}";
+    res +=
+        " ${board.currentTurn == PieceColor.white ? 'w' : 'b'} ${board.availableCastles()} - 0 ${board.moveCount.value}";
     return res;
   }
-  }
+}

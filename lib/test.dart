@@ -39,7 +39,7 @@ class Test {
         break;
       } else {
         Move selectedMove = selectPreferredMove(validMoves);
-        board.movePiece(selectedMove.fromRow, selectedMove.fromCol,
+        await board.movePiece(selectedMove.fromRow, selectedMove.fromCol,
             selectedMove.toRow, selectedMove.toCol);
         switchTurn();
         await Future.delayed(const Duration(milliseconds: 100));

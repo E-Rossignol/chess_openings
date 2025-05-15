@@ -6,6 +6,7 @@ import 'package:chess_ouvertures/model/style_preferences.dart';
 import 'package:chess_ouvertures/views/board_view.dart';
 import 'package:chess_ouvertures/views/database/database_main_view.dart';
 import 'package:chess_ouvertures/views/settings/settings_view.dart';
+import 'package:chess_ouvertures/views/waiting_view.dart';
 import 'package:flutter/material.dart';
 import '../model/board.dart';
 import 'opening_main_view.dart';
@@ -142,8 +143,14 @@ class _MainViewState extends State<MainView> {
               onGenerateRoute: (routeSettings) {
                 return MaterialPageRoute(
                   builder: (context) =>
+                      const WaitingView(), // Placeholder for Global Opening Board View
+                );
+                /*return MaterialPageRoute(
+                  builder: (context) =>
                       GlobalOpeningBoardView(board: Board(), key: _globalOpeningViewKey),
                 );
+
+                 */
               },
             ),
           ),

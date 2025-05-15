@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../components/analysis_bar.dart';
 import '../../database/database_helper.dart';
-import '../../helpers/lichess_helper.dart';
+import '../../helpers/stockfish_helper.dart';
 import '../../model/board.dart';
 import '../../model/openings/opening_move.dart';
 import '../../model/piece.dart';
@@ -783,7 +783,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                     child: Column(
                       children: [
                         FutureBuilder(
-                          future: LichessHelper()
+                          future: StockfishHelper()
                               .getAnalysisValue(widget.board),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
@@ -800,7 +800,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                             }
                           },
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 10,
                         ),
                         Row(

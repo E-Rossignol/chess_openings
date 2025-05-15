@@ -1,6 +1,4 @@
-import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'package:chess_ouvertures/views/main_view.dart';
 import '../views/welcome_view.dart';
 
@@ -12,29 +10,35 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
-  late VideoPlayerController _controller;
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
-    // Initialisation du lecteur vidéo
-    _controller = VideoPlayerController.asset('assets/video/splash.mp4')
-      ..initialize().then((_) {
-        // Lecture automatique de la vidéo
-        _controller.play();
-        _controller.setLooping(false);
-        // Redirection après la fin de la vidéo
-        _controller.addListener(() {
-          if (_controller.value.position == _controller.value.duration) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => widget.hasCode ? MainView(key: UniqueKey()): const WelcomeView()),
-            );
-          }
-        });
-        setState(() {});
-      });
+    // Initialisation de l'animation
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+
+    _controller.forward();
+
+    // Redirection après l'animation
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+            widget.hasCode ? MainView(key: UniqueKey()) : const WelcomeView(),
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -46,15 +50,17 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: primaryThemeDarkColor,
-      body: _controller.value.isInitialized
-          ? Center(
-        child: AspectRatio(
-          aspectRatio: _controller.value.aspectRatio,
-          child: VideoPlayer(_controller),
+      backgroundColor: Colors.black,
+      body: Center(
+        child: ScaleTransition(
+          scale: _animation,
+          child: Image.asset(
+            'assets/images/splash_image.png', // Remplacez par le chemin de votre image
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+          ),
         ),
-      )
-          : const Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 }
