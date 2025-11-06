@@ -1,6 +1,6 @@
 import 'dart:math';
-import 'package:chess_ouvertures/model/board.dart';
-import 'package:chess_ouvertures/model/piece.dart';
+import 'package:chess_openings/model/board.dart';
+import 'package:chess_openings/model/piece.dart';
 import 'constants.dart';
 
 class StockfishHelper {

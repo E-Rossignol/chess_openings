@@ -1,4 +1,4 @@
-import 'package:chess_ouvertures/helpers/constants.dart';
+import 'package:chess_openings/helpers/constants.dart';
 
 class Piece {
   final PieceType type;

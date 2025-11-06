@@ -1,7 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
-import 'package:chess_ouvertures/helpers/constants.dart';
-import 'package:chess_ouvertures/services/bot_service.dart';
+import 'package:chess_openings/helpers/constants.dart';
+import 'package:chess_openings/services/bot_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../model/board.dart';

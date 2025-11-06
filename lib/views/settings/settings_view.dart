@@ -1,6 +1,6 @@
-import 'package:chess_ouvertures/components/sound_control_component.dart';
-import 'package:chess_ouvertures/helpers/constants.dart';
-import 'package:chess_ouvertures/views/settings/style_view.dart';
+import 'package:chess_openings/components/sound_control_component.dart';
+import 'package:chess_openings/helpers/constants.dart';
+import 'package:chess_openings/views/settings/style_view.dart';
 import 'package:flutter/material.dart';
 
 class SettingsView extends StatefulWidget {

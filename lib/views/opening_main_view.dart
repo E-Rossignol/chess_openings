@@ -1,9 +1,9 @@
 // ignore_for_file: overridden_fields, use_build_context_synchronously
 
-import 'package:chess_ouvertures/database/database_helper.dart';
-import 'package:chess_ouvertures/model/openings/opening.dart';
-import 'package:chess_ouvertures/views/openings/new_opening_view.dart';
-import 'package:chess_ouvertures/views/openings/opening_board_view.dart';
+import 'package:chess_openings/database/database_helper.dart';
+import 'package:chess_openings/model/openings/opening.dart';
+import 'package:chess_openings/views/openings/new_opening_view.dart';
+import 'package:chess_openings/views/openings/opening_board_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../helpers/constants.dart';

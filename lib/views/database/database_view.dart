@@ -1,6 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:chess_ouvertures/views/database/database_main_view.dart';
+import 'package:chess_openings/views/database/database_main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../helpers/constants.dart';

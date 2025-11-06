@@ -1,12 +1,12 @@
 // ignore_for_file: overridden_fields, library_private_types_in_public_api
 
-import 'package:chess_ouvertures/database/database_helper.dart';
-import 'package:chess_ouvertures/helpers/constants.dart';
-import 'package:chess_ouvertures/model/style_preferences.dart';
-import 'package:chess_ouvertures/views/board_view.dart';
-import 'package:chess_ouvertures/views/database/database_main_view.dart';
-import 'package:chess_ouvertures/views/settings/settings_view.dart';
-import 'package:chess_ouvertures/views/waiting_view.dart';
+import 'package:chess_openings/database/database_helper.dart';
+import 'package:chess_openings/helpers/constants.dart';
+import 'package:chess_openings/model/style_preferences.dart';
+import 'package:chess_openings/views/board_view.dart';
+import 'package:chess_openings/views/database/database_main_view.dart';
+import 'package:chess_openings/views/settings/settings_view.dart';
+import 'package:chess_openings/views/waiting_view.dart';
 import 'package:flutter/material.dart';
 import '../model/board.dart';
 import 'opening_main_view.dart';

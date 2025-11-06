@@ -1,4 +1,4 @@
-import 'package:chess_ouvertures/model/style_preferences.dart';
+import 'package:chess_openings/model/style_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -82,7 +82,7 @@ class PieceStylePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String txt = "";
-    String str = pieces.first.pictureProvider.toString();
+    String str = pieces.first.toString();
     for (String name in styleNames) {
       if (str.contains(name)) {
         txt = name[0].toUpperCase() + name.substring(1);

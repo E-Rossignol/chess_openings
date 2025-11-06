@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:chess_ouvertures/helpers/constants.dart';
-import 'package:chess_ouvertures/model/openings/opening_move.dart';
+import 'package:chess_openings/helpers/constants.dart';
+import 'package:chess_openings/model/openings/opening_move.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../model/openings/opening.dart';

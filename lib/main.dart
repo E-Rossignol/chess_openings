@@ -1,5 +1,5 @@
-import 'package:chess_ouvertures/components/splash_screen.dart';
-import 'package:chess_ouvertures/firebase_options.dart';
+import 'package:chess_openings/components/splash_screen.dart';
+import 'package:chess_openings/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';

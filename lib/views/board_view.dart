@@ -1,6 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api
 
-import 'package:chess_ouvertures/helpers/constants.dart';
+import 'package:chess_openings/helpers/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../components/captured_pieces_component.dart';
@@ -526,10 +526,12 @@ class _BoardViewState extends State<BoardView> {
                         color: Colors.white,
                       ),
                     )),
-                AnalysisBar(
+                /*AnalysisBar(
                   value: analysisValue,
                   size: MediaQuery.of(context).size.width - 25,
                 ),
+
+                 */
               ]
             )
           ],

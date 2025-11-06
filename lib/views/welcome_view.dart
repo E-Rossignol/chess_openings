@@ -1,5 +1,5 @@
-import 'package:chess_ouvertures/database/database_helper.dart';
-import 'package:chess_ouvertures/helpers/constants.dart';
+import 'package:chess_openings/database/database_helper.dart';
+import 'package:chess_openings/helpers/constants.dart';
 import 'package:flutter/material.dart';
 import 'main_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';

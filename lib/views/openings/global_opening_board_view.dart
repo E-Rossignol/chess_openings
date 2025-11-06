@@ -1,9 +1,9 @@
 // ignore_for_file: must_be_immutable, library_private_types_in_public_api, use_build_context_synchronously
 
-import 'package:chess_ouvertures/components/captured_pieces_component.dart';
-import 'package:chess_ouvertures/helpers/constants.dart';
-import 'package:chess_ouvertures/model/openings/opening.dart';
-import 'package:chess_ouvertures/model/style_preferences.dart';
+import 'package:chess_openings/components/captured_pieces_component.dart';
+import 'package:chess_openings/helpers/constants.dart';
+import 'package:chess_openings/model/openings/opening.dart';
+import 'package:chess_openings/model/style_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../database/database_helper.dart';

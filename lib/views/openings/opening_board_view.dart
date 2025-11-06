@@ -2,11 +2,11 @@
 
 import 'dart:math';
 
-import 'package:chess_ouvertures/components/captured_pieces_component.dart';
-import 'package:chess_ouvertures/helpers/constants.dart';
-import 'package:chess_ouvertures/model/openings/opening.dart';
-import 'package:chess_ouvertures/model/style_preferences.dart';
-import 'package:chess_ouvertures/views/opening_main_view.dart';
+import 'package:chess_openings/components/captured_pieces_component.dart';
+import 'package:chess_openings/helpers/constants.dart';
+import 'package:chess_openings/model/openings/opening.dart';
+import 'package:chess_openings/model/style_preferences.dart';
+import 'package:chess_openings/views/opening_main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../components/analysis_bar.dart';
@@ -782,7 +782,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                   Center(
                     child: Column(
                       children: [
-                        FutureBuilder(
+                        /*FutureBuilder(
                           future: StockfishHelper()
                               .getAnalysisValue(widget.board),
                           builder: (context, snapshot) {
@@ -800,6 +800,8 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                             }
                           },
                         ),
+
+                         */
                         const SizedBox(
                           height: 10,
                         ),

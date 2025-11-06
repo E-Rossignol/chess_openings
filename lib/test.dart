@@ -1,8 +1,8 @@
 // ignore_for_file: avoid_print
 
 import 'dart:math';
-import 'package:chess_ouvertures/helpers/constants.dart';
-import 'package:chess_ouvertures/model/square.dart';
+import 'package:chess_openings/helpers/constants.dart';
+import 'package:chess_openings/model/square.dart';
 import 'model/piece.dart';
 import 'model/board.dart';
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:chess_ouvertures/views/main_view.dart';
+import 'package:chess_openings/views/main_view.dart';
 import '../views/welcome_view.dart';
 
 class SplashScreen extends StatefulWidget {

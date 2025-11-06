@@ -1,4 +1,4 @@
-import 'package:chess_ouvertures/model/piece.dart';
+import 'package:chess_openings/model/piece.dart';
 
 class Square {
   final int row;

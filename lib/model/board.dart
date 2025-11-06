@@ -1,6 +1,6 @@
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-import 'package:chess_ouvertures/helpers/stockfish_helper.dart';
-import 'package:chess_ouvertures/model/piece.dart';
+import 'package:chess_openings/helpers/stockfish_helper.dart';
+import 'package:chess_openings/model/piece.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
