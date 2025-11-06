@@ -1,18 +1,36 @@
-import 'package:chess_ouvertures/views/main_view.dart';
+import 'package:chess_ouvertures/components/splash_screen.dart';
+import 'package:chess_ouvertures/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'database/database_helper.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  // Initialize shared preferences
+  var prefs = await SharedPreferences.getInstance();
+  // Check if the user has already entered the code
+  String? code = prefs.getString('pw');
+  bool hasCode = false;
+  if (code != null) {
+    hasCode = await DatabaseHelper().checkCode(code);
+  }
+  runApp(MyApp(hasCode: hasCode));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool hasCode;
+  const MyApp({super.key, required this.hasCode});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -30,9 +48,9 @@ class MyApp extends StatelessWidget {
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      useMaterial3: true,
+        useMaterial3: true,
       ),
-      home: const MainView(),
+      home: SplashScreen(hasCode: hasCode),
     );
   }
 }

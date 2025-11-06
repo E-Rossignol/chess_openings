@@ -1,19 +1,24 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:chess_ouvertures/model/openings/opening.dart';
-import 'package:chess_ouvertures/views/openings/opening_main_view.dart';
+import 'package:chess_ouvertures/views/opening_main_view.dart';
 import 'package:flutter/material.dart';
 import '../../database/database_helper.dart';
 import '../../model/board.dart';
-import '../main_view.dart';
 import 'opening_board_view.dart';
-import '../../constants.dart';
+import '../../helpers/constants.dart';
 
 class NewOpeningView extends StatefulWidget {
   final String? name;
   final bool? isWhite;
   final bool isEdit;
   final int? openingId;
-  const NewOpeningView({super.key, required this.name, required this.isWhite, required this.isEdit, required this.openingId});
-
+  const NewOpeningView(
+      {super.key,
+      required this.name,
+      required this.isWhite,
+      required this.isEdit,
+      required this.openingId});
 
   @override
   State<NewOpeningView> createState() => _NewOpeningViewState();
@@ -24,27 +29,32 @@ class _NewOpeningViewState extends State<NewOpeningView> {
   late TextEditingController _nameController;
   String _pieceColor = '';
 
+  @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name ?? '');
-    if (widget.isWhite != null){
-      _pieceColor = widget.isWhite! ? 'white': 'black';
+    if (widget.isWhite != null) {
+      _pieceColor = widget.isWhite! ? 'white' : 'black';
     }
   }
+
   @override
   Widget build(BuildContext context) {
-    TextStyle txtStyle = const TextStyle(
+    TextStyle txtStyle = TextStyle(
       fontSize: 20,
-      color: Colors.white,
+      color: primaryThemeLightColor,
     );
     BoxDecoration decoration = BoxDecoration(
       color: Colors.white12,
       borderRadius: BorderRadius.circular(8.0),
     );
-    Color bgColor = const Color.fromRGBO(60, 60, 60, 1);
     return Container(
       decoration: BoxDecoration(
-        color: bgColor,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [primaryThemeDarkColor, primaryThemeLightColor],
+        ),
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -86,11 +96,13 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                       decoration: decoration,
                       child: TextFormField(
                           controller: _nameController,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Opening Name',
+                            focusColor: Colors.white,
+                            hoverColor: Colors.white,
                             labelStyle: TextStyle(
                               fontSize: 16,
-                              color: Colors.white38,
+                              color: primaryThemeLightColor,
                             ),
                           ),
                           validator: (value) {
@@ -117,6 +129,7 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                               style: txtStyle,
                             ),
                             leading: Radio<String>(
+                              activeColor: primaryThemeLightColor,
                               value: 'white',
                               groupValue: _pieceColor,
                               onChanged: (value) {
@@ -129,6 +142,7 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                           ListTile(
                             title: Text('Black', style: txtStyle),
                             leading: Radio<String>(
+                              activeColor: primaryThemeLightColor,
                               value: 'black',
                               groupValue: _pieceColor,
                               onChanged: (value) {
@@ -144,26 +158,32 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                     const SizedBox(height: 20),
                     Center(
                       child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryThemeLightColor,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 32),
+                        ),
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
                             bool result = false;
                             String message = "";
-                            if (widget.openingId != null){
-                              result = await DatabaseHelper()
-                                  .editOpening(widget.openingId!, _nameController.value.text, _pieceColor);
+                            if (widget.openingId != null) {
+                              result = await DatabaseHelper().editOpening(
+                                  widget.openingId!,
+                                  _nameController.value.text,
+                                  _pieceColor);
                               message = "Ouverture edited";
-                            }
-                            else {
-                              result = await DatabaseHelper()
-                                  .insertOpening(_nameController.value.text, _pieceColor, false);
+                            } else {
+                              result = await DatabaseHelper().insertOpening(
+                                  _nameController.value.text,
+                                  _pieceColor,
+                                  false);
                               message = "Ouverture created";
                             }
                             if (result) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content:
-                                    Text(message)),
+                                SnackBar(content: Text(message)),
                               );
                               Opening? opening = await DatabaseHelper()
                                   .getOpeningByName(_nameController.value.text);
@@ -183,7 +203,11 @@ class _NewOpeningViewState extends State<NewOpeningView> {
                             }
                           }
                         },
-                        child: const Text('Submit'),
+                        child: Text('Submit',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: primaryThemeDarkColor,
+                            )),
                       ),
                     ),
                   ],

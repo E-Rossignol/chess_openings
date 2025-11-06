@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'package:chess_ouvertures/constants.dart';
+import 'package:chess_ouvertures/helpers/constants.dart';
 import 'package:chess_ouvertures/model/openings/opening_move.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-
 import '../model/openings/opening.dart';
 import '../model/square.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -14,10 +14,28 @@ class DatabaseHelper {
 
   DatabaseHelper._internal();
 
-
   Future<Database> get database async {
     _database = await _initDatabase();
     return _database!;
+  }
+
+  Future<String?> fetchPw() async {
+    try {
+      QuerySnapshot querySnapshot =
+      await FirebaseFirestore.instance.collection('pw').get();
+      return querySnapshot.docs.first['value'];
+    } catch (e) {
+      print('Erreur : $e');
+    }
+    return null;
+  }
+
+  Future<bool> checkCode(String input) async {
+    var pw = await DatabaseHelper().fetchPw();
+    if (input != pw || pw == null) {
+      return false;
+    }
+    return true;
   }
 
   Future<Database> _initDatabase() async {
@@ -59,7 +77,8 @@ class DatabaseHelper {
     ''');
   }
 
-  Future<bool> insertOpening(String openingName, String pieceColor, bool isDefault) async {
+  Future<bool> insertOpening(
+      String openingName, String pieceColor, bool isDefault) async {
     List<String> existingOpenings = await getOpeningsNames();
     if (existingOpenings.contains(openingName)) {
       return false;
@@ -67,7 +86,11 @@ class DatabaseHelper {
     final db = await database;
     await db.insert(
       'opening_names',
-      {'opening_name': openingName, 'piece_color': pieceColor, 'is_default': isDefault ? 1 : 0},
+      {
+        'opening_name': openingName,
+        'piece_color': pieceColor,
+        'is_default': isDefault ? 1 : 0
+      },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
     return true;
@@ -87,8 +110,11 @@ class DatabaseHelper {
 
   Future<List<String>> getOpeningsNames() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps =
-        await db.query('opening_names', columns: ['opening_name'], orderBy: 'is_default DESC, opening_name ASC',);
+    final List<Map<String, dynamic>> maps = await db.query(
+      'opening_names',
+      columns: ['opening_name'],
+      orderBy: 'is_default DESC, piece_color DESC, opening_name ASC',
+    );
     return List.generate(maps.length, (i) {
       return maps[i]['opening_name'] as String;
     });
@@ -96,8 +122,8 @@ class DatabaseHelper {
 
   Future<List<String>> getUsersOpeningsNames() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps =
-    await db.query('opening_names', columns: ['opening_name'], where: 'is_default = 0');
+    final List<Map<String, dynamic>> maps = await db.query('opening_names',
+        columns: ['opening_name'], where: 'is_default = 0');
     return List.generate(maps.length, (i) {
       return maps[i]['opening_name'] as String;
     });
@@ -105,8 +131,8 @@ class DatabaseHelper {
 
   Future<List<String>> getDefaultOpeningsNames() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps =
-    await db.query('opening_names', columns: ['opening_name'], where: 'is_default = 1');
+    final List<Map<String, dynamic>> maps = await db.query('opening_names',
+        columns: ['opening_name'], where: 'is_default = 1');
     return List.generate(maps.length, (i) {
       return maps[i]['opening_name'] as String;
     });
@@ -189,8 +215,8 @@ class DatabaseHelper {
     return maps;
   }
 
-  Future<List<OpeningMove>?> insertVariant(List<List<Square>> newVariant,
-      String openingName) async {
+  Future<List<OpeningMove>?> insertVariant(
+      List<List<Square>> newVariant, String openingName) async {
     List<List<Square>> tmp = [];
     tmp.addAll(newVariant);
     Opening? op = await getOpeningByName(openingName);
@@ -203,22 +229,29 @@ class DatabaseHelper {
     int lastMoveId = -1;
     bool keepGoing = true;
     int moveCount = 0;
-    while(keepGoing){
-      List<OpeningMove> nextMoves = tmpMoves.where((element) => element.previousMoveId == lastMoveId).toList();
-      List<OpeningMove> coucou = nextMoves.where((element) => element.from.row == tmp.first[0].row && element.from.col == tmp.first[0].col && element.to.row == tmp.first[1].row && element.to.col == tmp.first[1].col).toList();
-      if (coucou.isNotEmpty){
+    while (keepGoing) {
+      List<OpeningMove> nextMoves = tmpMoves
+          .where((element) => element.previousMoveId == lastMoveId)
+          .toList();
+      List<OpeningMove> coucou = nextMoves
+          .where((element) =>
+              element.from.row == tmp.first[0].row &&
+              element.from.col == tmp.first[0].col &&
+              element.to.row == tmp.first[1].row &&
+              element.to.col == tmp.first[1].col)
+          .toList();
+      if (coucou.isNotEmpty) {
         moveCount++;
         lastMoveId = coucou.first.id;
         tmp.removeAt(0);
-      }
-      else {
+      } else {
         keepGoing = false;
       }
     }
     int newMoveId = lastMoveId;
     List<OpeningMove> res = [];
     var db = await database;
-    while (tmp.isNotEmpty){
+    while (tmp.isNotEmpty) {
       newMoveId = await db.insert(
         'opening_moves',
         {
@@ -273,6 +306,10 @@ class DatabaseHelper {
     await deleteDescendants(openingMoveId);
   }
 
+  Future<void> insertErwanOpenings() async {
+    print("COUCOU ERWAN");
+  }
+
   Future<void> insertDefaultOpenings() async {
     bool defaultDone = false;
     for (String name in defaultOpenings()) {
@@ -289,8 +326,9 @@ class DatabaseHelper {
     await insertItalianOpening();
     await insertQueensGambitOpening();
     await insertSicilianDefenseOpening();
-    await insertFrenchDefenseOpening();
     await insertEnglundOpening();
+    await insertScandinavianOpening();
+    await insertScotchOpening();
   }
 
   Future<void> insertItalianOpening() async {
@@ -344,23 +382,6 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> insertFrenchDefenseOpening() async {
-    await insertOpening('French Defense', 'black', true);
-    List<String> french = frenchOpening();
-    List<List<Square>> frenchMoves = [];
-    for (String move in french) {
-      List<String> moves = move.trim().split(' ');
-      for (String m in moves) {
-        frenchMoves.add([
-          stringToSquare(m.substring(0, 2)),
-          stringToSquare(m.substring(2, 4))
-        ]);
-      }
-      await insertVariant(frenchMoves, 'French Defense');
-      frenchMoves = [];
-    }
-  }
-
   Future<void> insertEnglundOpening() async {
     await insertOpening('Englund\'s Gambit', 'black', true);
     List<String> englund = englundOpening();
@@ -378,11 +399,11 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> insertLatvianOpening() async {
-    await insertOpening('Latvian Gambit', 'black', true);
-    List<String> latvian = latvianOpening();
+  Future<void> insertScandinavianOpening() async {
+    await insertOpening('Scandinavian Defense', 'black', true);
+    List<String> scandinavian = scandinavianOpening();
     List<List<Square>> latvianMoves = [];
-    for (String move in latvian) {
+    for (String move in scandinavian) {
       List<String> moves = move.trim().split(' ');
       for (String m in moves) {
         latvianMoves.add([
@@ -390,7 +411,24 @@ class DatabaseHelper {
           stringToSquare(m.substring(2, 4))
         ]);
       }
-      await insertVariant(latvianMoves, 'Latvian Gambit');
+      await insertVariant(latvianMoves, 'Scandinavian Opening');
+      latvianMoves = [];
+    }
+  }
+
+  Future<void> insertScotchOpening() async {
+    await insertOpening('Scotch Game', 'white', true);
+    List<String> scandinavian = scotchOpening();
+    List<List<Square>> latvianMoves = [];
+    for (String move in scandinavian) {
+      List<String> moves = move.trim().split(' ');
+      for (String m in moves) {
+        latvianMoves.add([
+          stringToSquare(m.substring(0, 2)),
+          stringToSquare(m.substring(2, 4))
+        ]);
+      }
+      await insertVariant(latvianMoves, 'Scotch Game');
       latvianMoves = [];
     }
   }

@@ -1,6 +1,12 @@
 # chess_ouvertures
 
 
+## TODO
+- **Pieces style change implementation**
+- **Score fix**
+- **Rework bot view**
+- **Language change implementation**
+
 
 ## Getting started
 

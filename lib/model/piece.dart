@@ -1,4 +1,4 @@
-import 'package:chess_ouvertures/constants.dart';
+import 'package:chess_ouvertures/helpers/constants.dart';
 
 class Piece {
   final PieceType type;
@@ -6,5 +6,9 @@ class Piece {
   final int id;
   bool hasMove = false;
 
-  Piece({required this.type, required this.color, required this.id, required this.hasMove});
+  Piece(
+      {required this.type,
+      required this.color,
+      required this.id,
+      required this.hasMove});
 }

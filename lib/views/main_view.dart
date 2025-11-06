@@ -1,39 +1,71 @@
+// ignore_for_file: overridden_fields, library_private_types_in_public_api
+
 import 'package:chess_ouvertures/database/database_helper.dart';
+import 'package:chess_ouvertures/helpers/constants.dart';
+import 'package:chess_ouvertures/model/style_preferences.dart';
 import 'package:chess_ouvertures/views/board_view.dart';
-import 'package:chess_ouvertures/views/database_main_view.dart';
-import 'package:chess_ouvertures/views/settings_view.dart';
+import 'package:chess_ouvertures/views/database/database_main_view.dart';
+import 'package:chess_ouvertures/views/settings/settings_view.dart';
+import 'package:chess_ouvertures/views/waiting_view.dart';
 import 'package:flutter/material.dart';
 import '../model/board.dart';
-import 'openings/opening_main_view.dart';
+import 'opening_main_view.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
+import 'openings/global_opening_board_view.dart';
+
 class MainView extends StatefulWidget {
-  const MainView({super.key});
+  @override
+  final Key key;
+  final StylePreferences stylePreferences = StylePreferences();
+  MainView({required this.key}) : super(key: key);
 
   @override
   _MainViewState createState() => _MainViewState();
 }
 
 class _MainViewState extends State<MainView> {
-  @override
-  void initState() {
-    super.initState();
-    _initializeDatabase();
-  }
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
   Key _openingMainViewKey = UniqueKey();
+  final Key _globalOpeningViewKey = UniqueKey();
+  Color _selectedColor = Colors.green;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.stylePreferences.selectedColor.addListener(_updateColors);
+    _loadColorsFromPrefs();
+    _initializeDatabase();
+  }
+
+  void _loadColorsFromPrefs() {
+    widget.stylePreferences.loadPreferences();
+    setState(() {
+      _selectedColor = StylePreferences().selectedColor.value[1];
+    });
+  }
+
+  void _updateColors() {
+    setState(
+          () {
+        _selectedColor = widget.stylePreferences.selectedColor.value[1];
+      },
+    );
+  }
 
   void _onItemTapped(int index) {
     setState(() {
-      if (index == 0){
+      if (index == 0) {
         _openingMainViewKey = UniqueKey();
-      }
-      if (index == 3) {
-        _scaffoldKey.currentState?.openEndDrawer();
       }
       _selectedIndex = index;
     });
+  }
+  @override
+  void dispose() {
+    widget.stylePreferences.selectedColor.removeListener(_updateColors);
+    super.dispose();
   }
 
   Future<void> _initializeDatabase() async {
@@ -43,31 +75,42 @@ class _MainViewState extends State<MainView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(backgroundColor: primaryThemeDarkColor, actions: [
+        IconButton(
+          icon: const Icon(
+            Icons.menu,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            _scaffoldKey.currentState!.openEndDrawer();
+          },
+        )
+      ]),
       key: _scaffoldKey,
       endDrawer: const SettingsView(),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.green,
+        backgroundColor: primaryThemeDarkColor,
+        selectedItemColor: _selectedColor,
         unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.menu_book_outlined),
-            label: 'Opening',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(FontAwesome.play),
             label: 'Play',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.data_thresholding_outlined),
-            label: 'Database',
+            icon: Icon(Icons.account_tree_outlined),
+            label: 'Global',
           ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: 'Settings'
+            icon: Icon(Icons.menu_book_outlined),
+            label: 'Openings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.monitor_heart_sharp),
+            label: 'Database',
           ),
         ],
       ),
@@ -75,16 +118,6 @@ class _MainViewState extends State<MainView> {
         children: [
           Offstage(
             offstage: _selectedIndex != 0,
-            child: Navigator(
-              onGenerateRoute: (routeSettings) {
-                return MaterialPageRoute(
-                  builder: (context) => OpeningMainView(key: _openingMainViewKey),
-                );
-              },
-            ),
-          ),
-          Offstage(
-            offstage: _selectedIndex != 1,
             child: Navigator(
               onGenerateRoute: (routeSettings) {
                 return MaterialPageRoute(
@@ -98,8 +131,26 @@ class _MainViewState extends State<MainView> {
             child: Navigator(
               onGenerateRoute: (routeSettings) {
                 return MaterialPageRoute(
-                  builder: (context) => const DatabaseMainView(),
+                  builder: (context) =>
+                      OpeningMainView(key: _openingMainViewKey),
                 );
+              },
+            ),
+          ),
+          Offstage(
+            offstage: _selectedIndex != 1,
+            child: Navigator(
+              onGenerateRoute: (routeSettings) {
+                return MaterialPageRoute(
+                  builder: (context) =>
+                      const WaitingView(), // Placeholder for Global Opening Board View
+                );
+                /*return MaterialPageRoute(
+                  builder: (context) =>
+                      GlobalOpeningBoardView(board: Board(), key: _globalOpeningViewKey),
+                );
+
+                 */
               },
             ),
           ),
@@ -108,7 +159,7 @@ class _MainViewState extends State<MainView> {
             child: Navigator(
               onGenerateRoute: (routeSettings) {
                 return MaterialPageRoute(
-                  builder: (context) => const SettingsView(),
+                  builder: (context) => const DatabaseMainView(),
                 );
               },
             ),

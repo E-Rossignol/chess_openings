@@ -1,10 +1,14 @@
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+import 'package:chess_ouvertures/helpers/stockfish_helper.dart';
 import 'package:chess_ouvertures/model/piece.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:just_audio/just_audio.dart';
-import '../constants.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../helpers/constants.dart';
 import 'square.dart';
+import '../helpers/stockfish_helper.dart';
 
-class Board{
+class Board {
   final List<List<Square>> board;
   ValueNotifier<bool> boardNotifier = ValueNotifier(false);
   ValueNotifier<List<Piece>> capturedPieceNotifier = ValueNotifier([]);
@@ -13,10 +17,14 @@ class Board{
   int blackScore = 0;
   ValueNotifier<int> gameResult = ValueNotifier<int>(
       0); // 0: ongoing, 1: white wins, 2: black wins, 3: draw
+  ValueNotifier<double> boardAnalysis = ValueNotifier<double>(0);
   Square? lastMoveFrom;
   Square? lastMoveTo;
-  final AudioPlayer _audioPlayer = AudioPlayer();
   ValueNotifier<int> moveCount = ValueNotifier<int>(0);
+  bool isWQCastlePossible = true;
+  bool isWKCastlePossible = true;
+  bool isBQCastlePossible = true;
+  bool isBKCastlePossible = true;
 
   Board()
       : board = List.generate(
@@ -26,13 +34,51 @@ class Board{
     _initializePieces();
   }
 
-  void undoLastMove(List<List<Square>> history) {
+  String availableCastles(){
+    List<String> res = ["K", "Q", "k", "q"];
+    //Check if WQ castle is possible
+    if (board[7][0].piece == null || board[7][0].piece!.hasMove ||
+        board[7][4].piece == null || board[7][4].piece!.hasMove ||
+        board[7][1].piece != null || board[7][2].piece != null || board[7][3].piece != null ||
+        isThreatened(board[7][1], PieceColor.white) || isThreatened(board[7][2], PieceColor.white) || isThreatened(board[7][3], PieceColor.white) || isThreatened(board[7][4], PieceColor.white)){
+      res.remove("Q");
+    }
+    //Check if WK castle is possible
+    if (board[7][7].piece == null || board[7][7].piece!.hasMove ||
+        board[7][4].piece == null || board[7][4].piece!.hasMove ||
+        board[7][5].piece != null || board[7][6].piece != null ||
+        isThreatened(board[7][5], PieceColor.white) || isThreatened(board[7][6], PieceColor.white) || isThreatened(board[7][4], PieceColor.white)){
+      res.remove("K");
+    }
+    //Check if BQ castle is possible
+    if (board[0][0].piece == null || board[0][0].piece!.hasMove ||
+        board[0][4].piece == null || board[0][4].piece!.hasMove ||
+        board[0][1].piece != null || board[0][2].piece != null || board[0][3].piece != null ||
+        isThreatened(board[0][1], PieceColor.black) || isThreatened(board[0][2], PieceColor.black) || isThreatened(board[0][3], PieceColor.black) || isThreatened(board[0][4], PieceColor.black)){
+      res.remove("q");
+    }
+    //Check if BK castle is possible
+    if (board[0][7].piece == null || board[0][7].piece!.hasMove ||
+        board[0][4].piece == null || board[0][4].piece!.hasMove ||
+        board[0][5].piece != null || board[0][6].piece != null ||
+        isThreatened(board[0][5], PieceColor.black) || isThreatened(board[0][6], PieceColor.black) || isThreatened(board[0][4], PieceColor.black)){
+      res.remove("k");
+    }
+    return res.join("");
+  }
+
+  Future<void> undoLastMove(List<List<Square>> history) async {
     reset();
-    for (List<Square> move in history){
+    for (List<Square> move in history) {
       movePiece(move[0].row, move[0].col, move[1].row, move[1].col);
+      await updateAnalysisValue();
     }
     moveCount.value = moveCount.value;
     boardNotifier.value = boardNotifier.value;
+  }
+
+  Future<void> updateAnalysisValue() async {
+    boardAnalysis.value = await StockfishHelper().getAnalysisValue(this);
   }
 
   List<Square> getValidMoves(Piece piece,
@@ -368,7 +414,8 @@ class Board{
         }
         // Castling logic
         if (originSquare.row == (piece.color == PieceColor.white ? 7 : 0) &&
-            originSquare.col == 4 && !piece.hasMove) {
+            originSquare.col == 4 &&
+            !piece.hasMove) {
           // Check for kingside castling
           if (board[originSquare.row][5].piece == null &&
               board[originSquare.row][6].piece == null &&
@@ -522,7 +569,7 @@ class Board{
     return null;
   }
 
-  bool movePiece(int fromRow, int fromCol, int toRow, int toCol) {
+  Future<bool> movePiece(int fromRow, int fromCol, int toRow, int toCol) async {
     String toPlay = "";
     bool castling = false;
     final piece = board[fromRow][fromCol].piece;
@@ -574,11 +621,12 @@ class Board{
         }
         _playSound(toPlay);
         boardNotifier.value = !boardNotifier.value;
-        moveCount.value ++;
+        moveCount.value++;
         boardNotifier.notifyListeners();
         moveCount.notifyListeners();
         piece.hasMove = true;
         isDraw();
+        await updateAnalysisValue();
         return true;
       }
     }
@@ -586,9 +634,27 @@ class Board{
   }
 
   Future<void> _playSound(String fileName) async {
-      await _audioPlayer.setVolume(70);
-      await _audioPlayer.setAsset('assets/audio/$fileName');
-      _audioPlayer.play();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isMuted = prefs.getBool('isMuted') ?? false;
+    if (isMuted) {
+      return;
+    }
+    try{
+      AudioPlayer audioPlayer = AudioPlayer();
+      audioPlayer.setAudioContext(AudioContext(
+        android: const AudioContextAndroid(
+            audioFocus: AndroidAudioFocus.gainTransientMayDuck
+        ),
+        iOS: AudioContextIOS(
+          category: AVAudioSessionCategory.playback,
+          options: const {AVAudioSessionOptions.mixWithOthers},
+        ),
+      ));
+      audioPlayer.setVolume(60);
+      await audioPlayer.play(AssetSource('assets/audio/$fileName'));
+    } catch(e){
+      print("Error: $e");
+    }
   }
 
   void _updateScore(Piece captured) {
@@ -616,99 +682,123 @@ class Board{
     lastMoveTo = null;
   }
 
-  void isDraw(){
+  void isDraw() {
     List<Piece> remainingPieces = [];
-    for(var row in board){
-      for (var square in row){
-        if (square.piece != null){
+    for (var row in board) {
+      for (var square in row) {
+        if (square.piece != null) {
           remainingPieces.add(square.piece!);
         }
       }
     }
-    if (remainingPieces.length == 2 && remainingPieces.elementAt(0).type == PieceType.king && remainingPieces.elementAt(1).type == PieceType.king){
+    if (remainingPieces.length == 2 &&
+        remainingPieces.elementAt(0).type == PieceType.king &&
+        remainingPieces.elementAt(1).type == PieceType.king) {
       gameResult.value = -1;
     }
     List<List<Square>> moves = [];
-    for (var row in board){
-      for (var square in row){
-        if (square.piece != null && square.piece!.color == currentTurn){
+    for (var row in board) {
+      for (var square in row) {
+        if (square.piece != null && square.piece!.color == currentTurn) {
           moves.add(getValidMoves(square.piece!));
         }
       }
     }
     moves.removeWhere((element) => element.isEmpty);
-    if (moves.isEmpty && !isCheck(currentTurn)){
+    if (moves.isEmpty && !isCheck(currentTurn)) {
       gameResult.value = -1;
     }
   }
 
-
-
   void _initializePieces() {
-    Piece whitePawn1 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 1, hasMove: false);
-    Piece whitePawn2 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 2, hasMove: false);
-    Piece whitePawn3 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 3, hasMove: false);
-    Piece whitePawn4 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 4, hasMove: false);
-    Piece whitePawn5 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 5, hasMove: false);
-    Piece whitePawn6 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 6, hasMove: false);
-    Piece whitePawn7 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 7, hasMove: false);
-    Piece whitePawn8 =
-        Piece(type: PieceType.pawn, color: PieceColor.white, id: 8, hasMove: false);
-    Piece whiteRook1 =
-        Piece(type: PieceType.rook, color: PieceColor.white, id: 9, hasMove: false);
-    Piece whiteRook2 =
-        Piece(type: PieceType.rook, color: PieceColor.white, id: 10, hasMove: false);
-    Piece whiteKnight1 =
-        Piece(type: PieceType.knight, color: PieceColor.white, id: 11, hasMove: false);
-    Piece whiteKnight2 =
-        Piece(type: PieceType.knight, color: PieceColor.white, id: 12, hasMove: false);
-    Piece whiteBishop1 =
-        Piece(type: PieceType.bishop, color: PieceColor.white, id: 13, hasMove: false);
-    Piece whiteBishop2 =
-        Piece(type: PieceType.bishop, color: PieceColor.white, id: 14, hasMove: false);
-    Piece whiteQueen =
-        Piece(type: PieceType.queen, color: PieceColor.white, id: 15, hasMove: false);
-    Piece whiteKing =
-        Piece(type: PieceType.king, color: PieceColor.white, id: 16, hasMove: false);
-    Piece blackPawn1 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 17, hasMove: false);
-    Piece blackPawn2 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 18, hasMove: false);
-    Piece blackPawn3 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 19, hasMove: false);
-    Piece blackPawn4 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 20, hasMove: false);
-    Piece blackPawn5 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 21, hasMove: false);
-    Piece blackPawn6 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 22, hasMove: false);
-    Piece blackPawn7 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 23, hasMove: false);
-    Piece blackPawn8 =
-        Piece(type: PieceType.pawn, color: PieceColor.black, id: 24, hasMove: false);
-    Piece blackRook1 =
-        Piece(type: PieceType.rook, color: PieceColor.black, id: 25, hasMove: false);
-    Piece blackRook2 =
-        Piece(type: PieceType.rook, color: PieceColor.black, id: 26, hasMove: false);
-    Piece blackKnight1 =
-        Piece(type: PieceType.knight, color: PieceColor.black, id: 27, hasMove: false);
-    Piece blackKnight2 =
-        Piece(type: PieceType.knight, color: PieceColor.black, id: 28, hasMove: false);
-    Piece blackBishop1 =
-        Piece(type: PieceType.bishop, color: PieceColor.black, id: 29, hasMove: false);
-    Piece blackBishop2 =
-        Piece(type: PieceType.bishop, color: PieceColor.black, id: 30, hasMove: false);
-    Piece blackQueen =
-        Piece(type: PieceType.queen, color: PieceColor.black, id: 31, hasMove: false);
-    Piece blackKing =
-        Piece(type: PieceType.king, color: PieceColor.black, id: 32, hasMove: false);
+    Piece whitePawn1 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 1, hasMove: false);
+    Piece whitePawn2 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 2, hasMove: false);
+    Piece whitePawn3 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 3, hasMove: false);
+    Piece whitePawn4 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 4, hasMove: false);
+    Piece whitePawn5 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 5, hasMove: false);
+    Piece whitePawn6 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 6, hasMove: false);
+    Piece whitePawn7 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 7, hasMove: false);
+    Piece whitePawn8 = Piece(
+        type: PieceType.pawn, color: PieceColor.white, id: 8, hasMove: false);
+    Piece whiteRook1 = Piece(
+        type: PieceType.rook, color: PieceColor.white, id: 9, hasMove: false);
+    Piece whiteRook2 = Piece(
+        type: PieceType.rook, color: PieceColor.white, id: 10, hasMove: false);
+    Piece whiteKnight1 = Piece(
+        type: PieceType.knight,
+        color: PieceColor.white,
+        id: 11,
+        hasMove: false);
+    Piece whiteKnight2 = Piece(
+        type: PieceType.knight,
+        color: PieceColor.white,
+        id: 12,
+        hasMove: false);
+    Piece whiteBishop1 = Piece(
+        type: PieceType.bishop,
+        color: PieceColor.white,
+        id: 13,
+        hasMove: false);
+    Piece whiteBishop2 = Piece(
+        type: PieceType.bishop,
+        color: PieceColor.white,
+        id: 14,
+        hasMove: false);
+    Piece whiteQueen = Piece(
+        type: PieceType.queen, color: PieceColor.white, id: 15, hasMove: false);
+    Piece whiteKing = Piece(
+        type: PieceType.king, color: PieceColor.white, id: 16, hasMove: false);
+    Piece blackPawn1 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 17, hasMove: false);
+    Piece blackPawn2 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 18, hasMove: false);
+    Piece blackPawn3 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 19, hasMove: false);
+    Piece blackPawn4 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 20, hasMove: false);
+    Piece blackPawn5 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 21, hasMove: false);
+    Piece blackPawn6 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 22, hasMove: false);
+    Piece blackPawn7 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 23, hasMove: false);
+    Piece blackPawn8 = Piece(
+        type: PieceType.pawn, color: PieceColor.black, id: 24, hasMove: false);
+    Piece blackRook1 = Piece(
+        type: PieceType.rook, color: PieceColor.black, id: 25, hasMove: false);
+    Piece blackRook2 = Piece(
+        type: PieceType.rook, color: PieceColor.black, id: 26, hasMove: false);
+    Piece blackKnight1 = Piece(
+        type: PieceType.knight,
+        color: PieceColor.black,
+        id: 27,
+        hasMove: false);
+    Piece blackKnight2 = Piece(
+        type: PieceType.knight,
+        color: PieceColor.black,
+        id: 28,
+        hasMove: false);
+    Piece blackBishop1 = Piece(
+        type: PieceType.bishop,
+        color: PieceColor.black,
+        id: 29,
+        hasMove: false);
+    Piece blackBishop2 = Piece(
+        type: PieceType.bishop,
+        color: PieceColor.black,
+        id: 30,
+        hasMove: false);
+    Piece blackQueen = Piece(
+        type: PieceType.queen, color: PieceColor.black, id: 31, hasMove: false);
+    Piece blackKing = Piece(
+        type: PieceType.king, color: PieceColor.black, id: 32, hasMove: false);
     board[1][0].piece = blackPawn1;
     board[1][1].piece = blackPawn2;
     board[1][2].piece = blackPawn3;

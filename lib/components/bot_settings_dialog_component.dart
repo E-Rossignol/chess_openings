@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../constants.dart';
+import '../helpers/constants.dart';
 import '../model/board.dart';
 import '../views/bot_view.dart';
 
@@ -9,10 +9,12 @@ class BotSettingsDialogComponent extends StatefulWidget {
   const BotSettingsDialogComponent({super.key});
 
   @override
-  State<BotSettingsDialogComponent> createState() => _BotSettingsDialogComponentState();
+  State<BotSettingsDialogComponent> createState() =>
+      _BotSettingsDialogComponentState();
 }
 
-class _BotSettingsDialogComponentState extends State<BotSettingsDialogComponent> {
+class _BotSettingsDialogComponentState
+    extends State<BotSettingsDialogComponent> {
   int difficulty = 4;
   bool isBotWhite = false;
 
@@ -54,9 +56,9 @@ class _BotSettingsDialogComponentState extends State<BotSettingsDialogComponent>
                   ),
                   child: Center(
                     child: SvgPicture.asset(
-                      'assets/images/${pieceTypeToSVG(PieceType.king, PieceColor.white)}',
-                      width: isBotWhite ? 70:50,
-                      height: isBotWhite ? 70:50,
+                      'assets/images/${pieceTypeToSVG(PieceType.king, PieceColor.white, 'alpha')}',
+                      width: isBotWhite ? 70 : 50,
+                      height: isBotWhite ? 70 : 50,
                     ),
                   ),
                 ),
@@ -75,9 +77,9 @@ class _BotSettingsDialogComponentState extends State<BotSettingsDialogComponent>
                   ),
                   child: Center(
                     child: SvgPicture.asset(
-                      'assets/images/${pieceTypeToSVG(PieceType.king, PieceColor.black)}',
-                      width: !isBotWhite ? 70: 50,
-                      height: !isBotWhite ? 70: 50,
+                      'assets/images/${pieceTypeToSVG(PieceType.king, PieceColor.black, 'alpha')}',
+                      width: !isBotWhite ? 70 : 50,
+                      height: !isBotWhite ? 70 : 50,
                     ),
                   ),
                 ),
@@ -89,8 +91,13 @@ class _BotSettingsDialogComponentState extends State<BotSettingsDialogComponent>
       actions: [
         ElevatedButton(
           onPressed: () {
-            Navigator.pushReplacement(context, MaterialPageRoute(
-                builder: (context) => BotView(board: Board(), difficulty: difficulty, isBotWhite: isBotWhite)));
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => BotView(
+                        board: Board(),
+                        difficulty: difficulty,
+                        isBotWhite: isBotWhite)));
           },
           child: const Text('OK'),
         ),

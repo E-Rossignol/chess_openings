@@ -14,7 +14,7 @@ class Square {
     return removedPiece;
   }
 
-  String toStr(){
+  String toStr() {
     return String.fromCharCode(65 + col) + (8 - row).toString();
   }
 }

@@ -1,4 +1,6 @@
 // lib/services/lichess_service.dart
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -56,7 +58,7 @@ class BotService {
       try {
         return jsonDecode(response.body);
       } catch (e) {
-        if (e is FormatException && e.message == "Unexpected character"){
+        if (e is FormatException && e.message == "Unexpected character") {
           await getGameState(gameId);
         }
       }

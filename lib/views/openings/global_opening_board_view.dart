@@ -1,0 +1,643 @@
+// ignore_for_file: must_be_immutable, library_private_types_in_public_api, use_build_context_synchronously
+
+import 'package:chess_ouvertures/components/captured_pieces_component.dart';
+import 'package:chess_ouvertures/helpers/constants.dart';
+import 'package:chess_ouvertures/model/openings/opening.dart';
+import 'package:chess_ouvertures/model/style_preferences.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import '../../database/database_helper.dart';
+import '../../model/board.dart';
+import '../../model/openings/opening_move.dart';
+import '../../model/piece.dart';
+import '../../model/square.dart';
+import '../../helpers/painter.dart';
+
+class GlobalOpeningBoardView extends StatefulWidget {
+  final Board board;
+  final StylePreferences stylePreferences = StylePreferences();
+
+  GlobalOpeningBoardView({super.key, required this.board});
+
+  @override
+  _GlobalOpeningBoardViewState createState() => _GlobalOpeningBoardViewState();
+}
+
+class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
+  int lastMoveId = -1;
+  int? lastMoveFromRow;
+  int? lastMoveFromCol;
+  int? lastMoveToRow;
+  int? lastMoveToCol;
+  List<Square> validMoves = [];
+  bool isReversed = false;
+  Square? selectedSquare;
+  String moveCountMessage = '0';
+  List<List<Square>> newVariant = [];
+  List<List<Square>> moveHistory = [];
+  List<int> moveIdHistory = [-1];
+  Color whiteColor = Colors.white;
+  Color blackColor = Colors.black;
+  Color arrowColor = Colors.deepPurple;
+  Color lastMoveColor = Colors.orange;
+  String pieceStyle = "";
+  List<Color> colors = [];
+  Opening whiteOpening = Opening(
+    name: "GLOBAL",
+    moves: [],
+    color: PieceColor.white,
+  );
+  Opening blackOpening = Opening(
+    name: "GLOBAL",
+    moves: [],
+    color: PieceColor.black,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _loadColorsFromPrefs();
+    _initOpenings();
+    isReversed = whiteOpening.color == PieceColor.black;
+    widget.board.boardNotifier.addListener(_updateBoard);
+    widget.board.moveCount.addListener(_updateMoveCount);
+    widget.stylePreferences.selectedColor.addListener(_updateColors);
+    widget.stylePreferences.selectedStyle.addListener(_updateStyle);
+  }
+
+  @override
+  void dispose() {
+    widget.board.boardNotifier.removeListener(_updateBoard);
+    widget.board.moveCount.removeListener(_updateMoveCount);
+    widget.stylePreferences.selectedColor.removeListener(_updateColors);
+    widget.stylePreferences.selectedStyle.removeListener(_updateStyle);
+    super.dispose();
+  }
+
+  Future<void> _initOpenings() async {
+    var db = DatabaseHelper();
+    await db.database;
+    List<Opening> whiteOpenings = [];
+    List<Opening> blackOpenings = [];
+    for (var openingName in defaultOpenings()){
+      Opening? op = await db.getOpeningByName(openingName);
+      if (op != null && op.color == PieceColor.white) {
+        whiteOpenings.add(op);
+      }
+      else if (op != null){
+        blackOpenings.add(op);
+      }
+    }
+    Opening global = mergeOpenings(whiteOpenings);
+    whiteOpening = global;
+    global = mergeOpenings(blackOpenings);
+    blackOpening = global;
+  }
+
+  void _loadColorsFromPrefs() {
+    widget.stylePreferences.loadPreferences();
+    setState(() {
+      colors = StylePreferences().selectedColor.value;
+      whiteColor = colors[1];
+      blackColor = colors[0];
+      arrowColor = colors[3];
+      lastMoveColor = colors[2];
+      pieceStyle = StylePreferences().selectedStyle.value;
+    });
+  }
+
+  void _updateBoard() {
+    setState(() {});
+  }
+
+  void _updateColors() {
+    setState(
+          () {
+        colors = widget.stylePreferences.selectedColor.value;
+        whiteColor = colors[1];
+        blackColor = colors[0];
+        arrowColor = colors[3];
+        lastMoveColor = colors[2];
+      },
+    );
+  }
+
+  void _updateStyle() {
+    setState(() {
+      pieceStyle = widget.stylePreferences.selectedStyle.value;
+    });
+  }
+
+  void _updateMoveCount() {
+    setState(() {
+      moveCountMessage = (widget.board.moveCount.value ~/ 2).toString();
+    });
+  }
+
+  void _resetBoard() {
+    setState(() {
+      widget.board.reset();
+      moveIdHistory = [-1];
+      moveHistory = [];
+      validMoves = [];
+      lastMoveFromRow = null;
+      lastMoveFromCol = null;
+      lastMoveToRow = null;
+      lastMoveToCol = null;
+      selectedSquare = null;
+      lastMoveId = -1;
+      newVariant = [];
+    });
+  }
+
+  void _reverseBoard() {
+    setState(() {
+      isReversed = !isReversed;
+    });
+  }
+
+  String scoreStr(int score) {
+    String res = "";
+    if (score != 0) {
+      if (score > 0) {
+        res = '+${score.toString()}';
+      } else {
+        res = score.toString();
+      }
+    }
+    return res;
+  }
+
+  void moveInOpening(OpeningMove move) {
+    newVariant.add([move.from, move.to]);
+    moveHistory.add([move.from, move.to]);
+    moveIdHistory.add(move.id);
+    widget.board
+        .movePiece(move.from.row, move.from.col, move.to.row, move.to.col);
+    setState(() {
+      lastMoveFromRow = move.from.row;
+      lastMoveFromCol = move.from.col;
+      lastMoveToRow = move.to.row;
+      lastMoveToCol = move.to.col;
+      lastMoveId = move.id;
+    });
+  }
+
+  void _undoLastMove() {
+    if (moveHistory.isNotEmpty) {
+      if (moveIdHistory.length > 1) {
+        moveIdHistory.removeLast();
+        lastMoveId = moveIdHistory.last;
+      }
+      moveHistory.removeLast();
+      newVariant.removeLast();
+      widget.board.undoLastMove(moveHistory);
+    }
+    lastMoveFromRow = moveHistory.isNotEmpty ? moveHistory.last[0].row : null;
+    lastMoveFromCol = moveHistory.isNotEmpty ? moveHistory.last[0].col : null;
+    lastMoveToRow = moveHistory.isNotEmpty ? moveHistory.last[1].row : null;
+    lastMoveToCol = moveHistory.isNotEmpty ? moveHistory.last[1].col : null;
+    _updateBoard();
+  }
+
+  void _playNextUniqueMove() {
+    List<OpeningMove> move = whiteOpening.moves
+        .where((move) =>
+    move.moveNumber == widget.board.moveCount.value &&
+        move.previousMoveId == lastMoveId)
+        .toList();
+    if (move.length != 1) {
+      return;
+    }
+    moveInOpening(move.first);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    int currentMoveNumber = widget.board.moveCount.value;
+    bool isNextMoveUnique = whiteOpening.moves
+        .where((move) =>
+    move.moveNumber == currentMoveNumber &&
+        move.previousMoveId == lastMoveId)
+        .length ==
+        1;
+    Color tmpWhiteColor = whiteColor;
+    Color tmpBlackColor = blackColor;
+    Color tmpArrowColor = arrowColor;
+    Color tmpLastMoveColor = lastMoveColor;
+    List<Color> bgColor = [primaryThemeDarkColor, primaryThemeLightColor];
+    Color textColor = Colors.white;
+    int topScore = isReversed
+        ? (widget.board.whiteScore - widget.board.blackScore)
+        : (widget.board.blackScore - widget.board.whiteScore);
+    int bottomScore = isReversed
+        ? (widget.board.blackScore - widget.board.whiteScore)
+        : (widget.board.whiteScore - widget.board.blackScore);
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: bgColor,
+          ),
+        ),
+        child: Column(
+          children: [
+            Center(
+              child: Column(
+                children: [
+                  const SizedBox(
+                    height: 70
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.keyboard_double_arrow_left),
+                        onPressed: currentMoveNumber > 0 ? _undoLastMove : null,
+                        disabledColor: Colors.grey,
+                        color: Colors.white,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.refresh, color: Colors.white),
+                        onPressed: _resetBoard,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.flip, color: Colors.white),
+                        onPressed: _reverseBoard,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.keyboard_double_arrow_right),
+                        onPressed:
+                        isNextMoveUnique ? _playNextUniqueMove : null,
+                        disabledColor: Colors.grey,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                  Center(
+                    child:
+                    getCurrentOpeningName(whiteOpening, currentMoveNumber, lastMoveId) != null ?
+                    Text(getCurrentOpeningName(whiteOpening, currentMoveNumber, lastMoveId)!,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.italic)):
+                    const Text("Global",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.italic)),
+                  )
+                  ,
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CapturedPiecesComponent(
+                            capturedPieces: widget
+                                .board.capturedPieceNotifier.value
+                                .where((element) =>
+                            element.color ==
+                                (isReversed
+                                    ? PieceColor.black
+                                    : PieceColor.white))
+                                .toList(),
+                          ),
+                          topScore > 0
+                              ? Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              height: 30,
+                              width: 30,
+                              child: Center(
+                                  child: Text(
+                                    scoreStr(topScore),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: textColor,
+                                    ),
+                                  )))
+                              : Container(),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Column(
+                        children: [
+                          const SizedBox(height: 15),
+                          Container(
+                            decoration: BoxDecoration(
+                                border: Border.all(
+                                  width: 4,
+                                  color: secondaryThemeDarkColor,
+                                )),
+                            height: MediaQuery.of(context).size.width - 25,
+                            width: MediaQuery.of(context).size.width - 25,
+                            child: Center(
+                              child: MediaQuery.removePadding(
+                                context: context,
+                                removeTop: true,
+                                removeBottom: true,
+                                removeLeft: true,
+                                removeRight: true,
+                                child: Stack(children: [
+                                  GridView.builder(
+                                    physics:
+                                    const NeverScrollableScrollPhysics(),
+                                    gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 8,
+                                    ),
+                                    itemBuilder: (context, index) {
+                                      Color lastMoveColor = tmpLastMoveColor;
+                                      final int row = isReversed
+                                          ? 7 - (index ~/ 8)
+                                          : index ~/ 8;
+                                      final int col = isReversed
+                                          ? 7 - (index % 8)
+                                          : index % 8;
+                                      final Square square =
+                                      widget.board.board[row][col];
+                                      bool isGameOver =
+                                          widget.board.gameResult.value != 0;
+                                      bool isLastFromSquare =
+                                          square.row == lastMoveFromRow &&
+                                              square.col == lastMoveFromCol;
+                                      bool isLastToSquare =
+                                          square.row == lastMoveToRow &&
+                                              square.col == lastMoveToCol;
+                                      Color squareColor = square.isWhite
+                                          ? tmpWhiteColor
+                                          : tmpBlackColor;
+                                      Color otherColor = !square.isWhite
+                                          ? tmpWhiteColor
+                                          : tmpBlackColor;
+                                      squareColor =
+                                      isLastFromSquare || isLastToSquare
+                                          ? lastMoveColor
+                                          : squareColor;
+                                      return GestureDetector(
+                                        onTap: () {
+                                          if (isGameOver) return;
+                                          setState(() {
+                                              if (selectedSquare == null &&
+                                                  square.piece != null &&
+                                                  square.piece!.color ==
+                                                      widget
+                                                          .board.currentTurn) {
+                                                selectedSquare = square;
+                                                validMoves = widget.board
+                                                    .getValidMoves(
+                                                    square.piece!);
+                                              } else if (selectedSquare !=
+                                                  null &&
+                                                  validMoves.contains(square)) {
+                                                newVariant.add(
+                                                    [selectedSquare!, square]);
+                                                moveHistory.add(
+                                                    [selectedSquare!, square]);
+                                                widget.board.movePiece(
+                                                  selectedSquare!.row,
+                                                  selectedSquare!.col,
+                                                  row,
+                                                  col,
+                                                );
+                                                setState(() {
+                                                  lastMoveFromRow =
+                                                      selectedSquare!.row;
+                                                  lastMoveFromCol =
+                                                      selectedSquare!.col;
+                                                  lastMoveToRow = row;
+                                                  lastMoveToCol = col;
+                                                });
+                                                selectedSquare = null;
+                                                validMoves = [];
+                                              } else {
+                                                selectedSquare = null;
+                                                validMoves = [];
+                                              }
+                                          });
+                                        },
+                                        child: Stack(
+                                          children: [
+                                            isLastToSquare || isLastFromSquare
+                                                ? Container(
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.black
+                                                        .withOpacity(0.5),
+                                                    width: 1,
+                                                  ),
+                                                  color: squareColor),
+                                              child: _buildPiece(
+                                                  square.piece),
+                                            )
+                                                : Container(
+                                              decoration: BoxDecoration(
+                                                  color: squareColor),
+                                              child: _buildPiece(
+                                                  square.piece),
+                                            ),
+                                            if (coordinatesIndexes
+                                                .contains(index))
+                                              Positioned(
+                                                bottom: index > 56 ? 2 : null,
+                                                right: index > 56 ? 2 : null,
+                                                top: index <= 56 ? 2 : null,
+                                                left: index <= 56 ? 2 : null,
+                                                child: Text(
+                                                  indexes(index, isReversed),
+                                                  style: TextStyle(
+                                                    color: otherColor,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            if (index == 56)
+                                              Positioned(
+                                                bottom: 2,
+                                                right: 2,
+                                                child: Text(
+                                                  !isReversed ? "a" : "h",
+                                                  style: TextStyle(
+                                                    color: otherColor,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            if (square.piece != null &&
+                                                square.piece!.type ==
+                                                    PieceType.king &&
+                                                widget.board.isCheck(
+                                                    square.piece!.color) &&
+                                                !!widget.board.isCheckmate())
+                                              Positioned(
+                                                top: 2,
+                                                right: 2,
+                                                child: Container(
+                                                  width: 10,
+                                                  height: 10,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.redAccent
+                                                        .withOpacity(1),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                ),
+                                              ),
+                                            if (validMoves.contains(square) &&
+                                                square.piece == null &&
+                                                isInCurrentOpening(
+                                                    selectedSquare!,
+                                                    square) !=
+                                                    null)
+                                              Center(
+                                                child: Container(
+                                                  width: 10,
+                                                  height: 10,
+                                                  decoration: BoxDecoration(
+                                                    color: tmpArrowColor
+                                                        .withOpacity(0.8),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                ),
+                                              ),
+                                            if (validMoves.contains(square) &&
+                                                square.piece != null)
+                                              Container(
+                                                color: Colors.redAccent
+                                                    .withOpacity(0.5),
+                                              ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                    itemCount: 64,
+                                  ),
+                                  IgnorePointer(
+                                    child: CustomPaint(
+                                      size: Size(
+                                          MediaQuery.of(context).size.width -
+                                              25,
+                                          MediaQuery.of(context).size.width -
+                                              25),
+                                      painter: ArrowPainter(
+                                          moves: whiteOpening.moves
+                                              .where((move) =>
+                                          move.moveNumber ==
+                                              currentMoveNumber &&
+                                              lastMoveId ==
+                                                  move.previousMoveId)
+                                              .toList(),
+                                          isReversed: isReversed,
+                                          color: arrowColor),
+                                    ),
+                                  ),
+                                ]),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CapturedPiecesComponent(
+                            capturedPieces: widget
+                                .board.capturedPieceNotifier.value
+                                .where((element) =>
+                            element.color ==
+                                (isReversed
+                                    ? PieceColor.white
+                                    : PieceColor.black))
+                                .toList(),
+                          ),
+                          bottomScore > 0
+                              ? Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              height: 30,
+                              width: 30,
+                              child: Center(
+                                  child: Text(
+                                    scoreStr(bottomScore),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: textColor,
+                                    ),
+                                  )))
+                              : Container(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Align(
+                alignment: Alignment.bottomCenter,
+                child: Text(
+                  'Move n°$moveCountMessage',
+                  style: const TextStyle(
+                    color: Colors.white,
+                  ),
+                ))
+          ],
+        ),
+      ),
+    );
+  }
+
+  OpeningMove? isInCurrentOpening(Square from, Square to) {
+    List<OpeningMove>? doneMove = whiteOpening.moves
+        .where((element) =>
+    element.from.row == from.row &&
+        element.from.col == from.col &&
+        element.to.row == to.row &&
+        element.to.col == to.col &&
+        element.moveNumber == widget.board.moveCount.value &&
+        element.previousMoveId == lastMoveId)
+        .toList();
+    if (doneMove.isNotEmpty) {
+      return doneMove.first;
+    } else {
+      return null;
+    }
+  }
+
+  Widget _buildPiece(Piece? piece) {
+    if (piece == null) {
+      return Container();
+    }
+    return Stack(
+      children: [
+        Center(
+          child: SvgPicture.asset(
+            'assets/images/${pieceTypeToSVG(piece.type, piece.color, pieceStyle)}',
+            width: 60,
+            height: 60,
+          ),
+        ),
+      ],
+    );
+  }
+}
