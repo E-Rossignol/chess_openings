@@ -7,6 +7,7 @@ import '../model/openings/opening.dart';
 import '../model/square.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Singleton helper to manage local SQLite database for openings and moves.
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;
@@ -14,15 +15,21 @@ class DatabaseHelper {
 
   DatabaseHelper._internal();
 
+  /// Provides a reference to the opened database, creating it if necessary.
+  ///
+  /// @return Future<Database> the initialized database
   Future<Database> get database async {
     _database = await _initDatabase();
     return _database!;
   }
 
+  /// Fetches password value from Firestore collection 'pw'.
+  ///
+  /// @return Future<String?> password string or null on error
   Future<String?> fetchPw() async {
     try {
       QuerySnapshot querySnapshot =
-      await FirebaseFirestore.instance.collection('pw').get();
+          await FirebaseFirestore.instance.collection('pw').get();
       return querySnapshot.docs.first['value'];
     } catch (e) {
       print('Erreur : $e');
@@ -30,6 +37,10 @@ class DatabaseHelper {
     return null;
   }
 
+  /// Checks whether the provided code matches the fetched password.
+  ///
+  /// @param input the code to verify
+  /// @return Future<bool> true if input equals stored password
   Future<bool> checkCode(String input) async {
     var pw = await DatabaseHelper().fetchPw();
     if (input != pw || pw == null) {
@@ -38,6 +49,9 @@ class DatabaseHelper {
     return true;
   }
 
+  /// Initializes the SQLite database and ensures required tables exist.
+  ///
+  /// @return Future<Database> the opened database
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'my_database.db');
     return await openDatabase(
@@ -56,6 +70,11 @@ class DatabaseHelper {
     );
   }
 
+  /// Creates necessary tables for openings and opening moves.
+  ///
+  /// @param db database instance
+  /// @param version schema version
+  /// @return Future<void>
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE opening_names (
@@ -77,6 +96,12 @@ class DatabaseHelper {
     ''');
   }
 
+  /// Inserts a new opening name if not already present.
+  ///
+  /// @param openingName name of the opening
+  /// @param pieceColor 'white' or 'black'
+  /// @param isDefault whether the opening is a default one
+  /// @return Future<bool> true if inserted, false if already exists
   Future<bool> insertOpening(
       String openingName, String pieceColor, bool isDefault) async {
     List<String> existingOpenings = await getOpeningsNames();
@@ -96,6 +121,12 @@ class DatabaseHelper {
     return true;
   }
 
+  /// Edits the name and color of an existing opening by id.
+  ///
+  /// @param openingID id of the opening row
+  /// @param openingName new name
+  /// @param pieceColor new piece color
+  /// @return Future<bool> true if a row was updated
   Future<bool> editOpening(
       int openingID, String openingName, String pieceColor) async {
     final db = await database;
@@ -108,6 +139,9 @@ class DatabaseHelper {
     return count > 0;
   }
 
+  /// Returns all opening names ordered by defaults, color and name.
+  ///
+  /// @return Future<List<String>> list of opening names
   Future<List<String>> getOpeningsNames() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -120,6 +154,9 @@ class DatabaseHelper {
     });
   }
 
+  /// Returns user-created openings (non-default).
+  ///
+  /// @return Future<List<String>>
   Future<List<String>> getUsersOpeningsNames() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('opening_names',
@@ -129,6 +166,9 @@ class DatabaseHelper {
     });
   }
 
+  /// Returns default openings.
+  ///
+  /// @return Future<List<String>>
   Future<List<String>> getDefaultOpeningsNames() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('opening_names',
@@ -138,6 +178,9 @@ class DatabaseHelper {
     });
   }
 
+  /// Drops and recreates opening tables and reinserts defaults.
+  ///
+  /// @return Future<bool> true when reset completes
   Future<bool> resetTables() async {
     final db = await database;
     await db.execute('DROP TABLE IF EXISTS opening_names');
@@ -147,6 +190,10 @@ class DatabaseHelper {
     return true;
   }
 
+  /// Deletes an opening and its associated moves by opening name.
+  ///
+  /// @param openingName name to delete
+  /// @return Future<void>
   Future<void> deleteOpening(String openingName) async {
     final db = await database;
     int? id = await getOpeningIdByName(openingName);
@@ -164,6 +211,10 @@ class DatabaseHelper {
     }
   }
 
+  /// Retrieves an Opening object by its name, including its moves.
+  ///
+  /// @param openingName name to query
+  /// @return Future<Opening?> Opening instance or null if not found
   Future<Opening?> getOpeningByName(String openingName) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -190,6 +241,10 @@ class DatabaseHelper {
     }
   }
 
+  /// Returns the database id of an opening given its name.
+  ///
+  /// @param openingName name to lookup
+  /// @return Future<int?> id or null if not found
   Future<int?> getOpeningIdByName(String openingName) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -205,6 +260,10 @@ class DatabaseHelper {
     }
   }
 
+  /// Returns raw move rows for an opening id.
+  ///
+  /// @param openingId id of the opening
+  /// @return Future<List<Map<String, dynamic>>> list of move rows
   Future<List<Map<String, dynamic>>> getMovesByOpeningId(int openingId) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -215,6 +274,12 @@ class DatabaseHelper {
     return maps;
   }
 
+  /// Inserts a variant (sequence of squares) into an existing opening,
+  /// reusing existing move branches when possible.
+  ///
+  /// @param newVariant list of pairs of Square objects representing moves
+  /// @param openingName name of the target opening
+  /// @return Future<List<OpeningMove>?> list of inserted OpeningMove objects or null if opening not found
   Future<List<OpeningMove>?> insertVariant(
       List<List<Square>> newVariant, String openingName) async {
     List<List<Square>> tmp = [];
@@ -277,24 +342,24 @@ class DatabaseHelper {
     return res;
   }
 
+  /// Deletes a move and all its descendants recursively.
+  ///
+  /// @param openingMoveId id of the root move to delete
+  /// @return Future<void>
   Future<void> deleteOpeningMoveAndDescendants(int openingMoveId) async {
     final db = await database;
 
-    // Fonction récursive pour supprimer les descendants
     Future<void> deleteDescendants(int id) async {
-      // Récupérer les enfants directs
       List<Map<String, dynamic>> children = await db.query(
         'opening_moves',
         where: 'is_after = ?',
         whereArgs: [id],
       );
 
-      // Supprimer chaque enfant et ses descendants
       for (var child in children) {
         await deleteDescendants(child['id']);
       }
 
-      // Supprimer le noeud actuel
       await db.delete(
         'opening_moves',
         where: 'id = ?',
@@ -302,14 +367,19 @@ class DatabaseHelper {
       );
     }
 
-    // Commencer par supprimer le noeud racine et ses descendants
     await deleteDescendants(openingMoveId);
   }
 
+  /// Placeholder method for inserting specific openings (keeps existing print).
+  ///
+  /// @return Future<void>
   Future<void> insertErwanOpenings() async {
     print("COUCOU ERWAN");
   }
 
+  /// Inserts default openings into the database if they are not present.
+  ///
+  /// @return Future<void>
   Future<void> insertDefaultOpenings() async {
     bool defaultDone = false;
     for (String name in defaultOpenings()) {
@@ -331,6 +401,9 @@ class DatabaseHelper {
     await insertScotchOpening();
   }
 
+  /// Inserts the Italian opening variants.
+  ///
+  /// @return Future<void>
   Future<void> insertItalianOpening() async {
     await insertOpening('Italian', 'white', true);
     List<String> italian = italianOpening();
@@ -348,6 +421,9 @@ class DatabaseHelper {
     }
   }
 
+  /// Inserts Queen's Gambit opening variants.
+  ///
+  /// @return Future<void>
   Future<void> insertQueensGambitOpening() async {
     await insertOpening('Queen\'s Gambit', 'white', true);
     List<String> queensGambit = queensGambitOpening();
@@ -365,6 +441,9 @@ class DatabaseHelper {
     }
   }
 
+  /// Inserts Sicilian Defense opening variants.
+  ///
+  /// @return Future<void>
   Future<void> insertSicilianDefenseOpening() async {
     await insertOpening('Sicilian Defense', 'black', true);
     List<String> sicilian = sicilianOpening();
@@ -382,6 +461,9 @@ class DatabaseHelper {
     }
   }
 
+  /// Inserts Englund's Gambit opening variants.
+  ///
+  /// @return Future<void>
   Future<void> insertEnglundOpening() async {
     await insertOpening('Englund\'s Gambit', 'black', true);
     List<String> englund = englundOpening();
@@ -399,6 +481,9 @@ class DatabaseHelper {
     }
   }
 
+  /// Inserts Scandinavian opening variants.
+  ///
+  /// @return Future<void>
   Future<void> insertScandinavianOpening() async {
     await insertOpening('Scandinavian Defense', 'black', true);
     List<String> scandinavian = scandinavianOpening();
@@ -416,6 +501,9 @@ class DatabaseHelper {
     }
   }
 
+  /// Inserts Scotch opening variants.
+  ///
+  /// @return Future<void>
   Future<void> insertScotchOpening() async {
     await insertOpening('Scotch Game', 'white', true);
     List<String> scandinavian = scotchOpening();

@@ -12,8 +12,6 @@ import '../model/board.dart';
 import 'opening_main_view.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
-import 'openings/global_opening_board_view.dart';
-
 class MainView extends StatefulWidget {
   @override
   final Key key;
@@ -28,7 +26,6 @@ class _MainViewState extends State<MainView> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
   Key _openingMainViewKey = UniqueKey();
-  final Key _globalOpeningViewKey = UniqueKey();
   Color _selectedColor = Colors.green;
 
   @override

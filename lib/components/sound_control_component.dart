@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Component to control sound mute preference via an IconButton.
 class SoundControlComponent extends StatefulWidget {
   const SoundControlComponent({super.key});
 
@@ -12,12 +13,16 @@ class _SoundControlComponentState extends State<SoundControlComponent> {
   bool _isMuted = false;
   SharedPreferences? _prefs;
 
+  /// Loads saved preferences on init.
   @override
   void initState() {
     super.initState();
     _loadPrefs();
   }
 
+  /// Retrieves SharedPreferences and reads the 'isMuted' preference.
+  ///
+  /// @return Future that completes when preferences are loaded
   Future<void> _loadPrefs() async {
     _prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -25,6 +30,7 @@ class _SoundControlComponentState extends State<SoundControlComponent> {
     });
   }
 
+  /// Toggles the muted state and persists it.
   void _toggleMute() {
     setState(() {
       _isMuted = !_isMuted;
@@ -32,6 +38,10 @@ class _SoundControlComponentState extends State<SoundControlComponent> {
     _prefs!.setBool('isMuted', _isMuted);
   }
 
+  /// Builds the IconButton that represents mute/unmute.
+  ///
+  /// @param context build context
+  /// @return IconButton widget
   @override
   Widget build(BuildContext context) {
     return IconButton(

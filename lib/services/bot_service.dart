@@ -1,5 +1,4 @@
 // lib/services/lichess_service.dart
-// ignore_for_file: avoid_print
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -8,6 +7,11 @@ class BotService {
   final String _baseUrl = 'https://lichess.org/api';
   final String _token = 'lip_O2LxxGz3ag4Cxn9C8CfA';
 
+  /// Creates a new AI game on the remote service.
+  ///
+  /// @param difficulty level between 1 and 8
+  /// @param isBotWhite true if the bot should play white
+  /// @return Future<String?> game id when created or null on error
   Future<String?> createGame(int difficulty, bool isBotWhite) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/challenge/ai'),
@@ -17,21 +21,23 @@ class BotService {
       },
       body: jsonEncode({
         'level': difficulty,
-        // Niveau du bot (1 à 8)
         'color': isBotWhite ? 'black' : 'white',
-        // Couleur du joueur ('white', 'black', 'random')
       }),
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final data = jsonDecode(response.body);
-      return data['id']; // ID de la partie
+      return data['id'];
     } else {
-      print('Erreur lors de la création de la partie : ${response.body}');
+      print('Error creating game: ${response.body}');
       return null;
     }
   }
 
+  /// Sends a move to the remote game.
+  ///
+  /// @param gameId id of the game
+  /// @param move SAN or UCI move string
   Future<void> makeMove(String gameId, String move) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/board/game/$gameId/move/$move'),
@@ -41,10 +47,14 @@ class BotService {
       },
     );
     if (response.statusCode != 200) {
-      print('Erreur lors de l\'envoi du mouvement : ${response.body}');
+      print('Error sending move: ${response.body}');
     }
   }
 
+  /// Streams or fetches the game state from the remote API.
+  ///
+  /// @param gameId id of the game to query
+  /// @return Future<Map<String,dynamic>?> parsed JSON or null on error
   Future<Map<String, dynamic>?> getGameState(String gameId) async {
     final response = await http.get(
       Uri.parse('$_baseUrl/board/game/stream/$gameId'),
@@ -63,8 +73,7 @@ class BotService {
         }
       }
     } else {
-      print(
-          'Erreur lors de la récupération de l\'état de la partie : ${response.body}');
+      print('Error fetching game state: ${response.body}');
       return null;
     }
     return null;

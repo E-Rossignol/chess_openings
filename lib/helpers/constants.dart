@@ -20,8 +20,12 @@ enum PieceColor {
   black,
 }
 
+/// Merges multiple Opening objects into a single Opening containing all moves.
+/// Assumes all openings are played by the same color.
+///
+/// @param openings list of Opening instances to merge
+/// @return Opening merged opening with combined moves
 Opening mergeOpenings(List<Opening> openings) {
-  // Vérifie que toutes les ouvertures sont jouées par la même couleur
   if (openings.isEmpty) {
     throw ArgumentError('La liste des ouvertures ne peut pas être vide.');
   }
@@ -33,7 +37,6 @@ Opening mergeOpenings(List<Opening> openings) {
     }
   }
 
-  // Fusionne les coups en ajoutant un identifiant d'ouverture
   List<OpeningMove> globalMoves = [];
   for (var opening in openings) {
     for (var move in opening.moves) {
@@ -45,13 +48,12 @@ Opening mergeOpenings(List<Opening> openings) {
           to: move.to,
           moveNumber: move.moveNumber,
           previousMoveId: move.previousMoveId,
-          openingName: opening.name, // Ajoute le nom de l'ouverture d'origine
+          openingName: opening.name,
         ),
       );
     }
   }
 
-  // Crée l'ouverture globale
   return Opening(
     name: "Global Opening",
     moves: globalMoves,
@@ -59,15 +61,20 @@ Opening mergeOpenings(List<Opening> openings) {
   );
 }
 
-// Méthode pour identifier l'ouverture d'origine à un moment donné
+/// Attempts to determine the original opening name for a given move state.
+///
+/// @param globalOpening combined Opening object
+/// @param moveNumber move number to match
+/// @param lastMoveId previous move id to match
+/// @return String? matching opening name or null if none found
 String? getCurrentOpeningName(
     Opening globalOpening, int moveNumber, int lastMoveId) {
   for (var move in globalOpening.moves) {
     if (move.moveNumber == moveNumber && move.previousMoveId == lastMoveId) {
-      return move.openingName; // Retourne le nom de l'ouverture d'origine
+      return move.openingName;
     }
   }
-  return null; // Aucun coup correspondant trouvé
+  return null;
 }
 
 Color primaryThemeDarkColor = const Color.fromRGBO(14, 31, 44, 1.0);
@@ -75,6 +82,7 @@ Color primaryThemeLightColor = const Color.fromRGBO(242, 239, 229, 1.0);
 Color secondaryThemeDarkColor = const Color.fromRGBO(44, 27, 14, 1.0);
 Color secondaryThemeLightColor = const Color.fromRGBO(229, 232, 242, 1.0);
 
+/// Returns a lighter variant of the provided color by increasing RGB channels.
 Color lighterColor(Color init) {
   int red = init.red;
   int green = init.green;
@@ -146,6 +154,7 @@ List<Color> displayColors = [
   boardColors[7][0],
 ];
 
+/// Maps a color to a string identifier used by the app.
 String colorToStr(Color color) {
   if (color == boardColors[0][0]) {
     return 'green';
@@ -174,6 +183,10 @@ String colorToStr(Color color) {
   return 'green';
 }
 
+/// Returns a color palette matching the provided name.
+///
+/// @param name palette name or null
+/// @return List<Color> selected palette
 List<Color> getColor(String? name) {
   if (name == null) {
     return boardColors[0];
@@ -234,6 +247,7 @@ List<String> styleNames = [
   'xkcd'
 ];
 
+/// Returns a nested list of example SvgPicture widgets for each style.
 List<List<SvgPicture>> displayPieces() {
   List<List<SvgPicture>> list = [];
   for (int i = 0; i < styleNames.length; i++) {
@@ -255,10 +269,17 @@ List<List<SvgPicture>> displayPieces() {
   return list;
 }
 
+/// Toggles a PieceColor value.
 PieceColor toggleColor(PieceColor color) {
   return color == PieceColor.white ? PieceColor.black : PieceColor.white;
 }
 
+/// Returns the SVG path for a piece type, color and chosen style.
+///
+/// @param type piece type
+/// @param color piece color
+/// @param style style name (defaults to 'alpha' when empty)
+/// @return String path relative to assets/images
 String pieceTypeToSVG(PieceType type, PieceColor color, String style) {
   if (style == '') {
     style = 'alpha';
@@ -316,6 +337,11 @@ int getValue(Piece piece) {
   return value;
 }
 
+/// Converts row,col to chess coordinate parts like ['a','1'].
+///
+/// @param row board row index
+/// @param col board column index
+/// @return List<String> [file, rank]
 List<String> toChessCoordinates(int row, int col) {
   return [
     String.fromCharCode(97 + col),
@@ -323,6 +349,11 @@ List<String> toChessCoordinates(int row, int col) {
   ];
 }
 
+/// Converts chess coordinates to row,col integers.
+///
+/// @param row file letter
+/// @param col rank string
+/// @return List<int> [rowIndex, colIndex]
 List<int> fromChessCoordinates(String row, String col) {
   return [
     8 - int.parse(col),
@@ -330,12 +361,21 @@ List<int> fromChessCoordinates(String row, String col) {
   ];
 }
 
+/// Manhattan distance between two squares.
+///
+/// @param square1 first square
+/// @param square2 second square
+/// @return int distance
 int distance(Square square1, Square square2) {
   int rowDistance = (square1.row - square2.row).abs();
   int colDistance = (square1.col - square2.col).abs();
   return rowDistance + colDistance;
 }
 
+/// Constructs an OpeningMove from a database query map.
+///
+/// @param moveQuery map row from DB
+/// @return OpeningMove instance
 OpeningMove getMoveFromQuery(Map<String, dynamic> moveQuery) {
   OpeningMove move = OpeningMove(
       openingId: moveQuery['id_table'],
@@ -347,6 +387,10 @@ OpeningMove getMoveFromQuery(Map<String, dynamic> moveQuery) {
   return move;
 }
 
+/// Builds a map representation suitable for DB insertion from an OpeningMove.
+///
+/// @param move OpeningMove instance
+/// @return Map<String,dynamic> DB-ready map
 Map<String, dynamic> getQueryFromMove(OpeningMove move) {
   return {
     'id_table': move.openingId,
@@ -358,15 +402,23 @@ Map<String, dynamic> getQueryFromMove(OpeningMove move) {
   };
 }
 
+/// Parses a square string like 'e2' to a Square object.
+///
+/// @param position string coordinates
+/// @return Square instance
 Square stringToSquare(String position) {
-  int col = position.codeUnitAt(0) - 97; // Convertit 'a'-'h' en 0-7
-  int row = 8 - int.parse(position[1]); // Convertit '1'-'8' en 7-0
+  int col = position.codeUnitAt(0) - 97;
+  int row = 8 - int.parse(position[1]);
   return Square(row, col);
 }
 
+/// Converts a Square to algebraic string like 'e2'.
+///
+/// @param square square instance
+/// @return String algebraic coordinate
 String squareToString(Square square) {
-  String col = String.fromCharCode(97 + square.col); // Convertit 0-7 en 'a'-'h'
-  String row = (8 - square.row).toString(); // Convertit 7-0 en '1'-'8'
+  String col = String.fromCharCode(97 + square.col);
+  String row = (8 - square.row).toString();
   return col + row;
 }
 
@@ -463,6 +515,7 @@ List<String> scotchOpening() {
   return result;
 }
 
+/// Returns a numeric value used for sorting pieces (pawn=1 ... queen=9, king=0).
 int pieceValue(PieceType type) {
   switch (type) {
     case PieceType.pawn:
@@ -480,9 +533,13 @@ int pieceValue(PieceType type) {
   }
 }
 
+/// Returns index labels used for board coordinate rendering.
+///
+/// @param index index in coordinate array
+/// @param isReversed whether board is reversed
+/// @return String label or "0" default
 String indexes(int index, bool isReversed) {
   String res = "";
-  // 0,8,16,32,40,48,56,57,58,59,60,61,62,63
   switch (index) {
     case 0:
       res = isReversed ? "1" : "8";

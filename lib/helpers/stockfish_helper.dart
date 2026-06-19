@@ -3,13 +3,22 @@ import 'package:chess_openings/model/board.dart';
 import 'package:chess_openings/model/piece.dart';
 import 'constants.dart';
 
+/// Helper providing stockfish related utilities (stubbed analysis and FEN builder).
 class StockfishHelper {
+  /// Returns a mocked analysis value between -1 and 1.
+  ///
+  /// @param board current Board state
+  /// @return Future<double> analysis score (stubbed random)
   Future<double> getAnalysisValue(Board board) async {
     Random rdm = Random();
     double randomValue = rdm.nextDouble() * 2 - 1;
     return randomValue;
   }
 
+  /// Converts the Board instance into a FEN string (partial fields included).
+  ///
+  /// @param board board instance to serialize
+  /// @return String FEN-like representation including active color, castling, and move count
   String boardToFen(Board board) {
     String res = "";
     for (int i = 0; i < 8; i++) {

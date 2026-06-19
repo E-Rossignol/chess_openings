@@ -5,6 +5,9 @@ import '../helpers/constants.dart';
 import '../model/board.dart';
 import '../views/bot_view.dart';
 
+/// Dialog component to choose bot difficulty and color.
+///
+/// Presents a slider for difficulty and tap targets to choose bot color.
 class BotSettingsDialogComponent extends StatefulWidget {
   const BotSettingsDialogComponent({super.key});
 
@@ -18,6 +21,10 @@ class _BotSettingsDialogComponentState
   int difficulty = 4;
   bool isBotWhite = false;
 
+  /// Builds the dialog UI with difficulty slider and color selection.
+  ///
+  /// @param context build context
+  /// @return an AlertDialog containing settings controls and an OK action
   @override
   Widget build(BuildContext context) {
     return AlertDialog(

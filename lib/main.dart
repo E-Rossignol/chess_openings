@@ -6,7 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'database/database_helper.dart';
 
-void main() async {
+/// Application entry point that initializes Firebase and preferences, then runs the app.
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -22,11 +23,17 @@ void main() async {
   runApp(MyApp(hasCode: hasCode));
 }
 
+/// Root widget for the application.
+///
+/// @param hasCode boolean indicating whether the user already provided a valid code
 class MyApp extends StatelessWidget {
   final bool hasCode;
   const MyApp({super.key, required this.hasCode});
 
-  // This widget is the root of your application.
+  /// Builds the MaterialApp and initial theme.
+  ///
+  /// @param context build context
+  /// @return Widget the application widget tree
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

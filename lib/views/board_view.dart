@@ -8,8 +8,6 @@ import '../model/board.dart';
 import '../model/piece.dart';
 import '../model/square.dart';
 import '../model/style_preferences.dart';
-import '../helpers/stockfish_helper.dart';
-import '../components/analysis_bar.dart';
 
 class BoardView extends StatefulWidget {
   final Board board;

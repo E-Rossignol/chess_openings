@@ -1,4 +1,3 @@
-// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 import 'package:chess_openings/helpers/stockfish_helper.dart';
 import 'package:chess_openings/model/piece.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,8 +5,14 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/constants.dart';
 import 'square.dart';
-import '../helpers/stockfish_helper.dart';
 
+/// Represents the chess board and encapsulates game state and logic.
+///
+/// Manages the 8x8 grid of squares, piece placement, move validation,
+/// game status (check, checkmate, draw), move history notifications and
+/// audio feedback.
+///
+/// @see Square
 class Board {
   final List<List<Square>> board;
   ValueNotifier<bool> boardNotifier = ValueNotifier(false);
@@ -15,8 +20,7 @@ class Board {
   PieceColor currentTurn = PieceColor.white;
   int whiteScore = 0;
   int blackScore = 0;
-  ValueNotifier<int> gameResult = ValueNotifier<int>(
-      0); // 0: ongoing, 1: white wins, 2: black wins, 3: draw
+  ValueNotifier<int> gameResult = ValueNotifier<int>(0);
   ValueNotifier<double> boardAnalysis = ValueNotifier<double>(0);
   Square? lastMoveFrom;
   Square? lastMoveTo;
@@ -26,47 +30,55 @@ class Board {
   bool isBQCastlePossible = true;
   bool isBKCastlePossible = true;
 
+  /// Creates a new Board and initializes the 8x8 squares and starting pieces.
+  ///
+  /// @return a new Board instance with the standard starting setup
   Board()
       : board = List.generate(
             8, (row) => List.generate(8, (col) => Square(row, col))) {
-    // Initialize pieces on the board
     moveCount.value = 0;
     _initializePieces();
   }
 
-  String availableCastles(){
+  /// Returns a string representing available castling rights (e.g. "KQkq").
+  ///
+  /// The method inspects piece positions, moved flags and threats to determine
+  /// which castling rights are currently legal.
+  ///
+  /// @return a concatenated string of castling characters (may be empty)
+  String availableCastles() {
     List<String> res = ["K", "Q", "k", "q"];
-    //Check if WQ castle is possible
     if (board[7][0].piece == null || board[7][0].piece!.hasMove ||
         board[7][4].piece == null || board[7][4].piece!.hasMove ||
         board[7][1].piece != null || board[7][2].piece != null || board[7][3].piece != null ||
-        isThreatened(board[7][1], PieceColor.white) || isThreatened(board[7][2], PieceColor.white) || isThreatened(board[7][3], PieceColor.white) || isThreatened(board[7][4], PieceColor.white)){
+        isThreatened(board[7][1], PieceColor.white) || isThreatened(board[7][2], PieceColor.white) || isThreatened(board[7][3], PieceColor.white) || isThreatened(board[7][4], PieceColor.white)) {
       res.remove("Q");
     }
-    //Check if WK castle is possible
     if (board[7][7].piece == null || board[7][7].piece!.hasMove ||
         board[7][4].piece == null || board[7][4].piece!.hasMove ||
         board[7][5].piece != null || board[7][6].piece != null ||
-        isThreatened(board[7][5], PieceColor.white) || isThreatened(board[7][6], PieceColor.white) || isThreatened(board[7][4], PieceColor.white)){
+        isThreatened(board[7][5], PieceColor.white) || isThreatened(board[7][6], PieceColor.white) || isThreatened(board[7][4], PieceColor.white)) {
       res.remove("K");
     }
-    //Check if BQ castle is possible
     if (board[0][0].piece == null || board[0][0].piece!.hasMove ||
         board[0][4].piece == null || board[0][4].piece!.hasMove ||
         board[0][1].piece != null || board[0][2].piece != null || board[0][3].piece != null ||
-        isThreatened(board[0][1], PieceColor.black) || isThreatened(board[0][2], PieceColor.black) || isThreatened(board[0][3], PieceColor.black) || isThreatened(board[0][4], PieceColor.black)){
+        isThreatened(board[0][1], PieceColor.black) || isThreatened(board[0][2], PieceColor.black) || isThreatened(board[0][3], PieceColor.black) || isThreatened(board[0][4], PieceColor.black)) {
       res.remove("q");
     }
-    //Check if BK castle is possible
     if (board[0][7].piece == null || board[0][7].piece!.hasMove ||
         board[0][4].piece == null || board[0][4].piece!.hasMove ||
         board[0][5].piece != null || board[0][6].piece != null ||
-        isThreatened(board[0][5], PieceColor.black) || isThreatened(board[0][6], PieceColor.black) || isThreatened(board[0][4], PieceColor.black)){
+        isThreatened(board[0][5], PieceColor.black) || isThreatened(board[0][6], PieceColor.black) || isThreatened(board[0][4], PieceColor.black)) {
       res.remove("k");
     }
     return res.join("");
   }
 
+  /// Resets the board and replays a list of moves to restore a previous state.
+  ///
+  /// @param history list of moves where each move is a pair of Squares [from, to]
+  /// @return Future<void> completes when the board has been rebuilt and analysis updated
   Future<void> undoLastMove(List<List<Square>> history) async {
     reset();
     for (List<Square> move in history) {
@@ -77,10 +89,22 @@ class Board {
     boardNotifier.value = boardNotifier.value;
   }
 
+  /// Updates the board analysis value using StockfishHelper.
+  ///
+  /// @return Future<void> completes when analysis value is set
   Future<void> updateAnalysisValue() async {
     boardAnalysis.value = await StockfishHelper().getAnalysisValue(this);
   }
 
+  /// Generates and returns valid target squares for a given piece.
+  ///
+  /// The returned list respects piece movement rules, captures, castling and
+  /// optionally filters out moves that would leave the king in check.
+  ///
+  /// @param piece the Piece to generate moves for
+  /// @param checkCheck whether to exclude moves that leave own king in check
+  /// @param excludeKing whether to exclude king moves (used for threat calculations)
+  /// @return list of valid destination Square objects
   List<Square> getValidMoves(Piece piece,
       {bool checkCheck = true, bool excludeKing = false}) {
     List<Square> validMoves = [];
@@ -129,7 +153,6 @@ class Board {
         break;
 
       case PieceType.rook:
-        // Move up
         for (int i = originSquare.row - 1; i >= 0; i--) {
           if (board[i][originSquare.col].piece == null) {
             validMoves.add(board[i][originSquare.col]);
@@ -137,11 +160,9 @@ class Board {
             if (board[i][originSquare.col].piece!.color != piece.color) {
               validMoves.add(board[i][originSquare.col]);
             }
-            // When the rook meets a piece, it can't move further
             break;
           }
         }
-        // Move down
         for (int i = originSquare.row + 1; i < 8; i++) {
           if (board[i][originSquare.col].piece == null) {
             validMoves.add(board[i][originSquare.col]);
@@ -152,7 +173,6 @@ class Board {
             break;
           }
         }
-        // Move left
         for (int i = originSquare.col - 1; i >= 0; i--) {
           if (board[originSquare.row][i].piece == null) {
             validMoves.add(board[originSquare.row][i]);
@@ -163,7 +183,6 @@ class Board {
             break;
           }
         }
-        // Move horizontally right
         for (int i = originSquare.col + 1; i < 8; i++) {
           if (board[originSquare.row][i].piece == null) {
             validMoves.add(board[originSquare.row][i]);
@@ -177,7 +196,6 @@ class Board {
         break;
 
       case PieceType.knight:
-        // Define all possible moves for the knight
         List<List<int>> knightMoves = [
           [2, 1],
           [2, -1],
@@ -191,10 +209,8 @@ class Board {
         for (var move in knightMoves) {
           int newRow = originSquare.row + move[0];
           int newCol = originSquare.col + move[1];
-          // Check if the move is within the bounds of the board
           if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
             Square targetSquare = board[newRow][newCol];
-            // Check if the target square is empty or contains an opponent's piece
             if (targetSquare.piece == null ||
                 targetSquare.piece!.color != piece.color) {
               validMoves.add(targetSquare);
@@ -204,7 +220,6 @@ class Board {
         break;
 
       case PieceType.bishop:
-        // Move diagonally up-left
         for (int i = 1;
             originSquare.row - i >= 0 && originSquare.col - i >= 0;
             i++) {
@@ -220,7 +235,6 @@ class Board {
             break;
           }
         }
-        // Move diagonally up-right
         for (int i = 1;
             originSquare.row - i >= 0 && originSquare.col + i < 8;
             i++) {
@@ -236,7 +250,6 @@ class Board {
             break;
           }
         }
-        // Move diagonally down-left
         for (int i = 1;
             originSquare.row + i < 8 && originSquare.col - i >= 0;
             i++) {
@@ -252,7 +265,6 @@ class Board {
             break;
           }
         }
-        // Move diagonally down-right
         for (int i = 1;
             originSquare.row + i < 8 && originSquare.col + i < 8;
             i++) {
@@ -271,9 +283,6 @@ class Board {
         break;
 
       case PieceType.queen:
-        // Combine rook and bishop moves
-        // Rook moves
-        // Move vertically up
         for (int i = originSquare.row - 1; i >= 0; i--) {
           if (board[i][originSquare.col].piece == null) {
             validMoves.add(board[i][originSquare.col]);
@@ -284,7 +293,6 @@ class Board {
             break;
           }
         }
-        // Move vertically down
         for (int i = originSquare.row + 1; i < 8; i++) {
           if (board[i][originSquare.col].piece == null) {
             validMoves.add(board[i][originSquare.col]);
@@ -295,7 +303,6 @@ class Board {
             break;
           }
         }
-        // Move horizontally left
         for (int i = originSquare.col - 1; i >= 0; i--) {
           if (board[originSquare.row][i].piece == null) {
             validMoves.add(board[originSquare.row][i]);
@@ -306,7 +313,6 @@ class Board {
             break;
           }
         }
-        // Move horizontally right
         for (int i = originSquare.col + 1; i < 8; i++) {
           if (board[originSquare.row][i].piece == null) {
             validMoves.add(board[originSquare.row][i]);
@@ -317,8 +323,6 @@ class Board {
             break;
           }
         }
-        // Bishop moves
-        // Move diagonally up-left
         for (int i = 1;
             originSquare.row - i >= 0 && originSquare.col - i >= 0;
             i++) {
@@ -334,7 +338,6 @@ class Board {
             break;
           }
         }
-        // Move diagonally up-right
         for (int i = 1;
             originSquare.row - i >= 0 && originSquare.col + i < 8;
             i++) {
@@ -350,7 +353,6 @@ class Board {
             break;
           }
         }
-        // Move diagonally down-left
         for (int i = 1;
             originSquare.row + i < 8 && originSquare.col - i >= 0;
             i++) {
@@ -366,7 +368,6 @@ class Board {
             break;
           }
         }
-        // Move diagonally down-right
         for (int i = 1;
             originSquare.row + i < 8 && originSquare.col + i < 8;
             i++) {
@@ -388,7 +389,6 @@ class Board {
         if (excludeKing) {
           break;
         }
-        // Define all possible moves for the king
         List<List<int>> kingMoves = [
           [1, 0],
           [-1, 0],
@@ -402,21 +402,17 @@ class Board {
         for (var move in kingMoves) {
           int newRow = originSquare.row + move[0];
           int newCol = originSquare.col + move[1];
-          // Check if the move is within the bounds of the board
           if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
             Square targetSquare = board[newRow][newCol];
-            // Check if the target square is empty or contains an opponent's piece
             if (targetSquare.piece == null ||
                 targetSquare.piece!.color != piece.color) {
               validMoves.add(targetSquare);
             }
           }
         }
-        // Castling logic
         if (originSquare.row == (piece.color == PieceColor.white ? 7 : 0) &&
             originSquare.col == 4 &&
             !piece.hasMove) {
-          // Check for kingside castling
           if (board[originSquare.row][5].piece == null &&
               board[originSquare.row][6].piece == null &&
               board[originSquare.row][7].piece != null &&
@@ -428,7 +424,6 @@ class Board {
                   excludeKing: true)) {
             validMoves.add(board[originSquare.row][6]);
           }
-          // Check for queenside castling
           if (board[originSquare.row][1].piece == null &&
               board[originSquare.row][2].piece == null &&
               board[originSquare.row][3].piece == null &&
@@ -452,20 +447,16 @@ class Board {
         continue;
       }
     }
-    // Check if the move puts the king in check
     if (checkCheck) {
       List<Square> validMovesCopy = List.from(validMoves);
       for (var move in validMovesCopy) {
-        // Simulate the move
         var originalPiece = move.piece;
         var fromSquare = board[originSquare.row][originSquare.col];
         fromSquare.piece = null;
         move.piece = piece;
-        // Check if the move puts the king in check
         if (isCheck(piece.color, checkCheck: false)) {
           validMoves.remove(move);
         }
-        // Undo the move
         fromSquare.piece = piece;
         move.piece = originalPiece;
       }
@@ -473,10 +464,22 @@ class Board {
     return validMoves;
   }
 
+  /// Checks if provided row/col are inside the board.
+  ///
+  /// @param row the row index to validate
+  /// @param col the column index to validate
+  /// @return true when the position is valid (0..7)
   bool isValidPosition(int row, int col) {
     return row >= 0 && row < 8 && col >= 0 && col < 8;
   }
 
+  /// Determines whether the given square is threatened by the opponent.
+  ///
+  /// @param square the Square to evaluate
+  /// @param threatened color whose square is being evaluated
+  /// @param checkCheck whether to filter moves that leave king in check
+  /// @param excludeKing whether to exclude king moves when computing threats
+  /// @return true if the square is attacked by the opponent
   bool isThreatened(Square square, PieceColor threatened,
       {bool checkCheck = false, bool excludeKing = false}) {
     List<Square> opponentPieces = [];
@@ -501,6 +504,11 @@ class Board {
     return false;
   }
 
+  /// Returns whether the king of the specified color is currently in check.
+  ///
+  /// @param color the king color to test
+  /// @param checkCheck forwarded to isThreatened
+  /// @return true if the king is in check
   bool isCheck(PieceColor color, {bool checkCheck = false}) {
     Square? kingSquare;
     for (var row in board) {
@@ -519,8 +527,10 @@ class Board {
     return isThreatened(kingSquare, color, checkCheck: checkCheck);
   }
 
+  /// Tests whether the current player is checkmated.
+  ///
+  /// @return true if checkmate for the current player
   bool isCheckmate() {
-    // Get the current player's pieces
     List<Square> currentPlayerPieces = [];
     for (var row in board) {
       for (var square in row) {
@@ -529,35 +539,33 @@ class Board {
         }
       }
     }
-    // Check if any move can remove the check
     for (var pieceSquare in currentPlayerPieces) {
       var playerPiece = pieceSquare.piece!;
       for (var row in board) {
         for (var square in row) {
           if (getValidMoves(playerPiece, checkCheck: false).contains(square)) {
-            // Simulate the move
             var originalPiece = square.piece;
             var fromSquare = board[pieceSquare.row][pieceSquare.col];
             fromSquare.piece = null;
             square.piece = playerPiece;
-            // Check if the move removes the check
             if (!isCheck(currentTurn, checkCheck: false)) {
-              // Undo the move
               fromSquare.piece = playerPiece;
               square.piece = originalPiece;
               return false;
             }
-            // Undo the move
             fromSquare.piece = playerPiece;
             square.piece = originalPiece;
           }
         }
       }
     }
-    // If no valid move can remove the check, it's checkmate
     return true;
   }
 
+  /// Finds the square that currently contains the provided piece.
+  ///
+  /// @param piece the Piece instance to locate
+  /// @return the Square containing the piece or null if not found
   Square? findPiece(Piece piece) {
     for (var row in board) {
       for (var square in row) {
@@ -569,6 +577,15 @@ class Board {
     return null;
   }
 
+  /// Attempts to move a piece from one square to another, handling captures and special rules.
+  ///
+  /// The method updates game state, scores, notifiers, castling and plays sounds.
+  ///
+  /// @param fromRow origin row index
+  /// @param fromCol origin column index
+  /// @param toRow destination row index
+  /// @param toCol destination column index
+  /// @return Future<bool> true when the move was successfully performed
   Future<bool> movePiece(int fromRow, int fromCol, int toRow, int toCol) async {
     String toPlay = "";
     bool castling = false;
@@ -576,18 +593,15 @@ class Board {
     if (piece != null && piece.color == currentTurn) {
       List<Square> validMoves = getValidMoves(piece, checkCheck: true);
       if (validMoves.contains(board[toRow][toCol])) {
-        // Check if it's a castle move
         if (piece.type == PieceType.king &&
             fromRow == (piece.color == PieceColor.white ? 7 : 0) &&
             fromCol == 4 &&
             (toCol == 2 || toCol == 6)) {
           castling = true;
-          // Kingside castle
           if (toCol == 6) {
             board[toRow][5].piece = board[toRow][7].piece;
             board[toRow][7].piece = null;
           }
-          // Queenside castle
           if (toCol == 2) {
             board[toRow][3].piece = board[toRow][0].piece;
             board[toRow][0].piece = null;
@@ -633,18 +647,21 @@ class Board {
     return false;
   }
 
+  /// Plays a sound asset unless muted in preferences.
+  ///
+  /// @param fileName asset filename to play
+  /// @return Future<void> completes when playback is attempted
   Future<void> _playSound(String fileName) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isMuted = prefs.getBool('isMuted') ?? false;
     if (isMuted) {
       return;
     }
-    try{
+    try {
       AudioPlayer audioPlayer = AudioPlayer();
       audioPlayer.setAudioContext(AudioContext(
         android: const AudioContextAndroid(
-            audioFocus: AndroidAudioFocus.gainTransientMayDuck
-        ),
+            audioFocus: AndroidAudioFocus.gainTransientMayDuck),
         iOS: AudioContextIOS(
           category: AVAudioSessionCategory.playback,
           options: const {AVAudioSessionOptions.mixWithOthers},
@@ -652,11 +669,14 @@ class Board {
       ));
       audioPlayer.setVolume(60);
       await audioPlayer.play(AssetSource('assets/audio/$fileName'));
-    } catch(e){
-      print("Error: $e");
+    } catch (e) {
+      // Intentionally ignore playback errors at runtime
     }
   }
 
+  /// Updates material score based on a captured piece.
+  ///
+  /// @param captured the Piece that was captured
   void _updateScore(Piece captured) {
     if (captured.color == PieceColor.white) {
       blackScore += pieceValue(captured.type);
@@ -665,6 +685,9 @@ class Board {
     }
   }
 
+  /// Resets the board to the initial position and clears game state.
+  ///
+  /// @return void
   void reset() {
     for (var row in board) {
       for (var square in row) {
@@ -682,6 +705,11 @@ class Board {
     lastMoveTo = null;
   }
 
+  /// Determines if the current position is a draw by material or stalemate.
+  ///
+  /// This method sets gameResult.value = -1 when a draw condition is detected.
+  ///
+  /// @return void
   void isDraw() {
     List<Piece> remainingPieces = [];
     for (var row in board) {
@@ -710,6 +738,9 @@ class Board {
     }
   }
 
+  /// Initializes pieces to the standard chess starting setup.
+  ///
+  /// @return void
   void _initializePieces() {
     Piece whitePawn1 = Piece(
         type: PieceType.pawn, color: PieceColor.white, id: 1, hasMove: false);
