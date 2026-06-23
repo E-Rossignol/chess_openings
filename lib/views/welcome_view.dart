@@ -14,7 +14,6 @@ class WelcomeView extends StatefulWidget {
 class _WelcomeViewState extends State<WelcomeView> {
   final TextEditingController _codeController = TextEditingController();
 
-
   void _validateCode() async {
     var prefs = await SharedPreferences.getInstance();
     bool isOk = await DatabaseHelper().checkCode(_codeController.text);
@@ -82,7 +81,10 @@ class _WelcomeViewState extends State<WelcomeView> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 onPressed: _validateCode,
-                child: Text("Valider", style: TextStyle(fontSize: 16, color: primaryThemeDarkColor)),
+                child: Text(
+                  "Valider",
+                  style: TextStyle(fontSize: 16, color: primaryThemeDarkColor),
+                ),
               ),
             ],
           ),

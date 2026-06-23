@@ -15,10 +15,7 @@ class _WaitingViewState extends State<WaitingView> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Text("Not implemented yet"),
-          CircularProgressIndicator(
-            color: Colors.black,
-            strokeWidth: 2,
-          ),
+          CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
         ],
       ),
     );

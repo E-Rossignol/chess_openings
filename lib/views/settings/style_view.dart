@@ -16,8 +16,11 @@ class BoardColorPicker extends StatelessWidget {
   final Color color1;
   final Color color2;
 
-  const BoardColorPicker(
-      {required this.color1, required this.color2, super.key});
+  const BoardColorPicker({
+    required this.color1,
+    required this.color2,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,11 +67,7 @@ class BoardColorPicker extends StatelessWidget {
   }
 
   Widget _buildSquare(Color color) {
-    return Container(
-      width: 35,
-      height: 35,
-      color: color,
-    );
+    return Container(width: 35, height: 35, color: color);
   }
 }
 
@@ -76,8 +75,11 @@ class PieceStylePicker extends StatelessWidget {
   final List<SvgPicture> pieces;
   final bool isSelected;
 
-  const PieceStylePicker(
-      {required this.pieces, super.key, required this.isSelected});
+  const PieceStylePicker({
+    required this.pieces,
+    super.key,
+    required this.isSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -101,12 +103,12 @@ class PieceStylePicker extends StatelessWidget {
                 child: Text(
                   txt,
                   style: TextStyle(
-                      color: isSelected
-                          ? const Color.fromRGBO(183, 0, 0, 1)
-                          : Colors.white,
-                      fontSize: isSelected ? 25 : 20,
-                      fontStyle:
-                          isSelected ? FontStyle.italic : FontStyle.normal),
+                    color: isSelected
+                        ? const Color.fromRGBO(183, 0, 0, 1)
+                        : Colors.white,
+                    fontSize: isSelected ? 25 : 20,
+                    fontStyle: isSelected ? FontStyle.italic : FontStyle.normal,
+                  ),
                 ),
               ),
               Column(
@@ -120,7 +122,7 @@ class PieceStylePicker extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: _buildPiece([pieces[3], pieces[4], pieces[5]]),
-                  )
+                  ),
                 ],
               ),
             ],
@@ -133,16 +135,15 @@ class PieceStylePicker extends StatelessWidget {
   List<Widget> _buildPiece(List<SvgPicture> pieces) {
     List<Widget> res = [];
     for (SvgPicture piece in pieces) {
-      res.add(Container(
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: secondaryThemeDarkColor,
-            width: 2,
+      res.add(
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: secondaryThemeDarkColor, width: 2),
+            color: secondaryThemeLightColor,
           ),
-          color: secondaryThemeLightColor,
+          child: piece,
         ),
-        child: piece,
-      ));
+      );
     }
     return res;
   }
@@ -237,8 +238,9 @@ class _StyleViewState extends State<StyleView> {
                                   setState(() {
                                     selectedColor = colorPair[0];
                                   });
-                                  stylePreferences
-                                      .updateColor(colorToStr(colorPair[0]));
+                                  stylePreferences.updateColor(
+                                    colorToStr(colorPair[0]),
+                                  );
                                 },
                                 child: Container(
                                   decoration: BoxDecoration(
@@ -284,11 +286,16 @@ class _StyleViewState extends State<StyleView> {
                                       width: 4,
                                     ),
                                   ),
-                                  margin:
-                                      const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                                  margin: const EdgeInsets.fromLTRB(
+                                    0,
+                                    10,
+                                    0,
+                                    10,
+                                  ),
                                   child: PieceStylePicker(
-                                      pieces: style,
-                                      isSelected: selectedStyle == index),
+                                    pieces: style,
+                                    isSelected: selectedStyle == index,
+                                  ),
                                 ),
                               );
                             }).toList(),
@@ -307,11 +314,9 @@ class _StyleViewState extends State<StyleView> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Changes applied'),
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Changes applied')));
         },
         child: const Icon(Icons.done),
       ),

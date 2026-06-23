@@ -39,8 +39,12 @@ class Test {
         break;
       } else {
         Move selectedMove = selectPreferredMove(validMoves);
-        await board.movePiece(selectedMove.fromRow, selectedMove.fromCol,
-            selectedMove.toRow, selectedMove.toCol);
+        await board.movePiece(
+          selectedMove.fromRow,
+          selectedMove.fromCol,
+          selectedMove.toRow,
+          selectedMove.toCol,
+        );
         switchTurn();
         await Future.delayed(const Duration(milliseconds: 100));
       }
@@ -56,12 +60,15 @@ class Test {
         if (square.piece != null && square.piece!.color == playing) {
           List<Square> moves = board.getValidMoves(square.piece!);
           for (Square move in moves) {
-            validMoves.add(Move(
+            validMoves.add(
+              Move(
                 fromRow: row,
                 fromCol: col,
                 toRow: move.row,
                 toCol: move.col,
-                capturedPiece: move.piece));
+                capturedPiece: move.piece,
+              ),
+            );
           }
         }
       }
@@ -70,8 +77,9 @@ class Test {
   }
 
   Move selectPreferredMove(List<Move> validMoves) {
-    List<Move> capturingMoves =
-        validMoves.where((move) => move.capturedPiece != null).toList();
+    List<Move> capturingMoves = validMoves
+        .where((move) => move.capturedPiece != null)
+        .toList();
     for (Move move in capturingMoves) {
       for (int i = 0; i < getValue(move.capturedPiece!); i++) {
         validMoves.add(move);
@@ -94,10 +102,11 @@ class Move {
   final int toCol;
   final Piece? capturedPiece;
 
-  Move(
-      {required this.fromRow,
-      required this.fromCol,
-      required this.toRow,
-      required this.toCol,
-      this.capturedPiece});
+  Move({
+    required this.fromRow,
+    required this.fromCol,
+    required this.toRow,
+    required this.toCol,
+    this.capturedPiece,
+  });
 }

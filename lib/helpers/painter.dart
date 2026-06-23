@@ -17,8 +17,11 @@ class ArrowPainter extends CustomPainter {
   /// @param moves list of moves to draw (may be null)
   /// @param isReversed whether coordinates are reversed
   /// @param color color of the arrow lines
-  ArrowPainter(
-      {required this.moves, required this.isReversed, required this.color});
+  ArrowPainter({
+    required this.moves,
+    required this.isReversed,
+    required this.color,
+  });
 
   /// Paints lines and arrow heads for each move.
   ///
@@ -51,7 +54,9 @@ class ArrowPainter extends CustomPainter {
     final row = isReversed ? 7 - square.row : square.row;
     final col = isReversed ? 7 - square.col : square.col;
     return Offset(
-        col * squareSize + squareSize / 2, row * squareSize + squareSize / 2);
+      col * squareSize + squareSize / 2,
+      row * squareSize + squareSize / 2,
+    );
   }
 
   /// Draws an arrow head at the target coordinate.

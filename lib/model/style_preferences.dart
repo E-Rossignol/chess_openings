@@ -24,8 +24,9 @@ class StylePreferences extends ChangeNotifier {
   /// Loads saved preferences from SharedPreferences into the notifiers.
   Future<void> loadPreferences() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    selectedColor.value =
-        _getColor(prefs.getString('selected_color') ?? 'green');
+    selectedColor.value = _getColor(
+      prefs.getString('selected_color') ?? 'green',
+    );
     selectedStyle.value = prefs.getString('piece_style') ?? 'alpha';
     notifyListeners();
   }

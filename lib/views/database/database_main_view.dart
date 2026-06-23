@@ -13,7 +13,6 @@ class DatabaseMainView extends StatefulWidget {
 }
 
 class _DatabaseMainViewState extends State<DatabaseMainView> {
-
   void _showSecretDialog(BuildContext context) {
     final TextEditingController codeController = TextEditingController();
     showDialog(
@@ -24,9 +23,7 @@ class _DatabaseMainViewState extends State<DatabaseMainView> {
           content: TextField(
             controller: codeController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              hintText: 'Enter code',
-            ),
+            decoration: const InputDecoration(hintText: 'Enter code'),
           ),
           actions: [
             TextButton(
@@ -44,9 +41,9 @@ class _DatabaseMainViewState extends State<DatabaseMainView> {
                   await DatabaseHelper().database;
                   DatabaseHelper().insertErwanOpenings();
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Invalid code')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Invalid code')));
                 }
                 Navigator.of(context).pop();
               },
@@ -68,47 +65,49 @@ class _DatabaseMainViewState extends State<DatabaseMainView> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              primaryThemeDarkColor,
-              primaryThemeLightColor,
-            ],
+            colors: [primaryThemeDarkColor, primaryThemeLightColor],
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [primaryThemeDarkColor, primaryThemeLightColor],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [primaryThemeDarkColor, primaryThemeLightColor],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
                   ),
-                  borderRadius: BorderRadius.circular(12.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
+                ],
+              ),
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DatabaseView(),
                     ),
-                  ],
+                  );
+                },
+                child: const Text(
+                  "Inspect",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
                 ),
-                child: TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const DatabaseView()));
-                    },
-                    child: const Text("Inspect",
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20)))),
-            const SizedBox(
-              height: 40,
+              ),
             ),
+            const SizedBox(height: 40),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -127,23 +126,25 @@ class _DatabaseMainViewState extends State<DatabaseMainView> {
                 ],
               ),
               child: TextButton(
-                  onPressed: () async {
-                    bool result = await DatabaseHelper().resetTables();
-                    if (result) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text("Tables reseted"),
-                      ));
-                    }
-                  },
-                  child: const Text("Reset",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20))),
+                onPressed: () async {
+                  bool result = await DatabaseHelper().resetTables();
+                  if (result) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Tables reseted")),
+                    );
+                  }
+                },
+                child: const Text(
+                  "Reset",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(
-              height: 40,
-            ),
+            const SizedBox(height: 40),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -162,15 +163,19 @@ class _DatabaseMainViewState extends State<DatabaseMainView> {
                 ],
               ),
               child: TextButton(
-                  onPressed: () async {
-                    _showSecretDialog(context);
-                    },
-                  child: const Text("???",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontStyle: FontStyle.italic,
-                          fontSize: 20))),
+                onPressed: () async {
+                  _showSecretDialog(context);
+                },
+                child: const Text(
+                  "???",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontStyle: FontStyle.italic,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

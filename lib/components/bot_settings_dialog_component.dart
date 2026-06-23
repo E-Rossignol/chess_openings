@@ -99,12 +99,15 @@ class _BotSettingsDialogComponentState
         ElevatedButton(
           onPressed: () {
             Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => BotView(
-                        board: Board(),
-                        difficulty: difficulty,
-                        isBotWhite: isBotWhite)));
+              context,
+              MaterialPageRoute(
+                builder: (context) => BotView(
+                  board: Board(),
+                  difficulty: difficulty,
+                  isBotWhite: isBotWhite,
+                ),
+              ),
+            );
           },
           child: const Text('OK'),
         ),

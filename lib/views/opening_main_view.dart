@@ -19,9 +19,7 @@ class OpeningMainView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Navigator(
       onGenerateRoute: (routeSettings) {
-        return MaterialPageRoute(
-          builder: (context) => const OpeningView(),
-        );
+        return MaterialPageRoute(builder: (context) => const OpeningView());
       },
     );
   }
@@ -58,10 +56,8 @@ class _OpeningViewState extends State<OpeningView> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => OpeningBoardView(
-            board: Board(),
-            opening: opening,
-          ),
+          builder: (context) =>
+              OpeningBoardView(board: Board(), opening: opening),
         ),
       );
     } else {
@@ -73,15 +69,16 @@ class _OpeningViewState extends State<OpeningView> {
     Opening? opening = await DatabaseHelper().getOpeningByName(selectedOpening);
     int? id = await DatabaseHelper().getOpeningIdByName(selectedOpening);
     Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => NewOpeningView(
-            openingId: id!,
-            isEdit: true,
-            name: opening!.name,
-            isWhite: opening.color == PieceColor.white,
-          ),
-        ));
+      context,
+      MaterialPageRoute(
+        builder: (context) => NewOpeningView(
+          openingId: id!,
+          isEdit: true,
+          name: opening!.name,
+          isWhite: opening.color == PieceColor.white,
+        ),
+      ),
+    );
   }
 
   @override
@@ -105,26 +102,27 @@ class _OpeningViewState extends State<OpeningView> {
       ],
     );
     return Scaffold(
-      body: Stack(children: [
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [primaryThemeDarkColor, primaryThemeLightColor],
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [primaryThemeDarkColor, primaryThemeLightColor],
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.7,
-                      child: Center(
-                        child: Row(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        child: Center(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               ElevatedButton(
@@ -137,253 +135,12 @@ class _OpeningViewState extends State<OpeningView> {
                                 onPressed: () {
                                   _navigateToNewOpeningView();
                                 },
-                                child: Text("New opening",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
-                                      color: primaryThemeDarkColor,
-                                    )),
-                              ),
-                            ]),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 50,
-                      width: MediaQuery.of(context).size.width,
-                    ),
-                    Container(
-                      decoration: iconButtonDecoration,
-                      child: IntrinsicWidth(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            minWidth: 180,
-                            minHeight: 50,
-                          ),
-                          child: Center(
-                            child: FutureBuilder<List<String>>(
-                              future: openingsName,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const CircularProgressIndicator();
-                                } else if (snapshot.hasError) {
-                                  return Text('Error: ${snapshot.error}');
-                                } else if (!snapshot.hasData ||
-                                    snapshot.data!.isEmpty) {
-                                  return const Text(
-                                    "No openings",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  );
-                                } else {
-                                  List<String> nonDefaultOpenings = snapshot
-                                      .data!
-                                      .where((opening) =>
-                                          !defaultOp.contains(opening))
-                                      .toList();
-                                  List<String> defaultOpenings = snapshot.data!
-                                      .where((opening) =>
-                                          defaultOp.contains(opening))
-                                      .toList();
-                                  return DropdownButton<String>(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    icon: const Icon(
-                                      Icons.arrow_drop_down,
-                                      color: Colors.black,
-                                    ),
-                                    alignment: Alignment.center,
-                                    value: selectedOpening,
-                                    hint: Text(
-                                      "Select opening",
-                                      style: TextStyle(
-                                          color: Colors.grey.shade700),
-                                    ),
-                                    dropdownColor: primaryThemeLightColor,
-                                    items: [
-                                      ...nonDefaultOpenings
-                                          .map((String opening) {
-                                        return DropdownMenuItem<String>(
-                                          value: opening,
-                                          child: FutureBuilder<Opening?>(
-                                            future: DatabaseHelper()
-                                                .getOpeningByName(opening),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                return const CircularProgressIndicator();
-                                              } else if (snapshot.hasError ||
-                                                  !snapshot.hasData) {
-                                                return Text(opening);
-                                              } else {
-                                                Opening? op = snapshot.data;
-                                                Color txtColor = op!.color ==
-                                                        PieceColor.white
-                                                    ? Colors.white
-                                                    : Colors.black;
-                                                return Center(
-                                                  child: Text(
-                                                    opening,
-                                                    textAlign: TextAlign.center,
-                                                    style: TextStyle(
-                                                      fontSize: 19,
-                                                      color: txtColor,
-                                                      fontStyle:
-                                                          FontStyle.italic,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                          ),
-                                        );
-                                      }),
-                                      const DropdownMenuItem<String>(
-                                        enabled: false,
-                                        child: Center(
-                                          child: Text(
-                                            "Default:",
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontStyle: FontStyle.italic,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ),
-                                      ...defaultOpenings.map((String opening) {
-                                        return DropdownMenuItem<String>(
-                                          value: opening,
-                                          child: FutureBuilder<Opening?>(
-                                            future: DatabaseHelper()
-                                                .getOpeningByName(opening),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                return const CircularProgressIndicator();
-                                              } else if (snapshot.hasError ||
-                                                  !snapshot.hasData) {
-                                                return Text(opening);
-                                              } else {
-                                                Opening? op = snapshot.data;
-                                                bool isWhite = op!.color ==
-                                                    PieceColor.white;
-                                                return Center(
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      isWhite
-                                                          ? SvgPicture.asset(
-                                                              'assets/images/pieces/alpha/wK.svg',
-                                                              height: 30,
-                                                              width: 30)
-                                                          : SvgPicture.asset(
-                                                              'assets/images/pieces/alpha/bK.svg',
-                                                              height: 30,
-                                                              width: 30),
-                                                      Text(
-                                                        opening,
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style: const TextStyle(
-                                                          color: Colors.black,
-                                                          fontSize: 19,
-                                                          fontStyle:
-                                                              FontStyle.italic,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                          ),
-                                        );
-                                      }),
-                                    ],
-                                    onChanged: (String? newValue) async {
-                                      setState(() {
-                                        selectedOpening = newValue;
-                                      });
-                                    },
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (selectedOpening != null)
-                      SizedBox(
-                        height: 30,
-                        width: MediaQuery.of(context).size.width,
-                      ),
-                    if (selectedOpening != null)
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.7,
-                        child: Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Container(
-                                decoration: iconButtonDecoration,
-                                child: IconButton(
-                                  onPressed: () async {
-                                    await _navigateToOpeningBoardView(
-                                        selectedOpening!);
-                                  },
-                                  icon: const Icon(
-                                    Icons.play_circle,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                              if (!defaultOp.contains(selectedOpening))
-                                Container(
-                                  decoration: iconButtonDecoration,
-                                  child: IconButton(
-                                    onPressed: () async {
-                                      await _navigateToEditOpeningView(
-                                          selectedOpening!);
-                                    },
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              if (!defaultOp.contains(selectedOpening))
-                                Container(
-                                  decoration: iconButtonDecoration,
-                                  child: IconButton(
-                                    onPressed: () {
-                                      _showDeleteDialog(context);
-                                    },
-                                    icon: const Icon(
-                                      Icons.delete_outlined,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              Container(
-                                decoration: iconButtonDecoration,
-                                child: IconButton(
-                                  onPressed: () {
-                                    _showListStrDialog(
-                                        context, selectedOpening!);
-                                  },
-                                  icon: const Icon(
-                                    Icons.list,
-                                    color: Colors.black,
+                                child: Text(
+                                  "New opening",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: primaryThemeDarkColor,
                                   ),
                                 ),
                               ),
@@ -391,13 +148,280 @@ class _OpeningViewState extends State<OpeningView> {
                           ),
                         ),
                       ),
-                  ],
+                      SizedBox(
+                        height: 50,
+                        width: MediaQuery.of(context).size.width,
+                      ),
+                      Container(
+                        decoration: iconButtonDecoration,
+                        child: IntrinsicWidth(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              minWidth: 180,
+                              minHeight: 50,
+                            ),
+                            child: Center(
+                              child: FutureBuilder<List<String>>(
+                                future: openingsName,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const CircularProgressIndicator();
+                                  } else if (snapshot.hasError) {
+                                    return Text('Error: ${snapshot.error}');
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data!.isEmpty) {
+                                    return const Text(
+                                      "No openings",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    );
+                                  } else {
+                                    List<String> nonDefaultOpenings = snapshot
+                                        .data!
+                                        .where(
+                                          (opening) =>
+                                              !defaultOp.contains(opening),
+                                        )
+                                        .toList();
+                                    List<String> defaultOpenings = snapshot
+                                        .data!
+                                        .where(
+                                          (opening) =>
+                                              defaultOp.contains(opening),
+                                        )
+                                        .toList();
+                                    return DropdownButton<String>(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      icon: const Icon(
+                                        Icons.arrow_drop_down,
+                                        color: Colors.black,
+                                      ),
+                                      alignment: Alignment.center,
+                                      value: selectedOpening,
+                                      hint: Text(
+                                        "Select opening",
+                                        style: TextStyle(
+                                          color: Colors.grey.shade700,
+                                        ),
+                                      ),
+                                      dropdownColor: primaryThemeLightColor,
+                                      items: [
+                                        ...nonDefaultOpenings.map((
+                                          String opening,
+                                        ) {
+                                          return DropdownMenuItem<String>(
+                                            value: opening,
+                                            child: FutureBuilder<Opening?>(
+                                              future: DatabaseHelper()
+                                                  .getOpeningByName(opening),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return const CircularProgressIndicator();
+                                                } else if (snapshot.hasError ||
+                                                    !snapshot.hasData) {
+                                                  return Text(opening);
+                                                } else {
+                                                  Opening? op = snapshot.data;
+                                                  Color txtColor =
+                                                      op!.color ==
+                                                          PieceColor.white
+                                                      ? Colors.white
+                                                      : Colors.black;
+                                                  return Center(
+                                                    child: Text(
+                                                      opening,
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: TextStyle(
+                                                        fontSize: 19,
+                                                        color: txtColor,
+                                                        fontStyle:
+                                                            FontStyle.italic,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          );
+                                        }),
+                                        const DropdownMenuItem<String>(
+                                          enabled: false,
+                                          child: Center(
+                                            child: Text(
+                                              "Default:",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontStyle: FontStyle.italic,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ),
+                                        ...defaultOpenings.map((
+                                          String opening,
+                                        ) {
+                                          return DropdownMenuItem<String>(
+                                            value: opening,
+                                            child: FutureBuilder<Opening?>(
+                                              future: DatabaseHelper()
+                                                  .getOpeningByName(opening),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return const CircularProgressIndicator();
+                                                } else if (snapshot.hasError ||
+                                                    !snapshot.hasData) {
+                                                  return Text(opening);
+                                                } else {
+                                                  Opening? op = snapshot.data;
+                                                  bool isWhite =
+                                                      op!.color ==
+                                                      PieceColor.white;
+                                                  return Center(
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        isWhite
+                                                            ? SvgPicture.asset(
+                                                                'assets/images/pieces/alpha/wK.svg',
+                                                                height: 30,
+                                                                width: 30,
+                                                              )
+                                                            : SvgPicture.asset(
+                                                                'assets/images/pieces/alpha/bK.svg',
+                                                                height: 30,
+                                                                width: 30,
+                                                              ),
+                                                        Text(
+                                                          opening,
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style:
+                                                              const TextStyle(
+                                                                color: Colors
+                                                                    .black,
+                                                                fontSize: 19,
+                                                                fontStyle:
+                                                                    FontStyle
+                                                                        .italic,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          );
+                                        }),
+                                      ],
+                                      onChanged: (String? newValue) async {
+                                        setState(() {
+                                          selectedOpening = newValue;
+                                        });
+                                      },
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (selectedOpening != null)
+                        SizedBox(
+                          height: 30,
+                          width: MediaQuery.of(context).size.width,
+                        ),
+                      if (selectedOpening != null)
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.7,
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Container(
+                                  decoration: iconButtonDecoration,
+                                  child: IconButton(
+                                    onPressed: () async {
+                                      await _navigateToOpeningBoardView(
+                                        selectedOpening!,
+                                      );
+                                    },
+                                    icon: const Icon(
+                                      Icons.play_circle,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                if (!defaultOp.contains(selectedOpening))
+                                  Container(
+                                    decoration: iconButtonDecoration,
+                                    child: IconButton(
+                                      onPressed: () async {
+                                        await _navigateToEditOpeningView(
+                                          selectedOpening!,
+                                        );
+                                      },
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                if (!defaultOp.contains(selectedOpening))
+                                  Container(
+                                    decoration: iconButtonDecoration,
+                                    child: IconButton(
+                                      onPressed: () {
+                                        _showDeleteDialog(context);
+                                      },
+                                      icon: const Icon(
+                                        Icons.delete_outlined,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                Container(
+                                  decoration: iconButtonDecoration,
+                                  child: IconButton(
+                                    onPressed: () {
+                                      _showListStrDialog(
+                                        context,
+                                        selectedOpening!,
+                                      );
+                                    },
+                                    icon: const Icon(
+                                      Icons.list,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
@@ -423,9 +447,7 @@ class _OpeningViewState extends State<OpeningView> {
                     selectedOpening = null;
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Ouverture supprimée'),
-                    ),
+                    const SnackBar(content: Text('Ouverture supprimée')),
                   );
                   setState(() {
                     openingsName = DatabaseHelper().getOpeningsNames();
@@ -442,7 +464,9 @@ class _OpeningViewState extends State<OpeningView> {
   }
 
   Future<void> _showListStrDialog(
-      BuildContext context, String selectedOpening) async {
+    BuildContext context,
+    String selectedOpening,
+  ) async {
     Opening? op = await DatabaseHelper().getOpeningByName(selectedOpening);
     List<String> moves = op!.toStr();
     showDialog(
@@ -451,9 +475,7 @@ class _OpeningViewState extends State<OpeningView> {
         return AlertDialog(
           title: const Text('Liste des lignes'),
           content: Column(
-            children: [
-              for (int i = 0; i < moves.length; i++) Text(moves[i]),
-            ],
+            children: [for (int i = 0; i < moves.length; i++) Text(moves[i])],
           ),
           actions: <Widget>[
             Row(
@@ -486,7 +508,8 @@ class _OpeningViewState extends State<OpeningView> {
                     String tmp = op.name.toLowerCase();
                     for (int i = 0; i < tmp.length; i++) {
                       if (tmp[i] == ' ') {
-                        tmp = tmp.substring(0, i) +
+                        tmp =
+                            tmp.substring(0, i) +
                             tmp[i + 1].toUpperCase() +
                             tmp.substring(i + 2);
                       }
@@ -503,8 +526,9 @@ class _OpeningViewState extends State<OpeningView> {
                     Clipboard.setData(ClipboardData(text: str));
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content:
-                            Text('List<String> copiée dans le presse-papiers'),
+                        content: Text(
+                          'List<String> copiée dans le presse-papiers',
+                        ),
                       ),
                     );
                     Navigator.of(context).pop();
@@ -529,7 +553,7 @@ class _OpeningViewState extends State<OpeningView> {
                   child: const Text('Generate List'),
                 ),
               ],
-            )
+            ),
           ],
         );
       },

@@ -19,22 +19,27 @@ class _SettingsViewState extends State<SettingsView> {
       width: 100,
       child: ListView(
         children: [
-          const SizedBox(
-            height: 60,
-          ),
+          const SizedBox(height: 60),
           const SoundControlComponent(),
           IconButton(
-              onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => const StyleView()));
-              },
-              icon: const Icon(Icons.palette_outlined,
-                  size: 30, color: Colors.white)),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const StyleView()),
+              );
+            },
+            icon: const Icon(
+              Icons.palette_outlined,
+              size: 30,
+              color: Colors.white,
+            ),
+          ),
           IconButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              icon: const Icon(Icons.language, size: 30)),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: const Icon(Icons.language, size: 30),
+          ),
           IconButton(
             onPressed: () {
               Navigator.of(context).pop();

@@ -39,8 +39,9 @@ class _CapturedPiecesComponentState extends State<CapturedPiecesComponent> {
   ///
   /// @return Widget containing the captured pieces row
   Widget _capturedPieces() {
-    widget.capturedPieces
-        .sort((a, b) => pieceValue(a.type).compareTo(pieceValue(b.type)));
+    widget.capturedPieces.sort(
+      (a, b) => pieceValue(a.type).compareTo(pieceValue(b.type)),
+    );
     List<Widget> images = widget.capturedPieces.map((piece) {
       return SvgPicture.asset(
         'assets/images/${pieceTypeToSVG(piece.type, piece.color, pieceStyle)}',
@@ -50,9 +51,7 @@ class _CapturedPiecesComponentState extends State<CapturedPiecesComponent> {
     }).toList();
     return Container(
       height: 30,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(5)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.start,

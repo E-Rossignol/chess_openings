@@ -16,11 +16,7 @@ class Opening {
   /// @param name opening name
   /// @param color opening color
   /// @param moves initial list of moves
-  Opening({
-    required this.name,
-    required this.color,
-    required this.moves,
-  });
+  Opening({required this.name, required this.color, required this.moves});
 
   /// Adds a move to the opening if it is not already present.
   ///

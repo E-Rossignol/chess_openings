@@ -9,9 +9,7 @@ import 'database/database_helper.dart';
 /// Application entry point that initializes Firebase and preferences, then runs the app.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Initialize shared preferences
   var prefs = await SharedPreferences.getInstance();
   // Check if the user has already entered the code

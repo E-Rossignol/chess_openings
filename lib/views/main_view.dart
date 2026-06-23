@@ -44,11 +44,9 @@ class _MainViewState extends State<MainView> {
   }
 
   void _updateColors() {
-    setState(
-          () {
-        _selectedColor = widget.stylePreferences.selectedColor.value[1];
-      },
-    );
+    setState(() {
+      _selectedColor = widget.stylePreferences.selectedColor.value[1];
+    });
   }
 
   void _onItemTapped(int index) {
@@ -59,6 +57,7 @@ class _MainViewState extends State<MainView> {
       _selectedIndex = index;
     });
   }
+
   @override
   void dispose() {
     widget.stylePreferences.selectedColor.removeListener(_updateColors);
@@ -72,17 +71,17 @@ class _MainViewState extends State<MainView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(backgroundColor: primaryThemeDarkColor, actions: [
-        IconButton(
-          icon: const Icon(
-            Icons.menu,
-            color: Colors.white,
+      appBar: AppBar(
+        backgroundColor: primaryThemeDarkColor,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onPressed: () {
+              _scaffoldKey.currentState!.openEndDrawer();
+            },
           ),
-          onPressed: () {
-            _scaffoldKey.currentState!.openEndDrawer();
-          },
-        )
-      ]),
+        ],
+      ),
       key: _scaffoldKey,
       endDrawer: const SettingsView(),
       bottomNavigationBar: BottomNavigationBar(
@@ -93,10 +92,7 @@ class _MainViewState extends State<MainView> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(FontAwesome.play),
-            label: 'Play',
-          ),
+          BottomNavigationBarItem(icon: Icon(FontAwesome.play), label: 'Play'),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_tree_outlined),
             label: 'Global',

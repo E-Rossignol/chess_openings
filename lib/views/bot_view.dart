@@ -14,11 +14,12 @@ class BotView extends StatefulWidget {
   final int difficulty;
   final bool isBotWhite;
 
-  const BotView(
-      {super.key,
-      required this.board,
-      required this.difficulty,
-      required this.isBotWhite});
+  const BotView({
+    super.key,
+    required this.board,
+    required this.difficulty,
+    required this.isBotWhite,
+  });
 
   @override
   _BotViewState createState() => _BotViewState();
@@ -66,15 +67,11 @@ class _BotViewState extends State<BotView> {
   }
 
   Future<void> _playMove(Square from, Square to) async {
-    widget.board.movePiece(
-      from.row,
-      from.col,
-      to.row,
-      to.col,
-    );
+    widget.board.movePiece(from.row, from.col, to.row, to.col);
     _updateBoard();
-    PieceColor botColor =
-        widget.isBotWhite ? PieceColor.white : PieceColor.black;
+    PieceColor botColor = widget.isBotWhite
+        ? PieceColor.white
+        : PieceColor.black;
     if (widget.board.currentTurn == botColor) {
       String currentMove = squareToString(from) + squareToString(to);
       await api.makeMove(gameID, currentMove);
@@ -212,7 +209,8 @@ class _BotViewState extends State<BotView> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => MainView(key: UniqueKey())),
+                            builder: (context) => MainView(key: UniqueKey()),
+                          ),
                         );
                       },
                     ),
@@ -225,13 +223,14 @@ class _BotViewState extends State<BotView> {
                         onPressed: _resetBoard,
                       ),
                       IconButton(
-                          onPressed: () async {
-                            await _listenBot();
-                          },
-                          icon: const Icon(
-                              Icons
-                                  .signal_wifi_statusbar_connected_no_internet_4,
-                              color: Colors.white)),
+                        onPressed: () async {
+                          await _listenBot();
+                        },
+                        icon: const Icon(
+                          Icons.signal_wifi_statusbar_connected_no_internet_4,
+                          color: Colors.white,
+                        ),
+                      ),
                       IconButton(
                         icon: const Icon(Icons.flip, color: Colors.white),
                         onPressed: _reverseBoard,
@@ -252,7 +251,9 @@ class _BotViewState extends State<BotView> {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   padding: const EdgeInsets.symmetric(
-                      vertical: 4.0, horizontal: 8.0),
+                    vertical: 4.0,
+                    horizontal: 8.0,
+                  ),
                   child: isReversed ? whiteScore() : blackScore(),
                 ),
                 const SizedBox(height: 10),
@@ -302,14 +303,15 @@ class _BotViewState extends State<BotView> {
                                 physics: const NeverScrollableScrollPhysics(),
                                 gridDelegate:
                                     const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 8,
-                                ),
+                                      crossAxisCount: 8,
+                                    ),
                                 itemBuilder: (context, index) {
                                   final int row = isReversed
                                       ? 7 - (index ~/ 8)
                                       : index ~/ 8;
-                                  final int col =
-                                      isReversed ? 7 - (index % 8) : index % 8;
+                                  final int col = isReversed
+                                      ? 7 - (index % 8)
+                                      : index % 8;
                                   final Square square =
                                       widget.board.board[row][col];
                                   bool isOriginSquare =
@@ -329,26 +331,31 @@ class _BotViewState extends State<BotView> {
                                               .getValidMoves(square.piece!);
                                         } else if (selectedSquare != null &&
                                             validMoves.contains(square)) {
-                                          bool isPromoting = (selectedSquare!
-                                                      .piece?.type ==
+                                          bool isPromoting =
+                                              (selectedSquare!.piece?.type ==
                                                   PieceType.pawn &&
                                               ((row == 7 &&
                                                       selectedSquare!
-                                                              .piece?.color ==
+                                                              .piece
+                                                              ?.color ==
                                                           PieceColor.black) ||
                                                   (row == 0 &&
                                                       selectedSquare!
-                                                              .piece?.color ==
+                                                              .piece
+                                                              ?.color ==
                                                           PieceColor.white)));
                                           if (isPromoting) {
                                             _showPromotionDialog(
-                                                selectedSquare!.piece!,
-                                                widget.board,
-                                                row,
-                                                col);
+                                              selectedSquare!.piece!,
+                                              widget.board,
+                                              row,
+                                              col,
+                                            );
                                           }
-                                          _playMove(selectedSquare!,
-                                              Square(row, col));
+                                          _playMove(
+                                            selectedSquare!,
+                                            Square(row, col),
+                                          );
                                           selectedSquare = null;
                                           validMoves = [];
                                         } else {
@@ -363,11 +370,19 @@ class _BotViewState extends State<BotView> {
                                           decoration: square.isWhite
                                               ? const BoxDecoration(
                                                   color: Color.fromRGBO(
-                                                      246, 238, 228, 1.0),
+                                                    246,
+                                                    238,
+                                                    228,
+                                                    1.0,
+                                                  ),
                                                 )
                                               : const BoxDecoration(
                                                   color: Color.fromRGBO(
-                                                      201, 181, 151, 1.0),
+                                                    201,
+                                                    181,
+                                                    151,
+                                                    1.0,
+                                                  ),
                                                 ),
                                           child: _buildPiece(square.piece),
                                         ),
@@ -432,7 +447,9 @@ class _BotViewState extends State<BotView> {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   padding: const EdgeInsets.symmetric(
-                      vertical: 4.0, horizontal: 8.0),
+                    vertical: 4.0,
+                    horizontal: 8.0,
+                  ),
                   child: isReversed ? blackScore() : whiteScore(),
                 ),
               ],
@@ -453,25 +470,29 @@ class _BotViewState extends State<BotView> {
             mainAxisSize: MainAxisSize.min,
             children: PieceType.values
                 .where(
-                    (type) => type != PieceType.king && type != PieceType.pawn)
-                .map((type) => ListTile(
-                      //title: Text(type.toString().split('.').last),
-                      title: SvgPicture.asset(
-                        'assets/images/${pieceTypeToSVG(type, pawn.color, 'alpha')}',
-                        width: 60,
-                        height: 60,
-                      ),
-                      onTap: () {
-                        setState(() {
-                          board.board[row][col].piece = Piece(
-                              type: type,
-                              color: pawn.color,
-                              id: pawn.id,
-                              hasMove: true);
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    ))
+                  (type) => type != PieceType.king && type != PieceType.pawn,
+                )
+                .map(
+                  (type) => ListTile(
+                    //title: Text(type.toString().split('.').last),
+                    title: SvgPicture.asset(
+                      'assets/images/${pieceTypeToSVG(type, pawn.color, 'alpha')}',
+                      width: 60,
+                      height: 60,
+                    ),
+                    onTap: () {
+                      setState(() {
+                        board.board[row][col].piece = Piece(
+                          type: type,
+                          color: pawn.color,
+                          id: pawn.id,
+                          hasMove: true,
+                        );
+                      });
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                )
                 .toList(),
           ),
         );

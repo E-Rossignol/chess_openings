@@ -35,8 +35,9 @@ class _SplashScreenState extends State<SplashScreen>
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                widget.hasCode ? MainView(key: UniqueKey()) : const WelcomeView(),
+            builder: (context) => widget.hasCode
+                ? MainView(key: UniqueKey())
+                : const WelcomeView(),
           ),
         );
       }

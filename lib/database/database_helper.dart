@@ -28,8 +28,9 @@ class DatabaseHelper {
   /// @return Future<String?> password string or null on error
   Future<String?> fetchPw() async {
     try {
-      QuerySnapshot querySnapshot =
-          await FirebaseFirestore.instance.collection('pw').get();
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('pw')
+          .get();
       return querySnapshot.docs.first['value'];
     } catch (e) {
       print('Erreur : $e');
@@ -60,9 +61,11 @@ class DatabaseHelper {
       onCreate: _onCreate,
       onOpen: (db) async {
         var res1 = await db.rawQuery(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='opening_names'");
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='opening_names'",
+        );
         var res2 = await db.rawQuery(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='opening_moves'");
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='opening_moves'",
+        );
         if (res1.isEmpty || res2.isEmpty) {
           await _onCreate(db, 1);
         }
@@ -103,21 +106,20 @@ class DatabaseHelper {
   /// @param isDefault whether the opening is a default one
   /// @return Future<bool> true if inserted, false if already exists
   Future<bool> insertOpening(
-      String openingName, String pieceColor, bool isDefault) async {
+    String openingName,
+    String pieceColor,
+    bool isDefault,
+  ) async {
     List<String> existingOpenings = await getOpeningsNames();
     if (existingOpenings.contains(openingName)) {
       return false;
     }
     final db = await database;
-    await db.insert(
-      'opening_names',
-      {
-        'opening_name': openingName,
-        'piece_color': pieceColor,
-        'is_default': isDefault ? 1 : 0
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('opening_names', {
+      'opening_name': openingName,
+      'piece_color': pieceColor,
+      'is_default': isDefault ? 1 : 0,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
     return true;
   }
 
@@ -128,7 +130,10 @@ class DatabaseHelper {
   /// @param pieceColor new piece color
   /// @return Future<bool> true if a row was updated
   Future<bool> editOpening(
-      int openingID, String openingName, String pieceColor) async {
+    int openingID,
+    String openingName,
+    String pieceColor,
+  ) async {
     final db = await database;
     int count = await db.update(
       'opening_names',
@@ -159,8 +164,11 @@ class DatabaseHelper {
   /// @return Future<List<String>>
   Future<List<String>> getUsersOpeningsNames() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('opening_names',
-        columns: ['opening_name'], where: 'is_default = 0');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'opening_names',
+      columns: ['opening_name'],
+      where: 'is_default = 0',
+    );
     return List.generate(maps.length, (i) {
       return maps[i]['opening_name'] as String;
     });
@@ -171,8 +179,11 @@ class DatabaseHelper {
   /// @return Future<List<String>>
   Future<List<String>> getDefaultOpeningsNames() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('opening_names',
-        columns: ['opening_name'], where: 'is_default = 1');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'opening_names',
+      columns: ['opening_name'],
+      where: 'is_default = 1',
+    );
     return List.generate(maps.length, (i) {
       return maps[i]['opening_name'] as String;
     });
@@ -198,11 +209,7 @@ class DatabaseHelper {
     final db = await database;
     int? id = await getOpeningIdByName(openingName);
     if (id != null) {
-      await db.delete(
-        'opening_moves',
-        where: 'id_table = ?',
-        whereArgs: [id],
-      );
+      await db.delete('opening_moves', where: 'id_table = ?', whereArgs: [id]);
       await db.delete(
         'opening_names',
         where: 'opening_name = ?',
@@ -224,18 +231,20 @@ class DatabaseHelper {
       whereArgs: [openingName],
     );
     if (maps.isNotEmpty) {
-      List<Map<String, dynamic>> moves =
-          await getMovesByOpeningId(maps.first['id']);
+      List<Map<String, dynamic>> moves = await getMovesByOpeningId(
+        maps.first['id'],
+      );
       List<OpeningMove> openingMoves = [];
       for (Map<String, dynamic> move in moves) {
         openingMoves.add(getMoveFromQuery(move));
       }
       return Opening(
-          name: maps.first['opening_name'],
-          moves: openingMoves,
-          color: maps.first['piece_color'] == 'white'
-              ? PieceColor.white
-              : PieceColor.black);
+        name: maps.first['opening_name'],
+        moves: openingMoves,
+        color: maps.first['piece_color'] == 'white'
+            ? PieceColor.white
+            : PieceColor.black,
+      );
     } else {
       return null;
     }
@@ -281,7 +290,9 @@ class DatabaseHelper {
   /// @param openingName name of the target opening
   /// @return Future<List<OpeningMove>?> list of inserted OpeningMove objects or null if opening not found
   Future<List<OpeningMove>?> insertVariant(
-      List<List<Square>> newVariant, String openingName) async {
+    List<List<Square>> newVariant,
+    String openingName,
+  ) async {
     List<List<Square>> tmp = [];
     tmp.addAll(newVariant);
     Opening? op = await getOpeningByName(openingName);
@@ -299,11 +310,13 @@ class DatabaseHelper {
           .where((element) => element.previousMoveId == lastMoveId)
           .toList();
       List<OpeningMove> coucou = nextMoves
-          .where((element) =>
-              element.from.row == tmp.first[0].row &&
-              element.from.col == tmp.first[0].col &&
-              element.to.row == tmp.first[1].row &&
-              element.to.col == tmp.first[1].col)
+          .where(
+            (element) =>
+                element.from.row == tmp.first[0].row &&
+                element.from.col == tmp.first[0].col &&
+                element.to.row == tmp.first[1].row &&
+                element.to.col == tmp.first[1].col,
+          )
           .toList();
       if (coucou.isNotEmpty) {
         moveCount++;
@@ -317,26 +330,25 @@ class DatabaseHelper {
     List<OpeningMove> res = [];
     var db = await database;
     while (tmp.isNotEmpty) {
-      newMoveId = await db.insert(
-        'opening_moves',
-        {
-          'id_table': openingID,
-          'move_nbr': moveCount,
-          'start_square': squareToString(tmp.first[0]),
-          'end_square': squareToString(tmp.first[1]),
-          'is_after': lastMoveId
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      newMoveId = await db.insert('opening_moves', {
+        'id_table': openingID,
+        'move_nbr': moveCount,
+        'start_square': squareToString(tmp.first[0]),
+        'end_square': squareToString(tmp.first[1]),
+        'is_after': lastMoveId,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
       lastMoveId = newMoveId;
       moveCount++;
-      res.add(OpeningMove(
+      res.add(
+        OpeningMove(
           openingId: openingID!,
           id: newMoveId,
           from: tmp.first[0],
           to: tmp.first[1],
           moveNumber: moveCount,
-          previousMoveId: lastMoveId));
+          previousMoveId: lastMoveId,
+        ),
+      );
       tmp.remove(tmp.first);
     }
     return res;
@@ -360,11 +372,7 @@ class DatabaseHelper {
         await deleteDescendants(child['id']);
       }
 
-      await db.delete(
-        'opening_moves',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await db.delete('opening_moves', where: 'id = ?', whereArgs: [id]);
     }
 
     await deleteDescendants(openingMoveId);
@@ -413,7 +421,7 @@ class DatabaseHelper {
       for (String m in moves) {
         italianMoves.add([
           stringToSquare(m.substring(0, 2)),
-          stringToSquare(m.substring(2, 4))
+          stringToSquare(m.substring(2, 4)),
         ]);
       }
       await insertVariant(italianMoves, 'Italian');
@@ -433,7 +441,7 @@ class DatabaseHelper {
       for (String m in moves) {
         queensGambitMoves.add([
           stringToSquare(m.substring(0, 2)),
-          stringToSquare(m.substring(2, 4))
+          stringToSquare(m.substring(2, 4)),
         ]);
       }
       await insertVariant(queensGambitMoves, 'Queen\'s Gambit');
@@ -453,7 +461,7 @@ class DatabaseHelper {
       for (String m in moves) {
         sicilianMoves.add([
           stringToSquare(m.substring(0, 2)),
-          stringToSquare(m.substring(2, 4))
+          stringToSquare(m.substring(2, 4)),
         ]);
       }
       await insertVariant(sicilianMoves, 'Sicilian Defense');
@@ -473,7 +481,7 @@ class DatabaseHelper {
       for (String m in moves) {
         englundMoves.add([
           stringToSquare(m.substring(0, 2)),
-          stringToSquare(m.substring(2, 4))
+          stringToSquare(m.substring(2, 4)),
         ]);
       }
       await insertVariant(englundMoves, 'Englund\'s Gambit');
@@ -493,7 +501,7 @@ class DatabaseHelper {
       for (String m in moves) {
         latvianMoves.add([
           stringToSquare(m.substring(0, 2)),
-          stringToSquare(m.substring(2, 4))
+          stringToSquare(m.substring(2, 4)),
         ]);
       }
       await insertVariant(latvianMoves, 'Scandinavian Opening');
@@ -513,7 +521,7 @@ class DatabaseHelper {
       for (String m in moves) {
         latvianMoves.add([
           stringToSquare(m.substring(0, 2)),
-          stringToSquare(m.substring(2, 4))
+          stringToSquare(m.substring(2, 4)),
         ]);
       }
       await insertVariant(latvianMoves, 'Scotch Game');

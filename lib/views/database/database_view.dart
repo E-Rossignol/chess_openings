@@ -29,8 +29,9 @@ class _DatabaseViewState extends State<DatabaseView> {
   }
 
   Future<void> _loadTables() async {
-    final tables = await _database
-        .rawQuery('SELECT name FROM sqlite_master WHERE type="table"');
+    final tables = await _database.rawQuery(
+      'SELECT name FROM sqlite_master WHERE type="table"',
+    );
     tables.removeAt(0);
     tables.removeAt(1);
     setState(() {
@@ -45,21 +46,18 @@ class _DatabaseViewState extends State<DatabaseView> {
       appBar: AppBar(
         backgroundColor: primaryThemeDarkColor,
         leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(
-                builder: (context) => const DatabaseMainView(),
-              ),
+              MaterialPageRoute(builder: (context) => const DatabaseMainView()),
             );
           },
         ),
-        title: const Text(
-          'Inspect',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('Inspect', style: TextStyle(color: Colors.white)),
       ),
       body: _tables.isEmpty
           ? const Center(child: CircularProgressIndicator())
@@ -80,13 +78,15 @@ class _DatabaseViewState extends State<DatabaseView> {
                         ),
                         onTap: () async {
                           final data = await _database.rawQuery(
-                              'SELECT * FROM ${_tables[index]['name']}');
+                            'SELECT * FROM ${_tables[index]['name']}',
+                          );
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                               builder: (context) => TableView(
-                                  tableName: _tables[index]['name'],
-                                  data: data),
+                                tableName: _tables[index]['name'],
+                                data: data,
+                              ),
                             ),
                           );
                         },
@@ -122,14 +122,14 @@ class TableView extends StatelessWidget {
           style: const TextStyle(color: Colors.white),
         ),
         leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(
-                builder: (context) => const DatabaseView(),
-              ),
+              MaterialPageRoute(builder: (context) => const DatabaseView()),
             );
           },
         ),
@@ -139,13 +139,12 @@ class TableView extends StatelessWidget {
         itemBuilder: (context, index) {
           return ListTile(
             title: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.teal),
-                ),
-                child: Text(
-                  data[index].toString(),
-                  style: const TextStyle(color: Colors.tealAccent),
-                )),
+              decoration: BoxDecoration(border: Border.all(color: Colors.teal)),
+              child: Text(
+                data[index].toString(),
+                style: const TextStyle(color: Colors.tealAccent),
+              ),
+            ),
           );
         },
       ),

@@ -18,9 +18,10 @@ class Piece {
   /// @param color piece color
   /// @param id unique id
   /// @param hasMove initial moved state
-  Piece(
-      {required this.type,
-      required this.color,
-      required this.id,
-      required this.hasMove});
+  Piece({
+    required this.type,
+    required this.color,
+    required this.id,
+    required this.hasMove,
+  });
 }

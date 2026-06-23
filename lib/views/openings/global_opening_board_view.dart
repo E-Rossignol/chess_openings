@@ -79,12 +79,11 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
     await db.database;
     List<Opening> whiteOpenings = [];
     List<Opening> blackOpenings = [];
-    for (var openingName in defaultOpenings()){
+    for (var openingName in defaultOpenings()) {
       Opening? op = await db.getOpeningByName(openingName);
       if (op != null && op.color == PieceColor.white) {
         whiteOpenings.add(op);
-      }
-      else if (op != null){
+      } else if (op != null) {
         blackOpenings.add(op);
       }
     }
@@ -111,15 +110,13 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
   }
 
   void _updateColors() {
-    setState(
-          () {
-        colors = widget.stylePreferences.selectedColor.value;
-        whiteColor = colors[1];
-        blackColor = colors[0];
-        arrowColor = colors[3];
-        lastMoveColor = colors[2];
-      },
-    );
+    setState(() {
+      colors = widget.stylePreferences.selectedColor.value;
+      whiteColor = colors[1];
+      blackColor = colors[0];
+      arrowColor = colors[3];
+      lastMoveColor = colors[2];
+    });
   }
 
   void _updateStyle() {
@@ -172,8 +169,12 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
     newVariant.add([move.from, move.to]);
     moveHistory.add([move.from, move.to]);
     moveIdHistory.add(move.id);
-    widget.board
-        .movePiece(move.from.row, move.from.col, move.to.row, move.to.col);
+    widget.board.movePiece(
+      move.from.row,
+      move.from.col,
+      move.to.row,
+      move.to.col,
+    );
     setState(() {
       lastMoveFromRow = move.from.row;
       lastMoveFromCol = move.from.col;
@@ -202,9 +203,11 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
 
   void _playNextUniqueMove() {
     List<OpeningMove> move = whiteOpening.moves
-        .where((move) =>
-    move.moveNumber == widget.board.moveCount.value &&
-        move.previousMoveId == lastMoveId)
+        .where(
+          (move) =>
+              move.moveNumber == widget.board.moveCount.value &&
+              move.previousMoveId == lastMoveId,
+        )
         .toList();
     if (move.length != 1) {
       return;
@@ -215,11 +218,14 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
   @override
   Widget build(BuildContext context) {
     int currentMoveNumber = widget.board.moveCount.value;
-    bool isNextMoveUnique = whiteOpening.moves
-        .where((move) =>
-    move.moveNumber == currentMoveNumber &&
-        move.previousMoveId == lastMoveId)
-        .length ==
+    bool isNextMoveUnique =
+        whiteOpening.moves
+            .where(
+              (move) =>
+                  move.moveNumber == currentMoveNumber &&
+                  move.previousMoveId == lastMoveId,
+            )
+            .length ==
         1;
     Color tmpWhiteColor = whiteColor;
     Color tmpBlackColor = blackColor;
@@ -247,9 +253,7 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
             Center(
               child: Column(
                 children: [
-                  const SizedBox(
-                    height: 70
-                  ),
+                  const SizedBox(height: 70),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -269,8 +273,9 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.keyboard_double_arrow_right),
-                        onPressed:
-                        isNextMoveUnique ? _playNextUniqueMove : null,
+                        onPressed: isNextMoveUnique
+                            ? _playNextUniqueMove
+                            : null,
                         disabledColor: Colors.grey,
                         color: Colors.white,
                       ),
@@ -278,21 +283,35 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
                   ),
                   Center(
                     child:
-                    getCurrentOpeningName(whiteOpening, currentMoveNumber, lastMoveId) != null ?
-                    Text(getCurrentOpeningName(whiteOpening, currentMoveNumber, lastMoveId)!,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            fontStyle: FontStyle.italic)):
-                    const Text("Global",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            fontStyle: FontStyle.italic)),
-                  )
-                  ,
+                        getCurrentOpeningName(
+                              whiteOpening,
+                              currentMoveNumber,
+                              lastMoveId,
+                            ) !=
+                            null
+                        ? Text(
+                            getCurrentOpeningName(
+                              whiteOpening,
+                              currentMoveNumber,
+                              lastMoveId,
+                            )!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          )
+                        : const Text(
+                            "Global",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                  ),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -302,29 +321,35 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
                         children: [
                           CapturedPiecesComponent(
                             capturedPieces: widget
-                                .board.capturedPieceNotifier.value
-                                .where((element) =>
-                            element.color ==
-                                (isReversed
-                                    ? PieceColor.black
-                                    : PieceColor.white))
+                                .board
+                                .capturedPieceNotifier
+                                .value
+                                .where(
+                                  (element) =>
+                                      element.color ==
+                                      (isReversed
+                                          ? PieceColor.black
+                                          : PieceColor.white),
+                                )
                                 .toList(),
                           ),
                           topScore > 0
                               ? Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              height: 30,
-                              width: 30,
-                              child: Center(
-                                  child: Text(
-                                    scoreStr(topScore),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: textColor,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  height: 30,
+                                  width: 30,
+                                  child: Center(
+                                    child: Text(
+                                      scoreStr(topScore),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: textColor,
+                                      ),
                                     ),
-                                  )))
+                                  ),
+                                )
                               : Container(),
                         ],
                       ),
@@ -338,10 +363,11 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
                           const SizedBox(height: 15),
                           Container(
                             decoration: BoxDecoration(
-                                border: Border.all(
-                                  width: 4,
-                                  color: secondaryThemeDarkColor,
-                                )),
+                              border: Border.all(
+                                width: 4,
+                                color: secondaryThemeDarkColor,
+                              ),
+                            ),
                             height: MediaQuery.of(context).size.width - 25,
                             width: MediaQuery.of(context).size.width - 25,
                             child: Center(
@@ -351,62 +377,69 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
                                 removeBottom: true,
                                 removeLeft: true,
                                 removeRight: true,
-                                child: Stack(children: [
-                                  GridView.builder(
-                                    physics:
-                                    const NeverScrollableScrollPhysics(),
-                                    gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 8,
-                                    ),
-                                    itemBuilder: (context, index) {
-                                      Color lastMoveColor = tmpLastMoveColor;
-                                      final int row = isReversed
-                                          ? 7 - (index ~/ 8)
-                                          : index ~/ 8;
-                                      final int col = isReversed
-                                          ? 7 - (index % 8)
-                                          : index % 8;
-                                      final Square square =
-                                      widget.board.board[row][col];
-                                      bool isGameOver =
-                                          widget.board.gameResult.value != 0;
-                                      bool isLastFromSquare =
-                                          square.row == lastMoveFromRow &&
-                                              square.col == lastMoveFromCol;
-                                      bool isLastToSquare =
-                                          square.row == lastMoveToRow &&
-                                              square.col == lastMoveToCol;
-                                      Color squareColor = square.isWhite
-                                          ? tmpWhiteColor
-                                          : tmpBlackColor;
-                                      Color otherColor = !square.isWhite
-                                          ? tmpWhiteColor
-                                          : tmpBlackColor;
-                                      squareColor =
-                                      isLastFromSquare || isLastToSquare
-                                          ? lastMoveColor
-                                          : squareColor;
-                                      return GestureDetector(
-                                        onTap: () {
-                                          if (isGameOver) return;
-                                          setState(() {
+                                child: Stack(
+                                  children: [
+                                    GridView.builder(
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 8,
+                                          ),
+                                      itemBuilder: (context, index) {
+                                        Color lastMoveColor = tmpLastMoveColor;
+                                        final int row = isReversed
+                                            ? 7 - (index ~/ 8)
+                                            : index ~/ 8;
+                                        final int col = isReversed
+                                            ? 7 - (index % 8)
+                                            : index % 8;
+                                        final Square square =
+                                            widget.board.board[row][col];
+                                        bool isGameOver =
+                                            widget.board.gameResult.value != 0;
+                                        bool isLastFromSquare =
+                                            square.row == lastMoveFromRow &&
+                                            square.col == lastMoveFromCol;
+                                        bool isLastToSquare =
+                                            square.row == lastMoveToRow &&
+                                            square.col == lastMoveToCol;
+                                        Color squareColor = square.isWhite
+                                            ? tmpWhiteColor
+                                            : tmpBlackColor;
+                                        Color otherColor = !square.isWhite
+                                            ? tmpWhiteColor
+                                            : tmpBlackColor;
+                                        squareColor =
+                                            isLastFromSquare || isLastToSquare
+                                            ? lastMoveColor
+                                            : squareColor;
+                                        return GestureDetector(
+                                          onTap: () {
+                                            if (isGameOver) return;
+                                            setState(() {
                                               if (selectedSquare == null &&
                                                   square.piece != null &&
                                                   square.piece!.color ==
                                                       widget
-                                                          .board.currentTurn) {
+                                                          .board
+                                                          .currentTurn) {
                                                 selectedSquare = square;
                                                 validMoves = widget.board
                                                     .getValidMoves(
-                                                    square.piece!);
+                                                      square.piece!,
+                                                    );
                                               } else if (selectedSquare !=
-                                                  null &&
+                                                      null &&
                                                   validMoves.contains(square)) {
-                                                newVariant.add(
-                                                    [selectedSquare!, square]);
-                                                moveHistory.add(
-                                                    [selectedSquare!, square]);
+                                                newVariant.add([
+                                                  selectedSquare!,
+                                                  square,
+                                                ]);
+                                                moveHistory.add([
+                                                  selectedSquare!,
+                                                  square,
+                                                ]);
                                                 widget.board.movePiece(
                                                   selectedSquare!.row,
                                                   selectedSquare!.col,
@@ -427,125 +460,139 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
                                                 selectedSquare = null;
                                                 validMoves = [];
                                               }
-                                          });
-                                        },
-                                        child: Stack(
-                                          children: [
-                                            isLastToSquare || isLastFromSquare
-                                                ? Container(
-                                              decoration: BoxDecoration(
-                                                  border: Border.all(
-                                                    color: Colors.black
-                                                        .withOpacity(0.5),
-                                                    width: 1,
-                                                  ),
-                                                  color: squareColor),
-                                              child: _buildPiece(
-                                                  square.piece),
-                                            )
-                                                : Container(
-                                              decoration: BoxDecoration(
-                                                  color: squareColor),
-                                              child: _buildPiece(
-                                                  square.piece),
-                                            ),
-                                            if (coordinatesIndexes
-                                                .contains(index))
-                                              Positioned(
-                                                bottom: index > 56 ? 2 : null,
-                                                right: index > 56 ? 2 : null,
-                                                top: index <= 56 ? 2 : null,
-                                                left: index <= 56 ? 2 : null,
-                                                child: Text(
-                                                  indexes(index, isReversed),
-                                                  style: TextStyle(
-                                                    color: otherColor,
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            if (index == 56)
-                                              Positioned(
-                                                bottom: 2,
-                                                right: 2,
-                                                child: Text(
-                                                  !isReversed ? "a" : "h",
-                                                  style: TextStyle(
-                                                    color: otherColor,
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
+                                            });
+                                          },
+                                          child: Stack(
+                                            children: [
+                                              isLastToSquare || isLastFromSquare
+                                                  ? Container(
+                                                      decoration: BoxDecoration(
+                                                        border: Border.all(
+                                                          color: Colors.black
+                                                              .withOpacity(0.5),
+                                                          width: 1,
+                                                        ),
+                                                        color: squareColor,
+                                                      ),
+                                                      child: _buildPiece(
+                                                        square.piece,
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      decoration: BoxDecoration(
+                                                        color: squareColor,
+                                                      ),
+                                                      child: _buildPiece(
+                                                        square.piece,
+                                                      ),
+                                                    ),
+                                              if (coordinatesIndexes.contains(
+                                                index,
+                                              ))
+                                                Positioned(
+                                                  bottom: index > 56 ? 2 : null,
+                                                  right: index > 56 ? 2 : null,
+                                                  top: index <= 56 ? 2 : null,
+                                                  left: index <= 56 ? 2 : null,
+                                                  child: Text(
+                                                    indexes(index, isReversed),
+                                                    style: TextStyle(
+                                                      color: otherColor,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            if (square.piece != null &&
-                                                square.piece!.type ==
-                                                    PieceType.king &&
-                                                widget.board.isCheck(
-                                                    square.piece!.color) &&
-                                                !!widget.board.isCheckmate())
-                                              Positioned(
-                                                top: 2,
-                                                right: 2,
-                                                child: Container(
-                                                  width: 10,
-                                                  height: 10,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.redAccent
-                                                        .withOpacity(1),
-                                                    shape: BoxShape.circle,
+                                              if (index == 56)
+                                                Positioned(
+                                                  bottom: 2,
+                                                  right: 2,
+                                                  child: Text(
+                                                    !isReversed ? "a" : "h",
+                                                    style: TextStyle(
+                                                      color: otherColor,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            if (validMoves.contains(square) &&
-                                                square.piece == null &&
-                                                isInCurrentOpening(
-                                                    selectedSquare!,
-                                                    square) !=
-                                                    null)
-                                              Center(
-                                                child: Container(
-                                                  width: 10,
-                                                  height: 10,
-                                                  decoration: BoxDecoration(
-                                                    color: tmpArrowColor
-                                                        .withOpacity(0.8),
-                                                    shape: BoxShape.circle,
+                                              if (square.piece != null &&
+                                                  square.piece!.type ==
+                                                      PieceType.king &&
+                                                  widget.board.isCheck(
+                                                    square.piece!.color,
+                                                  ) &&
+                                                  !!widget.board.isCheckmate())
+                                                Positioned(
+                                                  top: 2,
+                                                  right: 2,
+                                                  child: Container(
+                                                    width: 10,
+                                                    height: 10,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.redAccent
+                                                          .withOpacity(1),
+                                                      shape: BoxShape.circle,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            if (validMoves.contains(square) &&
-                                                square.piece != null)
-                                              Container(
-                                                color: Colors.redAccent
-                                                    .withOpacity(0.5),
-                                              ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    itemCount: 64,
-                                  ),
-                                  IgnorePointer(
-                                    child: CustomPaint(
-                                      size: Size(
+                                              if (validMoves.contains(square) &&
+                                                  square.piece == null &&
+                                                  isInCurrentOpening(
+                                                        selectedSquare!,
+                                                        square,
+                                                      ) !=
+                                                      null)
+                                                Center(
+                                                  child: Container(
+                                                    width: 10,
+                                                    height: 10,
+                                                    decoration: BoxDecoration(
+                                                      color: tmpArrowColor
+                                                          .withOpacity(0.8),
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                  ),
+                                                ),
+                                              if (validMoves.contains(square) &&
+                                                  square.piece != null)
+                                                Container(
+                                                  color: Colors.redAccent
+                                                      .withOpacity(0.5),
+                                                ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                      itemCount: 64,
+                                    ),
+                                    IgnorePointer(
+                                      child: CustomPaint(
+                                        size: Size(
                                           MediaQuery.of(context).size.width -
                                               25,
                                           MediaQuery.of(context).size.width -
-                                              25),
-                                      painter: ArrowPainter(
+                                              25,
+                                        ),
+                                        painter: ArrowPainter(
                                           moves: whiteOpening.moves
-                                              .where((move) =>
-                                          move.moveNumber ==
-                                              currentMoveNumber &&
-                                              lastMoveId ==
-                                                  move.previousMoveId)
+                                              .where(
+                                                (move) =>
+                                                    move.moveNumber ==
+                                                        currentMoveNumber &&
+                                                    lastMoveId ==
+                                                        move.previousMoveId,
+                                              )
                                               .toList(),
                                           isReversed: isReversed,
-                                          color: arrowColor),
+                                          color: arrowColor,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ]),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -562,29 +609,35 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
                         children: [
                           CapturedPiecesComponent(
                             capturedPieces: widget
-                                .board.capturedPieceNotifier.value
-                                .where((element) =>
-                            element.color ==
-                                (isReversed
-                                    ? PieceColor.white
-                                    : PieceColor.black))
+                                .board
+                                .capturedPieceNotifier
+                                .value
+                                .where(
+                                  (element) =>
+                                      element.color ==
+                                      (isReversed
+                                          ? PieceColor.white
+                                          : PieceColor.black),
+                                )
                                 .toList(),
                           ),
                           bottomScore > 0
                               ? Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              height: 30,
-                              width: 30,
-                              child: Center(
-                                  child: Text(
-                                    scoreStr(bottomScore),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: textColor,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  height: 30,
+                                  width: 30,
+                                  child: Center(
+                                    child: Text(
+                                      scoreStr(bottomScore),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: textColor,
+                                      ),
                                     ),
-                                  )))
+                                  ),
+                                )
                               : Container(),
                         ],
                       ),
@@ -594,13 +647,12 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
               ),
             ),
             Align(
-                alignment: Alignment.bottomCenter,
-                child: Text(
-                  'Move n°$moveCountMessage',
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
-                ))
+              alignment: Alignment.bottomCenter,
+              child: Text(
+                'Move n°$moveCountMessage',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
           ],
         ),
       ),
@@ -609,13 +661,15 @@ class _GlobalOpeningBoardViewState extends State<GlobalOpeningBoardView> {
 
   OpeningMove? isInCurrentOpening(Square from, Square to) {
     List<OpeningMove>? doneMove = whiteOpening.moves
-        .where((element) =>
-    element.from.row == from.row &&
-        element.from.col == from.col &&
-        element.to.row == to.row &&
-        element.to.col == to.col &&
-        element.moveNumber == widget.board.moveCount.value &&
-        element.previousMoveId == lastMoveId)
+        .where(
+          (element) =>
+              element.from.row == from.row &&
+              element.from.col == from.col &&
+              element.to.row == to.row &&
+              element.to.col == to.col &&
+              element.moveNumber == widget.board.moveCount.value &&
+              element.previousMoveId == lastMoveId,
+        )
         .toList();
     if (doneMove.isNotEmpty) {
       return doneMove.first;

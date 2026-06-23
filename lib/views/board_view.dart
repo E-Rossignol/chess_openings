@@ -61,7 +61,7 @@ class _BoardViewState extends State<BoardView> {
     super.dispose();
   }
 
-  void _updateBoardAnalysis(){
+  void _updateBoardAnalysis() {
     setState(() {
       analysisValue = widget.board.boardAnalysis.value;
     });
@@ -78,14 +78,12 @@ class _BoardViewState extends State<BoardView> {
   }
 
   void _updateColors() {
-    setState(
-      () {
-        colors = widget.stylePreferences.selectedColor.value;
-        whiteColor = colors[1];
-        blackColor = colors[0];
-        lastColor = colors[2];
-      },
-    );
+    setState(() {
+      colors = widget.stylePreferences.selectedColor.value;
+      whiteColor = colors[1];
+      blackColor = colors[0];
+      lastColor = colors[2];
+    });
   }
 
   void _updateStyle() {
@@ -213,9 +211,7 @@ class _BoardViewState extends State<BoardView> {
         ),
         child: Column(
           children: [
-            const SizedBox(
-              height: 80,
-            ),
+            const SizedBox(height: 80),
             Center(
               child: Column(
                 children: [
@@ -247,12 +243,16 @@ class _BoardViewState extends State<BoardView> {
                         children: [
                           CapturedPiecesComponent(
                             capturedPieces: widget
-                                .board.capturedPieceNotifier.value
-                                .where((element) =>
-                                    element.color ==
-                                    (isReversed
-                                        ? PieceColor.black
-                                        : PieceColor.white))
+                                .board
+                                .capturedPieceNotifier
+                                .value
+                                .where(
+                                  (element) =>
+                                      element.color ==
+                                      (isReversed
+                                          ? PieceColor.black
+                                          : PieceColor.white),
+                                )
                                 .toList(),
                           ),
                           topScore > 0
@@ -263,13 +263,15 @@ class _BoardViewState extends State<BoardView> {
                                   height: 30,
                                   width: 30,
                                   child: Center(
-                                      child: Text(
-                                    scoreStr(topScore),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: textColor,
+                                    child: Text(
+                                      scoreStr(topScore),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: textColor,
+                                      ),
                                     ),
-                                  )))
+                                  ),
+                                )
                               : Container(),
                         ],
                       ),
@@ -283,10 +285,8 @@ class _BoardViewState extends State<BoardView> {
                           const SizedBox(height: 35),
                           Container(
                             decoration: BoxDecoration(
-                                border: Border.all(
-                              width: 4,
-                              color: Colors.black,
-                            )),
+                              border: Border.all(width: 4, color: Colors.black),
+                            ),
                             height: MediaQuery.of(context).size.width - 25,
                             width: MediaQuery.of(context).size.width - 25,
                             child: Center(
@@ -296,60 +296,88 @@ class _BoardViewState extends State<BoardView> {
                                 removeBottom: true,
                                 removeLeft: true,
                                 removeRight: true,
-                                child: Stack(children: [
-                                  GridView.builder(
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    gridDelegate:
-                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 8,
-                                    ),
-                                    itemBuilder: (context, index) {
-                                      final int row = isReversed
-                                          ? 7 - (index ~/ 8)
-                                          : index ~/ 8;
-                                      final int col = isReversed
-                                          ? 7 - (index % 8)
-                                          : index % 8;
-                                      final Square square =
-                                          widget.board.board[row][col];
-                                      bool isGameOver =
-                                          widget.board.gameResult.value != 0;
-                                      bool isLastFromSquare =
-                                          square.row == lastMoveFromRow &&
-                                              square.col == lastMoveFromCol;
-                                      bool isLastToSquare =
-                                          square.row == lastMoveToRow &&
-                                              square.col == lastMoveToCol;
-                                      Color lastMoveColor = lastColor;
-                                      Color squareColor = square.isWhite
-                                          ? whiteColor
-                                          : blackColor;
-                                      Color otherColor = !square.isWhite
-                                          ? whiteColor
-                                          : blackColor;
-                                      squareColor =
-                                          isLastFromSquare || isLastToSquare
-                                              ? lastMoveColor
-                                              : squareColor;
-                                      return GestureDetector (
-                                        onTap: () async {
-                                          if (isGameOver) return;
+                                child: Stack(
+                                  children: [
+                                    GridView.builder(
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 8,
+                                          ),
+                                      itemBuilder: (context, index) {
+                                        final int row = isReversed
+                                            ? 7 - (index ~/ 8)
+                                            : index ~/ 8;
+                                        final int col = isReversed
+                                            ? 7 - (index % 8)
+                                            : index % 8;
+                                        final Square square =
+                                            widget.board.board[row][col];
+                                        bool isGameOver =
+                                            widget.board.gameResult.value != 0;
+                                        bool isLastFromSquare =
+                                            square.row == lastMoveFromRow &&
+                                            square.col == lastMoveFromCol;
+                                        bool isLastToSquare =
+                                            square.row == lastMoveToRow &&
+                                            square.col == lastMoveToCol;
+                                        Color lastMoveColor = lastColor;
+                                        Color squareColor = square.isWhite
+                                            ? whiteColor
+                                            : blackColor;
+                                        Color otherColor = !square.isWhite
+                                            ? whiteColor
+                                            : blackColor;
+                                        squareColor =
+                                            isLastFromSquare || isLastToSquare
+                                            ? lastMoveColor
+                                            : squareColor;
+                                        return GestureDetector(
+                                          onTap: () async {
+                                            if (isGameOver) return;
                                             if (selectedSquare == null &&
                                                 square.piece != null &&
-                                                square.piece!.color == widget.board.currentTurn) {
+                                                square.piece!.color ==
+                                                    widget.board.currentTurn) {
                                               setState(() {
                                                 selectedSquare = square;
-                                                validMoves = widget.board.getValidMoves(square.piece!);
+                                                validMoves = widget.board
+                                                    .getValidMoves(
+                                                      square.piece!,
+                                                    );
                                               });
-                                            } else if (selectedSquare != null && validMoves.contains(square)) {
-                                              bool isPromoting = (selectedSquare!.piece?.type == PieceType.pawn &&
-                                                  ((row == 7 && selectedSquare!.piece?.color == PieceColor.black) ||
-                                                      (row == 0 && selectedSquare!.piece?.color == PieceColor.white)));
+                                            } else if (selectedSquare != null &&
+                                                validMoves.contains(square)) {
+                                              bool isPromoting =
+                                                  (selectedSquare!
+                                                          .piece
+                                                          ?.type ==
+                                                      PieceType.pawn &&
+                                                  ((row == 7 &&
+                                                          selectedSquare!
+                                                                  .piece
+                                                                  ?.color ==
+                                                              PieceColor
+                                                                  .black) ||
+                                                      (row == 0 &&
+                                                          selectedSquare!
+                                                                  .piece
+                                                                  ?.color ==
+                                                              PieceColor
+                                                                  .white)));
                                               if (isPromoting) {
-                                                _showPromotionDialog(selectedSquare!.piece!, widget.board, row, col);
+                                                _showPromotionDialog(
+                                                  selectedSquare!.piece!,
+                                                  widget.board,
+                                                  row,
+                                                  col,
+                                                );
                                               }
-                                              moveHistory.add([selectedSquare!, square]);
+                                              moveHistory.add([
+                                                selectedSquare!,
+                                                square,
+                                              ]);
                                               await widget.board.movePiece(
                                                 selectedSquare!.row,
                                                 selectedSquare!.col,
@@ -357,119 +385,131 @@ class _BoardViewState extends State<BoardView> {
                                                 col,
                                               );
                                               setState(() {
-                                                lastMoveFromRow = selectedSquare!.row;
-                                                lastMoveFromCol = selectedSquare!.col;
+                                                lastMoveFromRow =
+                                                    selectedSquare!.row;
+                                                lastMoveFromCol =
+                                                    selectedSquare!.col;
                                                 lastMoveToRow = row;
                                                 lastMoveToCol = col;
                                                 selectedSquare = null;
                                                 validMoves = [];
                                               });
-
                                             } else {
                                               setState(() {
                                                 selectedSquare = null;
                                                 validMoves = [];
                                               });
                                             }
-                                        },
-                                        child: Stack(
-                                          children: [
-                                            isLastToSquare || isLastFromSquare
-                                                ? Container(
-                                                    decoration: BoxDecoration(
+                                          },
+                                          child: Stack(
+                                            children: [
+                                              isLastToSquare || isLastFromSquare
+                                                  ? Container(
+                                                      decoration: BoxDecoration(
                                                         border: Border.all(
                                                           color: Colors.black
                                                               .withOpacity(0.5),
                                                           width: 1,
                                                         ),
-                                                        color: squareColor),
-                                                    child: _buildPiece(
-                                                        square.piece),
-                                                  )
-                                                : Container(
+                                                        color: squareColor,
+                                                      ),
+                                                      child: _buildPiece(
+                                                        square.piece,
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      decoration: BoxDecoration(
+                                                        color: squareColor,
+                                                      ),
+                                                      child: _buildPiece(
+                                                        square.piece,
+                                                      ),
+                                                    ),
+                                              if (coordinatesIndexes.contains(
+                                                index,
+                                              ))
+                                                Positioned(
+                                                  bottom: index > 56 ? 2 : null,
+                                                  right: index > 56 ? 2 : null,
+                                                  top: index <= 56 ? 2 : null,
+                                                  left: index <= 56 ? 2 : null,
+                                                  child: Text(
+                                                    indexes(index, isReversed),
+                                                    style: TextStyle(
+                                                      color: otherColor,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              if (index == 56)
+                                                Positioned(
+                                                  bottom: 2,
+                                                  right: 2,
+                                                  child: Text(
+                                                    !isReversed ? "a" : "h",
+                                                    style: TextStyle(
+                                                      color: otherColor,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              if (square.piece != null &&
+                                                  square.piece!.type ==
+                                                      PieceType.king &&
+                                                  widget.board.isCheck(
+                                                    square.piece!.color,
+                                                  ))
+                                                Positioned(
+                                                  top: 2,
+                                                  right: 2,
+                                                  child: Container(
+                                                    width: 10,
+                                                    height: 10,
                                                     decoration: BoxDecoration(
-                                                        color: squareColor),
-                                                    child: _buildPiece(
-                                                        square.piece),
-                                                  ),
-                                            if (coordinatesIndexes
-                                                .contains(index))
-                                              Positioned(
-                                                bottom: index > 56 ? 2 : null,
-                                                right: index > 56 ? 2 : null,
-                                                top: index <= 56 ? 2 : null,
-                                                left: index <= 56 ? 2 : null,
-                                                child: Text(
-                                                  indexes(index, isReversed),
-                                                  style: TextStyle(
-                                                    color: otherColor,
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
+                                                      color: Colors.redAccent
+                                                          .withOpacity(1),
+                                                      shape: BoxShape.circle,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            if (index == 56)
-                                              Positioned(
-                                                bottom: 2,
-                                                right: 2,
-                                                child: Text(
-                                                  !isReversed ? "a" : "h",
-                                                  style: TextStyle(
-                                                    color: otherColor,
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
+                                              if (validMoves.contains(square) &&
+                                                  square.piece == null)
+                                                Center(
+                                                  child: Container(
+                                                    width: 10,
+                                                    height: 10,
+                                                    decoration: BoxDecoration(
+                                                      color: validMoveColor,
+                                                      shape: BoxShape.circle,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            if (square.piece != null &&
-                                                square.piece!.type ==
-                                                    PieceType.king &&
-                                                widget.board.isCheck(
-                                                    square.piece!.color))
-                                              Positioned(
-                                                top: 2,
-                                                right: 2,
-                                                child: Container(
-                                                  width: 10,
-                                                  height: 10,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.redAccent
-                                                        .withOpacity(1),
-                                                    shape: BoxShape.circle,
+                                              if (validMoves.contains(square) &&
+                                                  square.piece != null)
+                                                Container(
+                                                  color: const Color.fromRGBO(
+                                                    255,
+                                                    0,
+                                                    0,
+                                                    0.5,
                                                   ),
                                                 ),
-                                              ),
-                                            if (validMoves.contains(square) &&
-                                                square.piece == null)
-                                              Center(
-                                                child: Container(
-                                                  width: 10,
-                                                  height: 10,
-                                                  decoration: BoxDecoration(
-                                                    color: validMoveColor,
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                ),
-                                              ),
-                                            if (validMoves.contains(square) &&
-                                                square.piece != null)
-                                              Container(
-                                                color: const Color.fromRGBO(
-                                                    255, 0, 0, 0.5),
-                                              ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    itemCount: 64,
-                                  ),
-                                ]),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                      itemCount: 64,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            height: 10,
-                          ),
+                          const SizedBox(height: 10),
                         ],
                       ),
                     ],
@@ -483,12 +523,16 @@ class _BoardViewState extends State<BoardView> {
                         children: [
                           CapturedPiecesComponent(
                             capturedPieces: widget
-                                .board.capturedPieceNotifier.value
-                                .where((element) =>
-                                    element.color ==
-                                    (isReversed
-                                        ? PieceColor.white
-                                        : PieceColor.black))
+                                .board
+                                .capturedPieceNotifier
+                                .value
+                                .where(
+                                  (element) =>
+                                      element.color ==
+                                      (isReversed
+                                          ? PieceColor.white
+                                          : PieceColor.black),
+                                )
                                 .toList(),
                           ),
                           bottomScore > 0
@@ -499,13 +543,15 @@ class _BoardViewState extends State<BoardView> {
                                   height: 30,
                                   width: 30,
                                   child: Center(
-                                      child: Text(
-                                    scoreStr(bottomScore),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: textColor,
+                                    child: Text(
+                                      scoreStr(bottomScore),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: textColor,
+                                      ),
                                     ),
-                                  )))
+                                  ),
+                                )
                               : Container(),
                         ],
                       ),
@@ -517,21 +563,20 @@ class _BoardViewState extends State<BoardView> {
             Column(
               children: [
                 Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Text(
-                      'Move n°$moveCountMessage',
-                      style: const TextStyle(
-                        color: Colors.white,
-                      ),
-                    )),
+                  alignment: Alignment.bottomCenter,
+                  child: Text(
+                    'Move n°$moveCountMessage',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
                 /*AnalysisBar(
                   value: analysisValue,
                   size: MediaQuery.of(context).size.width - 25,
                 ),
 
                  */
-              ]
-            )
+              ],
+            ),
           ],
         ),
       ),
@@ -548,25 +593,29 @@ class _BoardViewState extends State<BoardView> {
             mainAxisSize: MainAxisSize.min,
             children: PieceType.values
                 .where(
-                    (type) => type != PieceType.king && type != PieceType.pawn)
-                .map((type) => ListTile(
-                      //title: Text(type.toString().split('.').last),
-                      title: SvgPicture.asset(
-                        'assets/images/${pieceTypeToSVG(type, pawn.color, pieceStyle)}',
-                        width: 60,
-                        height: 60,
-                      ),
-                      onTap: () {
-                        setState(() {
-                          board.board[row][col].piece = Piece(
-                              type: type,
-                              color: pawn.color,
-                              id: pawn.id,
-                              hasMove: true);
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    ))
+                  (type) => type != PieceType.king && type != PieceType.pawn,
+                )
+                .map(
+                  (type) => ListTile(
+                    //title: Text(type.toString().split('.').last),
+                    title: SvgPicture.asset(
+                      'assets/images/${pieceTypeToSVG(type, pawn.color, pieceStyle)}',
+                      width: 60,
+                      height: 60,
+                    ),
+                    onTap: () {
+                      setState(() {
+                        board.board[row][col].piece = Piece(
+                          type: type,
+                          color: pawn.color,
+                          id: pawn.id,
+                          hasMove: true,
+                        );
+                      });
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                )
                 .toList(),
           ),
         );

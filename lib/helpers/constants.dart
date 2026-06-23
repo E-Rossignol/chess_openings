@@ -6,19 +6,9 @@ import '../model/piece.dart';
 import '../model/square.dart';
 import 'package:flutter/material.dart';
 
-enum PieceType {
-  pawn,
-  rook,
-  knight,
-  bishop,
-  queen,
-  king,
-}
+enum PieceType { pawn, rook, knight, bishop, queen, king }
 
-enum PieceColor {
-  white,
-  black,
-}
+enum PieceColor { white, black }
 
 /// Merges multiple Opening objects into a single Opening containing all moves.
 /// Assumes all openings are played by the same color.
@@ -33,7 +23,8 @@ Opening mergeOpenings(List<Opening> openings) {
   for (var opening in openings) {
     if (opening.color != color) {
       throw ArgumentError(
-          'Toutes les ouvertures doivent être jouées par la même couleur.');
+        'Toutes les ouvertures doivent être jouées par la même couleur.',
+      );
     }
   }
 
@@ -54,11 +45,7 @@ Opening mergeOpenings(List<Opening> openings) {
     }
   }
 
-  return Opening(
-    name: "Global Opening",
-    moves: globalMoves,
-    color: color,
-  );
+  return Opening(name: "Global Opening", moves: globalMoves, color: color);
 }
 
 /// Attempts to determine the original opening name for a given move state.
@@ -68,7 +55,10 @@ Opening mergeOpenings(List<Opening> openings) {
 /// @param lastMoveId previous move id to match
 /// @return String? matching opening name or null if none found
 String? getCurrentOpeningName(
-    Opening globalOpening, int moveNumber, int lastMoveId) {
+  Opening globalOpening,
+  int moveNumber,
+  int lastMoveId,
+) {
   for (var move in globalOpening.moves) {
     if (move.moveNumber == moveNumber && move.previousMoveId == lastMoveId) {
       return move.openingName;
@@ -244,7 +234,7 @@ List<String> styleNames = [
   'rhosgfx',
   'shapes',
   'tatiana',
-  'xkcd'
+  'xkcd',
 ];
 
 /// Returns a nested list of example SvgPicture widgets for each style.
@@ -252,18 +242,36 @@ List<List<SvgPicture>> displayPieces() {
   List<List<SvgPicture>> list = [];
   for (int i = 0; i < styleNames.length; i++) {
     list.add([
-      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/wP.svg',
-          height: 60, width: 60),
-      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/bN.svg',
-          height: 60, width: 60),
-      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/wB.svg',
-          height: 60, width: 60),
-      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/bR.svg',
-          height: 60, width: 60),
-      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/wQ.svg',
-          height: 60, width: 60),
-      SvgPicture.asset('assets/images/pieces/${styleNames[i]}/bK.svg',
-          height: 60, width: 60),
+      SvgPicture.asset(
+        'assets/images/pieces/${styleNames[i]}/wP.svg',
+        height: 60,
+        width: 60,
+      ),
+      SvgPicture.asset(
+        'assets/images/pieces/${styleNames[i]}/bN.svg',
+        height: 60,
+        width: 60,
+      ),
+      SvgPicture.asset(
+        'assets/images/pieces/${styleNames[i]}/wB.svg',
+        height: 60,
+        width: 60,
+      ),
+      SvgPicture.asset(
+        'assets/images/pieces/${styleNames[i]}/bR.svg',
+        height: 60,
+        width: 60,
+      ),
+      SvgPicture.asset(
+        'assets/images/pieces/${styleNames[i]}/wQ.svg',
+        height: 60,
+        width: 60,
+      ),
+      SvgPicture.asset(
+        'assets/images/pieces/${styleNames[i]}/bK.svg',
+        height: 60,
+        width: 60,
+      ),
     ]);
   }
   return list;
@@ -343,10 +351,7 @@ int getValue(Piece piece) {
 /// @param col board column index
 /// @return List<String> [file, rank]
 List<String> toChessCoordinates(int row, int col) {
-  return [
-    String.fromCharCode(97 + col),
-    (8 - row).toString(),
-  ];
+  return [String.fromCharCode(97 + col), (8 - row).toString()];
 }
 
 /// Converts chess coordinates to row,col integers.
@@ -355,10 +360,7 @@ List<String> toChessCoordinates(int row, int col) {
 /// @param col rank string
 /// @return List<int> [rowIndex, colIndex]
 List<int> fromChessCoordinates(String row, String col) {
-  return [
-    8 - int.parse(col),
-    row.codeUnitAt(0) - 97,
-  ];
+  return [8 - int.parse(col), row.codeUnitAt(0) - 97];
 }
 
 /// Manhattan distance between two squares.
@@ -378,12 +380,13 @@ int distance(Square square1, Square square2) {
 /// @return OpeningMove instance
 OpeningMove getMoveFromQuery(Map<String, dynamic> moveQuery) {
   OpeningMove move = OpeningMove(
-      openingId: moveQuery['id_table'],
-      id: moveQuery['id'],
-      from: stringToSquare(moveQuery['start_square']),
-      to: stringToSquare(moveQuery['end_square']),
-      moveNumber: moveQuery['move_nbr'],
-      previousMoveId: moveQuery['is_after']);
+    openingId: moveQuery['id_table'],
+    id: moveQuery['id'],
+    from: stringToSquare(moveQuery['start_square']),
+    to: stringToSquare(moveQuery['end_square']),
+    moveNumber: moveQuery['move_nbr'],
+    previousMoveId: moveQuery['is_after'],
+  );
   return move;
 }
 
@@ -398,7 +401,7 @@ Map<String, dynamic> getQueryFromMove(OpeningMove move) {
     'start_square': squareToString(move.from),
     'end_square': squareToString(move.to),
     'move_nbr': move.moveNumber,
-    'is_after': move.previousMoveId
+    'is_after': move.previousMoveId,
   };
 }
 
@@ -436,21 +439,29 @@ List<String> defaultOpenings() {
 List<String> italianOpening() {
   List<String> result = [];
   result.add(
-      'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 e8g8 c1g5 h7h6 g5f6 d8f6 c3d5 f6e6 d5c7 e6g6 c7a8');
+    'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 e8g8 c1g5 h7h6 g5f6 d8f6 c3d5 f6e6 d5c7 e6g6 c7a8',
+  );
   result.add(
-      'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 e8g8 c3d5 f6d5 g5d8');
+    'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 e8g8 c3d5 f6d5 g5d8',
+  );
   result.add(
-      'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 e8g8 c3d5 c8e6 d5f6 g7f6 g5h6 f8e8');
+    'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 e8g8 c3d5 c8e6 d5f6 g7f6 g5h6 f8e8',
+  );
   result.add(
-      'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 e8g8 c3d5 c8g4 d1d2 g4f3 g5f6 g7f6 d2h6 f3g4 d5f6 g8h8 h7h6');
+    'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 e8g8 c3d5 c8g4 d1d2 g4f3 g5f6 g7f6 d2h6 f3g4 d5f6 g8h8 h7h6',
+  );
   result.add(
-      'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 e8g8 c3d5 d8e8 g5f6 g7f6 d5f6 g8h8 f6e8');
+    'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 e8g8 c3d5 d8e8 g5f6 g7f6 d5f6 g8h8 f6e8',
+  );
   result.add(
-      'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 e8g8 c3d5 h7h6 d5f6 g7f6 g5h6');
+    'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 e8g8 c3d5 h7h6 d5f6 g7f6 g5h6',
+  );
   result.add(
-      'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 h7h6 g5f6 g7f6 c3d5');
+    'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 d7d6 c1g5 h7h6 g5f6 g7f6 c3d5',
+  );
   result.add(
-      'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 f6g4 c4f7 e8f7 f3g5 f7g8 d1g4');
+    'e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 b1c3 f6g4 c4f7 e8f7 f3g5 f7g8 d1g4',
+  );
   result.add('e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8d6 b1c3');
   return result;
 }
@@ -465,35 +476,46 @@ List<String> queensGambitOpening() {
 List<String> sicilianOpening() {
   List<String> result = [];
   result.add(
-      "e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 e7e6 c1e3 f8b4 f2f3 d7d5 d4c6 b7c6 e4e5 f6d7");
+    "e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 e7e6 c1e3 f8b4 f2f3 d7d5 d4c6 b7c6 e4e5 f6d7",
+  );
   result.add(
-      "e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 e7e6 d4c6 b7c6 e4e5 f6d5");
+    "e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 e7e6 d4c6 b7c6 e4e5 f6d5",
+  );
   result.add(
-      "e2e4 c7c5 g1f3 b8c6 f1c4 e7e6 e1g1 d7d5 e4d5 e6d5 c4b5 g8f6 d2d4 f8e7");
+    "e2e4 c7c5 g1f3 b8c6 f1c4 e7e6 e1g1 d7d5 e4d5 e6d5 c4b5 g8f6 d2d4 f8e7",
+  );
   return result;
 }
 
 List<String> englundOpening() {
   List<String> result = [];
   result.add(
-      "d2d4 e7e5 d4e5 b8c6 g1f3 d8e7 c1f4 e7b4 f4d2 b4b2 d2c3 f8b4 d1d2 b4c3 d2c3 b2c1");
+    "d2d4 e7e5 d4e5 b8c6 g1f3 d8e7 c1f4 e7b4 f4d2 b4b2 d2c3 f8b4 d1d2 b4c3 d2c3 b2c1",
+  );
   result.add("d2d4 e7e5 d4e5 b8c6 g1f3 d8e7 c1f4 e7b4 c2c3 b4f4");
   result.add("d2d4 e7e5 d4e5 b8c6 g1f3 d8e7 c1f4 e7b4 b1c3 b4f4");
   result.add("d2d4 e7e5 d4e5 b8c6 g1f3 d8e7 c1f4 e7b4 d1d2 b4b2 c2c4 b2a1");
   result.add(
-      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 c1f4 c8g4 e5d6 d8f6 e2e3 f8d6 f4d6 e8c8 b1c3 d8d6");
+    "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 c1f4 c8g4 e5d6 d8f6 e2e3 f8d6 f4d6 e8c8 b1c3 d8d6",
+  );
   result.add(
-      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 b1c3 d6h2 f3h2 d8d1");
+    "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 b1c3 d6h2 f3h2 d8d1",
+  );
   result.add(
-      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 b1d2 h7h5 h2h3 g8f6 h3g4 h5g4 f3d4 d6h2 g1h1");
+    "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 b1d2 h7h5 h2h3 g8f6 h3g4 h5g4 f3d4 d6h2 g1h1",
+  );
   result.add(
-      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 b1d2 h7h5 h2h3 g7g5 h3g4 h5g4 f3d4 d6h2 g1h1 f7f5");
+    "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 b1d2 h7h5 h2h3 g7g5 h3g4 h5g4 f3d4 d6h2 g1h1 f7f5",
+  );
   result.add(
-      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 d1e1 h7h5 h2h3 g8f6 h3g4 h5g4 f3d4 d6h2 g1h1 e7e5");
+    "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 d1e1 h7h5 h2h3 g8f6 h3g4 h5g4 f3d4 d6h2 g1h1 e7e5",
+  );
   result.add(
-      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 d1e1 h7h5 h2h3 g8f6 b1c3 g4f3 e2f3 e7e5 g2g3 h5h4 g3h4 e5h2");
+    "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 e2e3 c8g4 f1e2 d8e7 e1g1 e8c8 d1e1 h7h5 h2h3 g8f6 b1c3 g4f3 e2f3 e7e5 g2g3 h5h4 g3h4 e5h2",
+  );
   result.add(
-      "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 c1g5 f7f6 g5h4 d8e7 e2e3 c8g4 f1e2 e8c8 e1g1 d6h2 f3h2 d8d1");
+    "d2d4 e7e5 d4e5 b8c6 g1f3 d7d6 e5d6 f8d6 c1g5 f7f6 g5h4 d8e7 e2e3 c8g4 f1e2 e8c8 e1g1 d6h2 f3h2 d8d1",
+  );
   result.add("d2d4 e7e5 d4e5 b8c6 f2f4 d7d6 e5d6 f8d6 g1f3 d8e7 b1c3 g8f6");
   result.add("d2d4 e7e5 d4e5 b8c6 c1f4 g7g5 f4g3 f8g7 g1f3 g5g4 f3d4");
   result.add("d2d4 e7e5 d4d5 c7c6 c2c4 g8f6 b1c3 f8b4 c1d2 d7d6");
@@ -608,5 +630,5 @@ List<int> coordinatesIndexes = [
   60,
   61,
   62,
-  63
+  63,
 ];

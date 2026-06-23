@@ -90,15 +90,13 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
   }
 
   void _updateColors() {
-    setState(
-      () {
-        colors = widget.stylePreferences.selectedColor.value;
-        whiteColor = colors[1];
-        blackColor = colors[0];
-        arrowColor = colors[3];
-        lastMoveColor = colors[2];
-      },
-    );
+    setState(() {
+      colors = widget.stylePreferences.selectedColor.value;
+      whiteColor = colors[1];
+      blackColor = colors[0];
+      arrowColor = colors[3];
+      lastMoveColor = colors[2];
+    });
   }
 
   void _updateStyle() {
@@ -159,8 +157,12 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     newVariant.add([move.from, move.to]);
     moveHistory.add([move.from, move.to]);
     moveIdHistory.add(move.id);
-    widget.board
-        .movePiece(move.from.row, move.from.col, move.to.row, move.to.col);
+    widget.board.movePiece(
+      move.from.row,
+      move.from.col,
+      move.to.row,
+      move.to.col,
+    );
     setState(() {
       lastMoveFromRow = move.from.row;
       lastMoveFromCol = move.from.col;
@@ -194,9 +196,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                     ],
                   ),
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
+                const SizedBox(height: 10),
                 Row(
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -216,9 +216,9 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                           } else {
                             message = "Error trying to store the variant";
                           }
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(message),
-                          ));
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(message)));
                           isRecording = false;
                           Navigator.of(context).pop();
                           await _reloadOpening();
@@ -234,8 +234,9 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                             isRecording = false;
                             isRecording = false;
                           });
-                          Navigator.of(context)
-                              .pop(); // Ferme la boîte de dialogue
+                          Navigator.of(
+                            context,
+                          ).pop(); // Ferme la boîte de dialogue
                         },
                         child: const Text('No'),
                       ),
@@ -257,7 +258,8 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
         return AlertDialog(
           title: const Text('Delete Variant'),
           content: const Text(
-              "Are you sure to want to delete variant from the last played move ?"),
+            "Are you sure to want to delete variant from the last played move ?",
+          ),
           actions: [
             Column(
               children: [
@@ -270,9 +272,9 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                           await DatabaseHelper()
                               .deleteOpeningMoveAndDescendants(lastMoveId);
                           String message = "Variant deleted succesfully.";
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(message),
-                          ));
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(message)));
                           Navigator.of(context).pop();
                           await _reloadOpening();
                         },
@@ -280,14 +282,15 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context)
-                              .pop(); // Ferme la boîte de dialogue
+                          Navigator.of(
+                            context,
+                          ).pop(); // Ferme la boîte de dialogue
                         },
                         child: const Text('No'),
                       ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ],
@@ -304,8 +307,12 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     for (int i = 0; i < newVariant.length; i++) {
       List<Square> move = newVariant[i];
       setState(() {
-        widget.board
-            .movePiece(move[0].row, move[0].col, move[1].row, move[1].col);
+        widget.board.movePiece(
+          move[0].row,
+          move[0].col,
+          move[1].row,
+          move[1].col,
+        );
       });
       await Future.delayed(const Duration(seconds: 1));
     }
@@ -331,9 +338,11 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
 
   void _playNextUniqueMove() {
     List<OpeningMove> move = widget.opening.moves
-        .where((move) =>
-            move.moveNumber == widget.board.moveCount.value &&
-            move.previousMoveId == lastMoveId)
+        .where(
+          (move) =>
+              move.moveNumber == widget.board.moveCount.value &&
+              move.previousMoveId == lastMoveId,
+        )
         .toList();
     if (move.length != 1) {
       return;
@@ -344,10 +353,13 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
   @override
   Widget build(BuildContext context) {
     int currentMoveNumber = widget.board.moveCount.value;
-    bool isNextMoveUnique = widget.opening.moves
-            .where((move) =>
-                move.moveNumber == currentMoveNumber &&
-                move.previousMoveId == lastMoveId)
+    bool isNextMoveUnique =
+        widget.opening.moves
+            .where(
+              (move) =>
+                  move.moveNumber == currentMoveNumber &&
+                  move.previousMoveId == lastMoveId,
+            )
             .length ==
         1;
     Color tmpWhiteColor = whiteColor;
@@ -355,9 +367,9 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
     Color tmpArrowColor = arrowColor;
     Color tmpLastMoveColor = lastMoveColor;
     if (isRecording) {
-        tmpBlackColor = const Color.fromRGBO(255, 216, 216, 1.0);
-        tmpWhiteColor = const Color.fromRGBO(200, 0, 0, 1.0);
-        tmpLastMoveColor = const Color.fromRGBO(255, 165, 0, 1.0);
+      tmpBlackColor = const Color.fromRGBO(255, 216, 216, 1.0);
+      tmpWhiteColor = const Color.fromRGBO(200, 0, 0, 1.0);
+      tmpLastMoveColor = const Color.fromRGBO(255, 165, 0, 1.0);
     }
     List<Color> bgColor = [primaryThemeDarkColor, primaryThemeLightColor];
     Color textColor = Colors.white;
@@ -386,7 +398,8 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const OpeningView()),
+                      builder: (context) => const OpeningView(),
+                    ),
                   );
                 },
               ),
@@ -413,20 +426,24 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.keyboard_double_arrow_right),
-                        onPressed:
-                            isNextMoveUnique ? _playNextUniqueMove : null,
+                        onPressed: isNextMoveUnique
+                            ? _playNextUniqueMove
+                            : null,
                         disabledColor: Colors.grey,
                         color: Colors.white,
                       ),
                     ],
                   ),
                   Center(
-                    child: Text(widget.opening.name,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            fontStyle: FontStyle.italic)),
+                    child: Text(
+                      widget.opening.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
                   ),
                   Align(
                     alignment: Alignment.centerLeft,
@@ -437,12 +454,16 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                         children: [
                           CapturedPiecesComponent(
                             capturedPieces: widget
-                                .board.capturedPieceNotifier.value
-                                .where((element) =>
-                                    element.color ==
-                                    (isReversed
-                                        ? PieceColor.black
-                                        : PieceColor.white))
+                                .board
+                                .capturedPieceNotifier
+                                .value
+                                .where(
+                                  (element) =>
+                                      element.color ==
+                                      (isReversed
+                                          ? PieceColor.black
+                                          : PieceColor.white),
+                                )
                                 .toList(),
                           ),
                           topScore > 0
@@ -453,13 +474,15 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                   height: 30,
                                   width: 30,
                                   child: Center(
-                                      child: Text(
-                                    scoreStr(topScore),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: textColor,
+                                    child: Text(
+                                      scoreStr(topScore),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: textColor,
+                                      ),
                                     ),
-                                  )))
+                                  ),
+                                )
                               : Container(),
                         ],
                       ),
@@ -473,10 +496,11 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                           const SizedBox(height: 15),
                           Container(
                             decoration: BoxDecoration(
-                                border: Border.all(
-                              width: 4,
-                              color: secondaryThemeDarkColor,
-                            )),
+                              border: Border.all(
+                                width: 4,
+                                color: secondaryThemeDarkColor,
+                              ),
+                            ),
                             height: MediaQuery.of(context).size.width - 25,
                             width: MediaQuery.of(context).size.width - 25,
                             child: Center(
@@ -486,253 +510,291 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                 removeBottom: true,
                                 removeLeft: true,
                                 removeRight: true,
-                                child: Stack(children: [
-                                  GridView.builder(
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    gridDelegate:
-                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 8,
-                                    ),
-                                    itemBuilder: (context, index) {
-                                      Color lastMoveColor = tmpLastMoveColor;
-                                      final int row = isReversed
-                                          ? 7 - (index ~/ 8)
-                                          : index ~/ 8;
-                                      final int col = isReversed
-                                          ? 7 - (index % 8)
-                                          : index % 8;
-                                      final Square square =
-                                          widget.board.board[row][col];
-                                      bool isGameOver =
-                                          widget.board.gameResult.value != 0;
-                                      bool isLastFromSquare =
-                                          square.row == lastMoveFromRow &&
-                                              square.col == lastMoveFromCol;
-                                      bool isLastToSquare =
-                                          square.row == lastMoveToRow &&
-                                              square.col == lastMoveToCol;
-                                      Color squareColor = square.isWhite
-                                          ? tmpWhiteColor
-                                          : tmpBlackColor;
-                                      Color otherColor = !square.isWhite
-                                          ? tmpWhiteColor
-                                          : tmpBlackColor;
-                                      squareColor =
-                                          isLastFromSquare || isLastToSquare
-                                              ? lastMoveColor
-                                              : squareColor;
-                                      return GestureDetector(
-                                        onTap: () {
-                                          if (isGameOver) return;
-                                          setState(() {
-                                            if (!isRecording) {
-                                              if (selectedSquare == null &&
-                                                  square.piece != null &&
-                                                  square.piece!.color ==
-                                                      widget
-                                                          .board.currentTurn) {
-                                                selectedSquare = square;
-                                                validMoves = widget.board
-                                                    .getValidMoves(
-                                                        square.piece!);
-                                              } else if (selectedSquare !=
-                                                      null &&
-                                                  validMoves.contains(square)) {
-                                                OpeningMove? move =
-                                                    isInCurrentOpening(
+                                child: Stack(
+                                  children: [
+                                    GridView.builder(
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 8,
+                                          ),
+                                      itemBuilder: (context, index) {
+                                        Color lastMoveColor = tmpLastMoveColor;
+                                        final int row = isReversed
+                                            ? 7 - (index ~/ 8)
+                                            : index ~/ 8;
+                                        final int col = isReversed
+                                            ? 7 - (index % 8)
+                                            : index % 8;
+                                        final Square square =
+                                            widget.board.board[row][col];
+                                        bool isGameOver =
+                                            widget.board.gameResult.value != 0;
+                                        bool isLastFromSquare =
+                                            square.row == lastMoveFromRow &&
+                                            square.col == lastMoveFromCol;
+                                        bool isLastToSquare =
+                                            square.row == lastMoveToRow &&
+                                            square.col == lastMoveToCol;
+                                        Color squareColor = square.isWhite
+                                            ? tmpWhiteColor
+                                            : tmpBlackColor;
+                                        Color otherColor = !square.isWhite
+                                            ? tmpWhiteColor
+                                            : tmpBlackColor;
+                                        squareColor =
+                                            isLastFromSquare || isLastToSquare
+                                            ? lastMoveColor
+                                            : squareColor;
+                                        return GestureDetector(
+                                          onTap: () {
+                                            if (isGameOver) return;
+                                            setState(() {
+                                              if (!isRecording) {
+                                                if (selectedSquare == null &&
+                                                    square.piece != null &&
+                                                    square.piece!.color ==
+                                                        widget
+                                                            .board
+                                                            .currentTurn) {
+                                                  selectedSquare = square;
+                                                  validMoves = widget.board
+                                                      .getValidMoves(
+                                                        square.piece!,
+                                                      );
+                                                } else if (selectedSquare !=
+                                                        null &&
+                                                    validMoves.contains(
+                                                      square,
+                                                    )) {
+                                                  OpeningMove? move =
+                                                      isInCurrentOpening(
                                                         selectedSquare!,
-                                                        Square(row, col));
-                                                if (move != null) {
-                                                  moveInOpening(move);
+                                                        Square(row, col),
+                                                      );
+                                                  if (move != null) {
+                                                    moveInOpening(move);
+                                                  } else {
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      const SnackBar(
+                                                        content: Text(
+                                                          "Move not available in you opening",
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                  selectedSquare = null;
+                                                  validMoves = [];
                                                 } else {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(const SnackBar(
-                                                          content: Text(
-                                                              "Move not available in you opening")));
+                                                  selectedSquare = null;
+                                                  validMoves = [];
                                                 }
-                                                selectedSquare = null;
-                                                validMoves = [];
                                               } else {
-                                                selectedSquare = null;
-                                                validMoves = [];
+                                                if (selectedSquare == null &&
+                                                    square.piece != null &&
+                                                    square.piece!.color ==
+                                                        widget
+                                                            .board
+                                                            .currentTurn) {
+                                                  selectedSquare = square;
+                                                  validMoves = widget.board
+                                                      .getValidMoves(
+                                                        square.piece!,
+                                                      );
+                                                } else if (selectedSquare !=
+                                                        null &&
+                                                    validMoves.contains(
+                                                      square,
+                                                    )) {
+                                                  newVariant.add([
+                                                    selectedSquare!,
+                                                    square,
+                                                  ]);
+                                                  moveHistory.add([
+                                                    selectedSquare!,
+                                                    square,
+                                                  ]);
+                                                  widget.board.movePiece(
+                                                    selectedSquare!.row,
+                                                    selectedSquare!.col,
+                                                    row,
+                                                    col,
+                                                  );
+                                                  setState(() {
+                                                    lastMoveFromRow =
+                                                        selectedSquare!.row;
+                                                    lastMoveFromCol =
+                                                        selectedSquare!.col;
+                                                    lastMoveToRow = row;
+                                                    lastMoveToCol = col;
+                                                  });
+                                                  selectedSquare = null;
+                                                  validMoves = [];
+                                                } else {
+                                                  selectedSquare = null;
+                                                  validMoves = [];
+                                                }
                                               }
-                                            } else {
-                                              if (selectedSquare == null &&
-                                                  square.piece != null &&
-                                                  square.piece!.color ==
-                                                      widget
-                                                          .board.currentTurn) {
-                                                selectedSquare = square;
-                                                validMoves = widget.board
-                                                    .getValidMoves(
-                                                        square.piece!);
-                                              } else if (selectedSquare !=
-                                                      null &&
-                                                  validMoves.contains(square)) {
-                                                newVariant.add(
-                                                    [selectedSquare!, square]);
-                                                moveHistory.add(
-                                                    [selectedSquare!, square]);
-                                                widget.board.movePiece(
-                                                  selectedSquare!.row,
-                                                  selectedSquare!.col,
-                                                  row,
-                                                  col,
-                                                );
-                                                setState(() {
-                                                  lastMoveFromRow =
-                                                      selectedSquare!.row;
-                                                  lastMoveFromCol =
-                                                      selectedSquare!.col;
-                                                  lastMoveToRow = row;
-                                                  lastMoveToCol = col;
-                                                });
-                                                selectedSquare = null;
-                                                validMoves = [];
-                                              } else {
-                                                selectedSquare = null;
-                                                validMoves = [];
-                                              }
-                                            }
-                                          });
-                                        },
-                                        child: Stack(
-                                          children: [
-                                            isLastToSquare || isLastFromSquare
-                                                ? Container(
-                                                    decoration: BoxDecoration(
+                                            });
+                                          },
+                                          child: Stack(
+                                            children: [
+                                              isLastToSquare || isLastFromSquare
+                                                  ? Container(
+                                                      decoration: BoxDecoration(
                                                         border: Border.all(
                                                           color: Colors.black
                                                               .withOpacity(0.5),
                                                           width: 1,
                                                         ),
-                                                        color: squareColor),
-                                                    child: _buildPiece(
-                                                        square.piece),
-                                                  )
-                                                : Container(
+                                                        color: squareColor,
+                                                      ),
+                                                      child: _buildPiece(
+                                                        square.piece,
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      decoration: BoxDecoration(
+                                                        color: squareColor,
+                                                      ),
+                                                      child: _buildPiece(
+                                                        square.piece,
+                                                      ),
+                                                    ),
+                                              if (coordinatesIndexes.contains(
+                                                index,
+                                              ))
+                                                Positioned(
+                                                  bottom: index > 56 ? 2 : null,
+                                                  right: index > 56 ? 2 : null,
+                                                  top: index <= 56 ? 2 : null,
+                                                  left: index <= 56 ? 2 : null,
+                                                  child: Text(
+                                                    indexes(index, isReversed),
+                                                    style: TextStyle(
+                                                      color: otherColor,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              if (index == 56)
+                                                Positioned(
+                                                  bottom: 2,
+                                                  right: 2,
+                                                  child: Text(
+                                                    !isReversed ? "a" : "h",
+                                                    style: TextStyle(
+                                                      color: otherColor,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              if (square.piece != null &&
+                                                  square.piece!.type ==
+                                                      PieceType.king &&
+                                                  widget.board.isCheck(
+                                                    square.piece!.color,
+                                                  ) &&
+                                                  !!widget.board.isCheckmate())
+                                                Positioned(
+                                                  top: 2,
+                                                  right: 2,
+                                                  child: Container(
+                                                    width: 10,
+                                                    height: 10,
                                                     decoration: BoxDecoration(
-                                                        color: squareColor),
-                                                    child: _buildPiece(
-                                                        square.piece),
-                                                  ),
-                                            if (coordinatesIndexes
-                                                .contains(index))
-                                              Positioned(
-                                                bottom: index > 56 ? 2 : null,
-                                                right: index > 56 ? 2 : null,
-                                                top: index <= 56 ? 2 : null,
-                                                left: index <= 56 ? 2 : null,
-                                                child: Text(
-                                                  indexes(index, isReversed),
-                                                  style: TextStyle(
-                                                    color: otherColor,
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
+                                                      color: Colors.redAccent
+                                                          .withOpacity(1),
+                                                      shape: BoxShape.circle,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            if (index == 56)
-                                              Positioned(
-                                                bottom: 2,
-                                                right: 2,
-                                                child: Text(
-                                                  !isReversed ? "a" : "h",
-                                                  style: TextStyle(
-                                                    color: otherColor,
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            if (square.piece != null &&
-                                                square.piece!.type ==
-                                                    PieceType.king &&
-                                                widget.board.isCheck(
-                                                    square.piece!.color) &&
-                                                !!widget.board.isCheckmate())
-                                              Positioned(
-                                                top: 2,
-                                                right: 2,
-                                                child: Container(
-                                                  width: 10,
-                                                  height: 10,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.redAccent
-                                                        .withOpacity(1),
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                ),
-                                              ),
-                                            if (validMoves.contains(square) &&
-                                                square.piece == null &&
-                                                isInCurrentOpening(
+                                              if (validMoves.contains(square) &&
+                                                  square.piece == null &&
+                                                  isInCurrentOpening(
                                                         selectedSquare!,
-                                                        square) !=
-                                                    null &&
-                                                !isRecording)
-                                              Center(
-                                                child: Container(
-                                                  width: 10,
-                                                  height: 10,
-                                                  decoration: BoxDecoration(
-                                                    color: tmpArrowColor
-                                                        .withOpacity(0.8),
-                                                    shape: BoxShape.circle,
+                                                        square,
+                                                      ) !=
+                                                      null &&
+                                                  !isRecording)
+                                                Center(
+                                                  child: Container(
+                                                    width: 10,
+                                                    height: 10,
+                                                    decoration: BoxDecoration(
+                                                      color: tmpArrowColor
+                                                          .withOpacity(0.8),
+                                                      shape: BoxShape.circle,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            if (validMoves.contains(square) &&
-                                                square.piece == null &&
-                                                isRecording)
-                                              Center(
-                                                child: Container(
-                                                  width: 10,
-                                                  height: 10,
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                    color: Color.fromRGBO(
-                                                        108, 0, 0, 0.9),
-                                                    shape: BoxShape.circle,
+                                              if (validMoves.contains(square) &&
+                                                  square.piece == null &&
+                                                  isRecording)
+                                                Center(
+                                                  child: Container(
+                                                    width: 10,
+                                                    height: 10,
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                          color: Color.fromRGBO(
+                                                            108,
+                                                            0,
+                                                            0,
+                                                            0.9,
+                                                          ),
+                                                          shape:
+                                                              BoxShape.circle,
+                                                        ),
                                                   ),
                                                 ),
-                                              ),
-                                            if (validMoves.contains(square) &&
-                                                square.piece != null)
-                                              Container(
-                                                color: Colors.redAccent
-                                                    .withOpacity(0.5),
-                                              ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    itemCount: 64,
-                                  ),
-                                  IgnorePointer(
-                                    child: Opacity(
-                                      opacity: isRecording ? 0.0 : 1.0,
-                                      child: CustomPaint(
-                                        size: Size(
+                                              if (validMoves.contains(square) &&
+                                                  square.piece != null)
+                                                Container(
+                                                  color: Colors.redAccent
+                                                      .withOpacity(0.5),
+                                                ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                      itemCount: 64,
+                                    ),
+                                    IgnorePointer(
+                                      child: Opacity(
+                                        opacity: isRecording ? 0.0 : 1.0,
+                                        child: CustomPaint(
+                                          size: Size(
                                             MediaQuery.of(context).size.width -
                                                 25,
                                             MediaQuery.of(context).size.width -
-                                                25),
-                                        painter: ArrowPainter(
+                                                25,
+                                          ),
+                                          painter: ArrowPainter(
                                             moves: widget.opening.moves
-                                                .where((move) =>
-                                                    move.moveNumber ==
-                                                        currentMoveNumber &&
-                                                    lastMoveId ==
-                                                        move.previousMoveId)
+                                                .where(
+                                                  (move) =>
+                                                      move.moveNumber ==
+                                                          currentMoveNumber &&
+                                                      lastMoveId ==
+                                                          move.previousMoveId,
+                                                )
                                                 .toList(),
                                             isReversed: isReversed,
-                                            color: arrowColor),
+                                            color: arrowColor,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ]),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -749,12 +811,16 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                         children: [
                           CapturedPiecesComponent(
                             capturedPieces: widget
-                                .board.capturedPieceNotifier.value
-                                .where((element) =>
-                                    element.color ==
-                                    (isReversed
-                                        ? PieceColor.white
-                                        : PieceColor.black))
+                                .board
+                                .capturedPieceNotifier
+                                .value
+                                .where(
+                                  (element) =>
+                                      element.color ==
+                                      (isReversed
+                                          ? PieceColor.white
+                                          : PieceColor.black),
+                                )
                                 .toList(),
                           ),
                           bottomScore > 0
@@ -765,13 +831,15 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                   height: 30,
                                   width: 30,
                                   child: Center(
-                                      child: Text(
-                                    scoreStr(bottomScore),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: textColor,
+                                    child: Text(
+                                      scoreStr(bottomScore),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: textColor,
+                                      ),
                                     ),
-                                  )))
+                                  ),
+                                )
                               : Container(),
                         ],
                       ),
@@ -800,9 +868,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                         ),
 
                          */
-                        const SizedBox(
-                          height: 10,
-                        ),
+                        const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -825,9 +891,7 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                                 width: 50.0,
                                 height: 50.0,
                                 decoration: BoxDecoration(
-                                  color: isRecording
-                                      ? Colors.red
-                                      : Colors.grey,
+                                  color: isRecording ? Colors.red : Colors.grey,
                                   shape: BoxShape.circle,
                                 ),
                                 child: Center(
@@ -842,11 +906,12 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
                             ),
                             if (!isRecording)
                               IconButton(
-                                  onPressed: _showDeleteVariantDialog,
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.white,
-                                  )),
+                                onPressed: _showDeleteVariantDialog,
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.white,
+                                ),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 30),
@@ -858,13 +923,12 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
               ),
             ),
             Align(
-                alignment: Alignment.bottomCenter,
-                child: Text(
-                  'Move n°$moveCountMessage',
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
-                ))
+              alignment: Alignment.bottomCenter,
+              child: Text(
+                'Move n°$moveCountMessage',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
           ],
         ),
       ),
@@ -873,13 +937,15 @@ class _OpeningBoardViewState extends State<OpeningBoardView> {
 
   OpeningMove? isInCurrentOpening(Square from, Square to) {
     List<OpeningMove>? doneMove = widget.opening.moves
-        .where((element) =>
-            element.from.row == from.row &&
-            element.from.col == from.col &&
-            element.to.row == to.row &&
-            element.to.col == to.col &&
-            element.moveNumber == widget.board.moveCount.value &&
-            element.previousMoveId == lastMoveId)
+        .where(
+          (element) =>
+              element.from.row == from.row &&
+              element.from.col == from.col &&
+              element.to.row == to.row &&
+              element.to.col == to.col &&
+              element.moveNumber == widget.board.moveCount.value &&
+              element.previousMoveId == lastMoveId,
+        )
         .toList();
     if (doneMove.isNotEmpty) {
       return doneMove.first;
