@@ -18,9 +18,8 @@ A lightweight, polished Flutter application to save, browse and manage chess ope
 - Export current DB state to JSON printed to console.
 
 ## Demonstration
-@TODO: SCREENSHOTS of key views (opening list, opening board, analysis bar, DB browser, settings).
 
-You can also add a demo video link here: @TODO.
+A demonstration video is available at: [https://youtu.be/yXMimUdVNv4](https://youtu.be/yXMimUdVNv4)
 
 ## Tech Stack
 - Flutter (stable)
